@@ -19,6 +19,7 @@ class LevelManagerComponent extends Component with HasGameRef {
   late final List<LevelData> _chunks;
   int _idx = 0;
   LevelData? _current; // Chunk actual cargado (expuesto para vistas)
+  List<List<CeldaData>>? get currentGrid => _current?.grid;
 
   // Referencias a componentes del nivel para poder limpiarlos
   final List<Component> _levelComponents = [];
@@ -186,6 +187,7 @@ class LevelManagerComponent extends Component with HasGameRef {
       }
     }
   }
+
   @override
   void onRemove() {
     // Limpiar pools al destruir el LevelManager
@@ -208,9 +210,15 @@ class LevelManagerComponent extends Component with HasGameRef {
 
     // Calcular índices de tiles cubiertos por el rect
     final startX = (rect.left / ts).floor().clamp(0, grid[0].length - 1);
-    final endX = ((rect.right - 0.0001) / ts).floor().clamp(0, grid[0].length - 1);
+    final endX = ((rect.right - 0.0001) / ts).floor().clamp(
+      0,
+      grid[0].length - 1,
+    );
     final startY = (rect.top / ts).floor().clamp(0, grid.length - 1);
-    final endY = ((rect.bottom - 0.0001) / ts).floor().clamp(0, grid.length - 1);
+    final endY = ((rect.bottom - 0.0001) / ts).floor().clamp(
+      0,
+      grid.length - 1,
+    );
 
     for (var y = startY; y <= endY; y++) {
       for (var x = startX; x <= endX; x++) {
@@ -877,7 +885,6 @@ extension LevelManagerSnapshot on LevelManagerComponent {
   List<List<CeldaData>>? get currentGrid => _current?.grid;
   LevelData? get currentChunk => _current;
 }
- 
 
 class _SimpleLevel extends LevelData {
   const _SimpleLevel({

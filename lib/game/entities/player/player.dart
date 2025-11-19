@@ -18,7 +18,6 @@ import 'package:flutter/painting.dart';
 
 class PlayerComponent extends PositionedEntity
     with CollisionCallbacks, HasGameRef<BlackEchoGame> {
-
   PlayerComponent({
     required this.gameBloc,
     Vector2? position,
@@ -26,15 +25,15 @@ class PlayerComponent extends PositionedEntity
     Anchor anchor = Anchor.center,
     List<Behavior>? behaviors,
   }) : _paint = (Paint()
-          ..color = const Color(0xFF00FFFF)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5),
-        super(
-          position: position ?? Vector2.zero(),
-          size: size ?? Vector2.all(24),
-          anchor: anchor,
-          behaviors: behaviors ?? <Behavior>[],
-        );
+         ..color = const Color(0xFF00FFFF)
+         ..style = PaintingStyle.stroke
+         ..strokeWidth = 2.5),
+       super(
+         position: position ?? Vector2.zero(),
+         size: size ?? Vector2.all(24),
+         anchor: anchor,
+         behaviors: behaviors ?? <Behavior>[],
+       );
   // Heading in radians for FP mode
   double heading = 0;
   final GameBloc gameBloc;
@@ -73,8 +72,8 @@ class PlayerComponent extends PositionedEntity
         add(EcholocationBehavior(gameBloc: gameBloc));
         add(RuptureBehavior(gameBloc: gameBloc));
         add(StealthBehavior(gameBloc: gameBloc));
-      case Enfoque.scan:
-        // Juego pausado por el motor, sin behaviors
+      default:
+        // Enfoque.scan y otros futuros
         break;
     }
   }
@@ -83,7 +82,7 @@ class PlayerComponent extends PositionedEntity
   void render(Canvas canvas) {
     // NO renderizar en first-person: el raycaster proyecta la vista desde el jugador
     if (gameBloc.state.enfoqueActual == Enfoque.firstPerson) return;
-    
+
     // Render simple del jugador: círculo cyan (solo en top-down y side-scroll)
     canvas.drawCircle(Offset.zero, size.x * 0.5, _paint);
   }
@@ -112,10 +111,12 @@ class PlayerComponent extends PositionedEntity
     }
 
     // Colisión con Resonancias (Cazador, Vigía, Bruto)
-    if (other is CazadorComponent || other is VigiaComponent || other is BrutoComponent) {
+    if (other is CazadorComponent ||
+        other is VigiaComponent ||
+        other is BrutoComponent) {
       final enemy = other as PositionedEntity;
       final hearing = enemy.findBehavior<HearingBehavior>();
-      
+
       if (hearing.estadoActual == AIState.caza) {
         // Verificar si tiene escudo (energía >= 50)
         if (gameBloc.state.energiaGrito >= 50) {
@@ -124,13 +125,13 @@ class PlayerComponent extends PositionedEntity
 
           // Activar rechazo sónico (escudo)
           gameBloc.add(const RechazoSonicoActivado(50));
-          
+
           // Aturdir al enemigo
           hearing.stun(2.5);
-          
+
           // VFX: onda de choque expansiva
           parent?.add(RejectionVfxComponent(origin: position.clone()));
-          
+
           // Emitir sonido alto para atraer otros enemigos
           game.emitSound(position.clone(), NivelSonido.alto, ttl: 1.5);
         } else {

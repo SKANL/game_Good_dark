@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui; // Para adaptar resolución del viewport según tamaño de pantalla
+import 'dart:ui'
+    as ui; // Para adaptar resolución del viewport según tamaño de pantalla
 
 import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:echo_world/game/components/components.dart';
@@ -43,12 +44,12 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
   bool _cameraReady = false;
 
   /// Renderizador de raycasting para el modo First-Person.
-  /// 
+  ///
   /// Se añade al mundo solo cuando `enfoqueActual == Enfoque.firstPerson`.
   /// Este componente se integra directamente en el pipeline de renderizado
   /// de Flame, reemplazando la vista 2D con una proyección 3D desde la
   /// posición y orientación del jugador.
-  /// 
+  ///
   /// **Lifecycle:**
   /// - `null` en modos topDown/sideScroll
   /// - Instanciado y añadido al world en modo firstPerson
@@ -93,7 +94,9 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
 
     // Añadir retícula (crosshair) para first-person
     final crosshair = CrosshairComponent();
-    await add(crosshair); // Agregar al game, no al viewport para no afectar layout
+    await add(
+      crosshair,
+    ); // Agregar al game, no al viewport para no afectar layout
 
     // Inicializar cache para detección de cambios
     _lastEnfoque = gameBloc.state.enfoqueActual;
@@ -124,7 +127,7 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
       maxDistance: 1, // No atenuación por distancia
       volume: gameBloc.state.ruidoMental / 100.0,
     );
-    
+
     // Activar overlay inicial según el enfoque al cargar
     Future.microtask(() {
       switch (gameBloc.state.enfoqueActual) {
@@ -134,17 +137,19 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
           overlays.add('HudSideScroll');
         case Enfoque.firstPerson:
           overlays.add('HudFirstPerson');
-        case Enfoque.scan:
-          overlays.add('HudFirstPerson');
+        // case Enfoque.scan:
+        //   overlays.add('HudFirstPerson');
+        default:
+          break;
       }
     });
   }
-  
+
   /// Recalcula la resolución del viewport cuando cambian las métricas.
   void _recalcularViewport() {
     if (!_cameraReady) return;
     final windowSize = ui.window.physicalSize / ui.window.devicePixelRatio;
-    
+
     // Usar la resolución lógica completa del dispositivo (sin letterboxing)
     // Esto hace que la vista del raycaster ocupe TODO el área disponible
     // evitando barras negras laterales provocadas por mantener una resolución
@@ -177,14 +182,14 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
   }
 
   /// Ajustar la configuración de la cámara según el enfoque actual.
-  /// 
+  ///
   /// **MODO FIRST-PERSON:**
   /// En FP, se añade el RaycastRendererComponent directamente al GAME (no al world)
   /// para que renderice en el canvas completo sin transformación de cámara.
   /// Este componente proyecta el nivel en 3D desde la posición del jugador.
   /// CRÍTICO: La cámara se DETIENE (no sigue al jugador) porque el raycaster
   /// renderiza desde la posición absoluta del jugador en el mundo.
-  /// 
+  ///
   /// **MODOS TOP-DOWN Y SIDE-SCROLL:**
   /// Se quita el raycaster si existe y la cámara sigue al jugador normalmente.
   void _ajustarCamara(Enfoque enfoque) {
@@ -213,8 +218,9 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
         }
         // CRÍTICO: Detener la cámara. El raycaster maneja la vista.
         cameraComponent.stop();
-      case Enfoque.scan: // OBSOLETO: Modo scan reemplazado por firstPerson
-        cameraComponent.stop();
+      default:
+        // Enfoque.scan y otros futuros
+        break;
     }
   }
 

@@ -53,7 +53,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       Enfoque.topDown: Enfoque.sideScroll,
       Enfoque.sideScroll: Enfoque.firstPerson,
       Enfoque.firstPerson: Enfoque.topDown,
-      Enfoque.scan: Enfoque.topDown,
+      // Enfoque.scan: Enfoque.topDown,
     }[state.enfoqueActual]!;
     emit(state.copyWith(enfoqueActual: next));
   }

@@ -177,11 +177,14 @@ class HearingBehavior extends Behavior<PositionedEntity>
     }
   }
 
+  // Target de patrulla (asignado por PatrolBehavior)
+  Vector2? patrolTarget;
+
   /// Devuelve el target de movimiento según el estado FSM
   Vector2? get targetActual {
     switch (estadoActual) {
       case AIState.atormentado:
-        return null; // PatrolBehavior controla el movimiento
+        return patrolTarget;
       case AIState.alerta:
         return ultimaPosicionSonido;
       case AIState.caza:

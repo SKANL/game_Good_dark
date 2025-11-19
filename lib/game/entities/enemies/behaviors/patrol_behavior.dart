@@ -1,91 +1,90 @@
 import 'dart:math';
+import 'dart:ui';
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/entities/enemies/behaviors/hearing_behavior.dart';
+import 'package:echo_world/game/level/level_manager.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
-import 'dart:ui';
 
-/// Behavior de patrulla errática para el estado ATORMENTADO.
-/// Cambia de dirección aleatoriamente cada cierto intervalo.
+/// Behavior de patrulla por waypoints para el estado ATORMENTADO.
+/// Elige un punto aleatorio cercano y lo asigna como target al HearingBehavior.
 class PatrolBehavior extends Behavior<PositionedEntity> {
-  PatrolBehavior({this.intervaloCambio = 2.5});
+  PatrolBehavior({this.waitTime = 2.0, this.patrolRadius = 5});
 
-  final double intervaloCambio; // Segundos entre cambios de dirección
+  final double waitTime; // Tiempo de espera al llegar al destino
+  final int patrolRadius; // Radio en tiles para buscar nuevo punto
   double _timer = 0;
-  Vector2 _direccion = Vector2.zero();
   final Random _random = Random();
 
   @override
   void update(double dt) {
-    // Solo patrullar si el HearingBehavior está en estado ATORMENTADO
     final hearing = parent.findBehavior<HearingBehavior>();
+
+    // Solo patrullar si está en estado ATORMENTADO
     if (hearing.estadoActual != AIState.atormentado) {
+      hearing.patrolTarget = null; // Limpiar target si cambia de estado
       return;
     }
 
-    _timer += dt;
-    if (_timer >= intervaloCambio) {
-      _timer = 0;
-      // Generar nueva dirección aleatoria normalizada
-      _direccion = Vector2(
-        _random.nextDouble() * 2 - 1,
-        _random.nextDouble() * 2 - 1,
-      )..normalize();
+    // Si ya tiene target, verificar si llegó
+    if (hearing.patrolTarget != null) {
+      if (parent.position.distanceTo(hearing.patrolTarget!) < 8) {
+        // Llegó al destino (o muy cerca), esperar
+        _timer += dt;
+        if (_timer >= waitTime) {
+          hearing.patrolTarget = null; // Limpiar para buscar nuevo
+          _timer = 0;
+        }
+      }
+      // Si no ha llegado, AIMovementBehavior se encarga de moverlo
+      return;
     }
 
-    // Mover usando la velocidad del HearingBehavior con comprobación de colisiones
-    if (_direccion.length > 0) {
-      final delta = _direccion * hearing.velocidadActual * dt;
-      final proposed = parent.position + delta;
-      final half = parent.size / 2;
-      final rectFull = Rect.fromLTWH(
-        proposed.x - half.x,
-        proposed.y - half.y,
-        parent.size.x,
-        parent.size.y,
-      );
-      // Acceder al LevelManager a través del game
-      try {
-        final game = parent.findParent<BlackEchoGame>();
-        if (game != null) {
-          if (game.levelManager.isRectWalkable(rectFull)) {
-            parent.position = proposed;
-          } else {
-            final proposedX = parent.position + Vector2(delta.x, 0);
-            final rectX = Rect.fromLTWH(
-              proposedX.x - half.x,
-              proposedX.y - half.y,
-              parent.size.x,
-              parent.size.y,
-            );
-            if (game.levelManager.isRectWalkable(rectX)) {
-              parent.position = proposedX;
-            }
+    // Buscar nuevo target inmediatamente
+    _pickNewTarget(hearing);
+  }
 
-            final proposedY = parent.position + Vector2(0, delta.y);
-            final rectY = Rect.fromLTWH(
-              proposedY.x - half.x,
-              proposedY.y - half.y,
-              parent.size.x,
-              parent.size.y,
-            );
-            if (game.levelManager.isRectWalkable(rectY)) {
-              parent.position = proposedY;
-            }
-          }
-        } else {
-          parent.position += delta;
-        }
-      } catch (_) {
-        parent.position += delta;
+  void _pickNewTarget(HearingBehavior hearing) {
+    final game = parent.findParent<BlackEchoGame>();
+    if (game == null) return;
+
+    final tileSize = LevelManagerComponent.tileSize;
+    final currentTileX = (parent.position.x / tileSize).floor();
+    final currentTileY = (parent.position.y / tileSize).floor();
+
+    // Intentar encontrar un tile válido (hasta 10 intentos)
+    for (int i = 0; i < 10; i++) {
+      final dx = _random.nextInt(patrolRadius * 2 + 1) - patrolRadius;
+      final dy = _random.nextInt(patrolRadius * 2 + 1) - patrolRadius;
+
+      // Evitar el mismo tile
+      if (dx == 0 && dy == 0) continue;
+
+      final targetX = currentTileX + dx;
+      final targetY = currentTileY + dy;
+
+      // Verificar límites y si es transitable
+      final rect = Rect.fromLTWH(
+        targetX * tileSize,
+        targetY * tileSize,
+        tileSize,
+        tileSize,
+      );
+
+      if (game.levelManager.isRectWalkable(rect)) {
+        // Asignar centro del tile como target
+        hearing.patrolTarget = Vector2(
+          (targetX * tileSize) + (tileSize / 2),
+          (targetY * tileSize) + (tileSize / 2),
+        );
+        return;
       }
     }
-
-    super.update(dt);
   }
 
   void reset() {
     _timer = 0;
-    _direccion = Vector2.zero();
+    final hearing = parent.findBehavior<HearingBehavior>();
+    hearing.patrolTarget = null;
   }
 }

@@ -119,10 +119,12 @@ class _GameViewState extends State<GameView> {
             game.overlays.add('HudSideScroll');
           case Enfoque.firstPerson:
             game.overlays.add('HudFirstPerson');
-          case Enfoque.scan: // OBSOLETO
-            // game.pauseEngine();
-            // game.overlays.add('HudScan');
-            game.overlays.add('HudFirstPerson');
+          // case Enfoque.scan: // OBSOLETO
+          //   // game.pauseEngine();
+          //   // game.overlays.add('HudScan');
+          //   game.overlays.add('HudFirstPerson');
+          default:
+            break;
         }
         // OBSOLETO: Punto único para marcar overlays en desuso. Si se elimina definitivamente un modo,
         // comentar su builder en overlayBuilderMap y añadir nota aquí para limpieza futura.
@@ -133,11 +135,13 @@ class _GameViewState extends State<GameView> {
             child: GameWidget(
               game: _game!,
               overlayBuilderMap: {
-                'HudTopDown': (ctx, game) => _HudTopDown(game! as BlackEchoGame),
+                'HudTopDown': (ctx, game) =>
+                    _HudTopDown(game! as BlackEchoGame),
                 'HudSideScroll': (ctx, game) =>
                     _HudSideScroll(game! as BlackEchoGame),
                 // 'HudScan': (ctx, game) => _HudScan(), // OBSOLETO
-                'HudFirstPerson': (ctx, game) => _HudFirstPerson(game! as BlackEchoGame),
+                'HudFirstPerson': (ctx, game) =>
+                    _HudFirstPerson(game! as BlackEchoGame),
                 'PauseMenu': (ctx, game) => _PauseMenu(),
                 'OverlayFracaso': (ctx, game) => _OverlayFracaso(),
               },
@@ -576,7 +580,10 @@ class _HudSideScroll extends StatelessWidget {
                   },
                   child: Text(
                     '[ABSORBER]',
-                    style: TextStyle(fontSize: absorberFont, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: absorberFont,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -745,8 +752,12 @@ class _HudFirstPerson extends StatelessWidget {
                               backgroundColor: Colors.black.withOpacity(0.5),
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 energia >= 50
-                                    ? const Color(0xFF00FFFF) // Cyan: con escudo
-                                    : const Color(0xFFFF4444), // Rojo: vulnerable
+                                    ? const Color(
+                                        0xFF00FFFF,
+                                      ) // Cyan: con escudo
+                                    : const Color(
+                                        0xFFFF4444,
+                                      ), // Rojo: vulnerable
                               ),
                             ),
                           ),
@@ -875,7 +886,10 @@ class _HudFirstPerson extends StatelessWidget {
                   },
                   child: Text(
                     '[ABSORBER]',
-                    style: TextStyle(fontSize: absorberFont, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: absorberFont,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

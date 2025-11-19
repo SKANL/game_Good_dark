@@ -2,7 +2,13 @@ import 'package:equatable/equatable.dart';
 
 // Perspectiva de juego actual
 // OBSOLETO: 'scan' se mantiene por compatibilidad pero no se usa por defecto.
-enum Enfoque { topDown, sideScroll, firstPerson, scan }
+enum Enfoque {
+  topDown,
+  sideScroll,
+  firstPerson,
+  @deprecated
+  scan,
+}
 
 // Condición de supervivencia del jugador
 enum EstadoJugador { vivo, atrapado }
@@ -10,7 +16,8 @@ enum EstadoJugador { vivo, atrapado }
 // Estado del motor de juego
 enum EstadoJuego { jugando, pausado }
 
-class GameState extends Equatable { // ruidoMental > 75
+class GameState extends Equatable {
+  // ruidoMental > 75
 
   factory GameState.initial() {
     return const GameState(
