@@ -162,21 +162,32 @@ class RaycastRendererComponent extends Component
     // Head bob offset
     final bobOffset = math.sin(_walkTime) * 10.0; // 10 pixels amplitude
 
+    // Crouch offset - lower the camera when crouched
+    // When crouching, camera lowers = horizon appears HIGHER on screen
+    // So we SUBTRACT from the horizon position (negative offset)
+    final isCrouched = game.gameBloc.state.estaAgachado;
+    final crouchOffset = isCrouched ? -80.0 : 0.0; // Negative = horizon goes UP
+
     // Cielo y suelo (fondo)
     final skyPaint = Paint()..color = const Color(0xFF0B1C33);
     final floorPaint = Paint()..color = const Color(0xFF132A2A);
 
     // NO aplicar transformación: renderizar en espacio de canvas directamente
     canvas.drawRect(
-      Rect.fromLTWH(0, 0, renderSize.x, renderSize.y / 2 + bobOffset),
+      Rect.fromLTWH(
+        0,
+        0,
+        renderSize.x,
+        renderSize.y / 2 + bobOffset + crouchOffset,
+      ),
       skyPaint,
     );
     canvas.drawRect(
       Rect.fromLTWH(
         0,
-        renderSize.y / 2 + bobOffset,
+        renderSize.y / 2 + bobOffset + crouchOffset,
         renderSize.x,
-        renderSize.y / 2 - bobOffset,
+        renderSize.y / 2 - bobOffset - crouchOffset,
       ),
       floorPaint,
     );
@@ -308,10 +319,11 @@ class RaycastRendererComponent extends Component
       final perp = dist * math.cos(rayAng - heading);
       final wallH =
           (renderSize.y) / (perp + 0.0001); // Usar altura completa del canvas
-      final yTop = ((renderSize.y / 2) - wallH / 2 + bobOffset).clamp(
-        0,
-        renderSize.y,
-      );
+      final yTop = ((renderSize.y / 2) - wallH / 2 + bobOffset + crouchOffset)
+          .clamp(
+            0,
+            renderSize.y,
+          );
       final yBottom = (yTop + wallH).clamp(0, renderSize.y);
 
       // Sombreado por distancia
