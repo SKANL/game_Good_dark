@@ -1,8 +1,9 @@
-import 'dart:math' as math;
+import 'package:audioplayers/audioplayers.dart';
 import 'package:echo_world/game/game.dart';
-import 'package:echo_world/journal/journal.dart';
-import 'package:echo_world/l10n/l10n.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart';
 
 class TitlePage extends StatelessWidget {
   const TitlePage({super.key});
@@ -13,152 +14,387 @@ class TitlePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Text(
-          l10n.titleAppBarTitle,
-          style: const TextStyle(color: Color(0xFF00FFFF)),
-        ),
-      ),
-      body: const TitleView(),
+      body: MenuPrincipal(),
     );
   }
 }
 
-class TitleView extends StatelessWidget {
-  const TitleView({super.key});
+class MenuPrincipal extends StatefulWidget {
+  const MenuPrincipal({super.key});
+
+  @override
+  State<MenuPrincipal> createState() => _MenuPrincipalState();
+}
+
+class _MenuPrincipalState extends State<MenuPrincipal>
+    with SingleTickerProviderStateMixin {
+  late VideoPlayerController _controller;
+  late AnimationController _animController;
+
+  // Usaremos FlameAudio, así que no necesitamos instancias manuales de AudioPlayer aquí
+  // para el BGM y SFX, FlameAudio gestiona sus propios pools.
+
+  // Lista de animaciones para cada botón
+  final List<Animation<Offset>> _buttonAnimations = [];
+  bool _isLoaded = false;
+
+  // --- GESTIÓN DE SELECCIÓN ---
+  int? _focusedIndex; // Índice del botón actualmente seleccionado/iluminado
+  final List<GlobalKey> _buttonKeys = List.generate(5, (_) => GlobalKey());
+
+  @override
+  void initState() {
+    super.initState();
+    debugPrint("--- MenuPrincipal initState (FlameAudio) ---");
+
+    // 1. Configurar AudioContext (CRÍTICO para Video y Mezcla)
+    try {
+      final audioContext = AudioContext(
+        android: AudioContextAndroid(
+          isSpeakerphoneOn: false,
+          stayAwake: true,
+          contentType: AndroidContentType.sonification,
+          usageType: AndroidUsageType.game,
+          audioFocus: AndroidAudioFocus.none, // No pausar video
+        ),
+        iOS: AudioContextIOS(
+          category: AVAudioSessionCategory.playback,
+          options: {
+            AVAudioSessionOptions.mixWithOthers, // Mezclar con video
+          },
+        ),
+      );
+      AudioPlayer.global.setAudioContext(audioContext);
+      debugPrint("AudioContext configured successfully");
+    } catch (e) {
+      debugPrint("Error configuring AudioContext: $e");
+    }
+
+    // 2. Precargar audios con FlameAudio
+    _loadAudio();
+
+    // 3. Configuración de la animación
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(
+        milliseconds: 1500,
+      ),
+    );
+
+    for (int i = 0; i < 5; i++) {
+      final double start = i * 0.1;
+      final double end = start + 0.5;
+      _buttonAnimations.add(
+        Tween<Offset>(begin: const Offset(-1.5, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animController,
+            curve: Interval(start, end, curve: Curves.easeOutCubic),
+          ),
+        ),
+      );
+    }
+
+    // 4. Carga del video de fondo
+    debugPrint("Initializing VideoPlayerController...");
+    _controller =
+        VideoPlayerController.asset(
+            "assets/video/fondo_menu.mp4",
+            videoPlayerOptions: VideoPlayerOptions(
+              mixWithOthers: true,
+            ),
+          )
+          ..initialize()
+              .then((_) {
+                debugPrint("Video initialized");
+                _controller.setLooping(true);
+                _controller.setVolume(0.0);
+                _controller.play();
+
+                if (mounted) {
+                  setState(() => _isLoaded = true);
+                  _animController.forward();
+                }
+              })
+              .catchError((error) {
+                debugPrint("Error initializing video: $error");
+              });
+  }
+
+  Future<void> _loadAudio() async {
+    try {
+      // Cargar en caché
+      await FlameAudio.audioCache.loadAll([
+        'soundtrack_main.ogg',
+        'select_main.mp3',
+      ]);
+
+      if (mounted) {
+        // Reproducir BGM usando el módulo BGM de FlameAudio
+        // Este módulo maneja automáticamente el looping y la persistencia
+        FlameAudio.bgm.play('soundtrack_main.ogg', volume: 1.0);
+        debugPrint("FlameAudio BGM started");
+      }
+    } catch (e) {
+      debugPrint("Error loading/playing audio with FlameAudio: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    debugPrint("Disposing MenuPrincipal");
+    _controller.dispose();
+    _animController.dispose();
+    // Detener BGM al salir
+    FlameAudio.bgm.stop();
+    // Limpiar caché si es necesario, o dejarlo para el juego
+    super.dispose();
+  }
+
+  // --- LÓGICA DE GESTOS ---
+  void _handlePointer(Offset globalPosition) {
+    int? foundIndex;
+    for (int i = 0; i < _buttonKeys.length; i++) {
+      final key = _buttonKeys[i];
+      final RenderBox? box =
+          key.currentContext?.findRenderObject() as RenderBox?;
+      if (box != null) {
+        final Offset localPosition = box.globalToLocal(globalPosition);
+        if (box.size.contains(localPosition)) {
+          foundIndex = i;
+          break;
+        }
+      }
+    }
+
+    if (_focusedIndex != foundIndex) {
+      if (foundIndex != null) {
+        // Reproducir SFX con FlameAudio
+        // FlameAudio.play crea un nuevo player temporal optimizado para SFX
+        FlameAudio.play('select_main.mp3', volume: 0.8);
+      }
+
+      setState(() {
+        _focusedIndex = foundIndex;
+      });
+    }
+  }
+
+  void _handleTapUp() {
+    if (_focusedIndex != null) {
+      FlameAudio.play('select_main.mp3', volume: 1.0);
+
+      switch (_focusedIndex) {
+        case 0:
+          debugPrint("Navigating to GamePage");
+          FlameAudio.bgm.stop();
+          Navigator.of(context).pushReplacement(GamePage.route());
+          break;
+        case 1:
+          print("Buscando Resonancias...");
+          break;
+        case 2:
+          print("Accediendo a Pruebas...");
+          break;
+        case 3:
+          print("Calibrando Sistema...");
+          break;
+        case 4:
+          debugPrint("Cortando Señal (Saliendo)...");
+          FlameAudio.bgm.stop();
+          SystemNavigator.pop(); // Cierra la app
+          break;
+      }
+    }
+    setState(() => _focusedIndex = null);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final size = MediaQuery.of(context).size;
-        final shortest = size.shortestSide;
-        final widthScale = (shortest / 360).clamp(0.65, 1.2);
-
-        const baseTitle = 56.0;
-        const baseSubtitle = 20.0;
-        const baseButtonH = 54.0;
-        const baseVPad = 16.0;
-
-        final baseTotalHeight =
-            baseVPad * 2 +
-            baseTitle * 1.15 +
-            6 +
-            baseSubtitle * 1.2 +
-            40 +
-            baseButtonH;
-
-        final available = constraints.maxHeight;
-        final heightScale = (available / baseTotalHeight).clamp(0.5, 1.0);
-        final scale = math.min(widthScale.toDouble(), heightScale.toDouble());
-
-        final double titleFont = (baseTitle * scale).clamp(24, 56).toDouble();
-        final double subtitleFont = (baseSubtitle * scale)
-            .clamp(10, 24)
-            .toDouble();
-        final double buttonHeight = (baseButtonH * scale)
-            .clamp(42, 60)
-            .toDouble();
-        final double hPad = 24.0;
-        final double vPad = baseVPad * scale;
-        final double buttonWidth = math.min(
-          (260.0 * scale).clamp(200, 360).toDouble(),
-          constraints.maxWidth - hPad * 2,
-        );
-
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: vPad, horizontal: hPad),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Spacer(flex: 2),
-              Text(
-                'BLACK ECHO',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: titleFont,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF00FFFF),
-                  letterSpacing: 4 * scale,
+    return Stack(
+      children: [
+        if (_isLoaded)
+          SizedBox.expand(
+            child: FittedBox(
+              fit: BoxFit.cover,
+              child: Transform.scale(
+                scaleX: -1,
+                child: SizedBox(
+                  width: _controller.value.size.width,
+                  height: _controller.value.size.height,
+                  child: VideoPlayer(_controller),
                 ),
               ),
-              SizedBox(height: 6 * scale),
-              Text(
-                'Project Cassandra',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: subtitleFont,
-                  color: const Color(0xFF8A2BE2),
-                  letterSpacing: 2 * scale,
-                ),
-              ),
-              const Spacer(flex: 3),
-              SizedBox(
-                width: buttonWidth,
-                height: buttonHeight,
-                child: ElevatedButton(
-                  key: const Key('titlePage_start_elevatedButton'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00FFFF),
-                    foregroundColor: Colors.black,
-                  ),
-                  onPressed: () async {
-                    await Navigator.of(
-                      context,
-                    ).pushReplacement<void, void>(GamePage.route());
-                  },
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      l10n.titleButtonStart,
-                      style: TextStyle(
-                        fontSize: (18 * scale).clamp(14, 28),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 12 * scale),
-              SizedBox(
-                width: buttonWidth,
-                height: buttonHeight,
-                child: ElevatedButton(
-                  key: const Key('titlePage_journal_elevatedButton'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1A1A1A),
-                    foregroundColor: const Color(0xFF00FFFF),
-                    side: const BorderSide(color: Color(0xFF00FFFF), width: 2),
-                  ),
-                  onPressed: () async {
-                    await Navigator.of(
-                      context,
-                    ).push<void>(JournalScreen.route());
-                  },
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      'JOURNAL',
-                      style: TextStyle(
-                        fontSize: (18 * scale).clamp(14, 28),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const Spacer(flex: 2),
-            ],
+            ),
+          )
+        else
+          const Center(child: CircularProgressIndicator(color: Colors.cyan)),
+
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              stops: const [0.2, 1.0],
+              colors: [
+                Colors.black.withOpacity(0.8),
+                Colors.transparent,
+              ],
+            ),
           ),
-        );
-      },
+        ),
+
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 60.0),
+              child: Listener(
+                onPointerDown: (event) => _handlePointer(event.position),
+                onPointerMove: (event) => _handlePointer(event.position),
+                onPointerUp: (_) => _handleTapUp(),
+
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "BLACK ECHO",
+                      style: TextStyle(
+                        fontSize: 50,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 5.0,
+                        fontFamily: 'Courier',
+                        shadows: [
+                          BoxShadow(color: Colors.cyan, blurRadius: 20),
+                        ],
+                      ),
+                    ),
+                    const Text(
+                      "PROYECTO CASANDRA // SUJETO 7",
+                      style: TextStyle(
+                        color: Colors.cyanAccent,
+                        letterSpacing: 2.0,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    SlideTransition(
+                      position: _buttonAnimations[0],
+                      child: BotonSprite(
+                        key: _buttonKeys[0],
+                        isActive: _focusedIndex == 0,
+                        alignmentY: -0.57,
+                        ancho: 240,
+                        alto: 45,
+                        altoBase: 60,
+                      ),
+                    ),
+                    const SizedBox(height: 0),
+
+                    SlideTransition(
+                      position: _buttonAnimations[1],
+                      child: BotonSprite(
+                        key: _buttonKeys[1],
+                        isActive: _focusedIndex == 1,
+                        alignmentY: -0.32,
+                        ancho: 240,
+                        alto: 45,
+                        altoBase: 60,
+                      ),
+                    ),
+                    const SizedBox(height: 0),
+
+                    SlideTransition(
+                      position: _buttonAnimations[2],
+                      child: BotonSprite(
+                        key: _buttonKeys[2],
+                        isActive: _focusedIndex == 2,
+                        alignmentY: 0.19,
+                        ancho: 240,
+                        alto: 45,
+                        altoBase: 60,
+                      ),
+                    ),
+                    const SizedBox(height: 0),
+
+                    SlideTransition(
+                      position: _buttonAnimations[3],
+                      child: BotonSprite(
+                        key: _buttonKeys[3],
+                        isActive: _focusedIndex == 3,
+                        alignmentY: 0.45,
+                        ancho: 240,
+                        alto: 45,
+                        altoBase: 60,
+                      ),
+                    ),
+                    const SizedBox(height: 0),
+
+                    //Boton salir
+                    SlideTransition(
+                      position: _buttonAnimations[4],
+                      child: BotonSprite(
+                        key: _buttonKeys[4],
+                        isActive: _focusedIndex == 4,
+                        alignmentY: 0.7,
+                        ancho: 240,
+                        alto: 45,
+                        altoBase: 60,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class BotonSprite extends StatelessWidget {
+  final double alignmentY;
+  final double ancho;
+  final double alto;
+  final double altoBase;
+  final bool isActive;
+
+  const BotonSprite({
+    super.key,
+    required this.alignmentY,
+    this.ancho = 240,
+    this.alto = 60,
+    this.altoBase = 60,
+    required this.isActive,
+  });
+
+  static const int factorEscalaAlto = 6;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: ancho,
+      height: alto,
+      child: ClipRect(
+        child: OverflowBox(
+          maxWidth: ancho * 2,
+          maxHeight: altoBase * factorEscalaAlto,
+          minWidth: ancho * 2,
+          minHeight: altoBase * factorEscalaAlto,
+
+          alignment: Alignment(
+            isActive ? 1.0 : -1.0,
+            alignmentY,
+          ),
+
+          child: Image.asset('assets/img/botones_sprite.png', fit: BoxFit.fill),
+        ),
+      ),
     );
   }
 }
