@@ -13,7 +13,7 @@ import 'package:flutter/painting.dart';
 /// Ignora sonidos bajos, tiene radio de audición masivo.
 /// Al detectar al jugador, ejecuta ScreamBehavior atrayendo a todos los enemigos.
 class VigiaComponent extends PositionedEntity
-  with CollisionCallbacks, HasGameRef<BlackEchoGame> {
+    with CollisionCallbacks, HasGameRef<BlackEchoGame> {
   VigiaComponent({
     required Vector2 position,
   }) : super(
@@ -28,20 +28,21 @@ class VigiaComponent extends PositionedEntity
   /// Audio loop ID para el hum estático
   String? _staticHumLoopId;
 
-    /// Resetea el estado del Vigia para reuso por ComponentPool
-    void reset() {
-      // Reiniciar FSM a ATORMENTADO (solo si ya fue cargado)
-      try {
-        findBehavior<HearingBehavior>().reset();
-      } catch (_) {}
-      if (_staticHumLoopId != null) {
-        AudioManager.instance.stopPositionalLoop(_staticHumLoopId!);
-        _staticHumLoopId = null;
-      }
-      try {
-        findBehavior<ScreamBehavior>().reset();
-      } catch (_) {}
-    }
+  /// Resetea el estado del Vigia para reuso por ComponentPool
+  void reset() {
+    // Reiniciar FSM a ATORMENTADO (solo si ya fue cargado)
+    try {
+      findBehavior<HearingBehavior>().reset();
+    } catch (_) {}
+    try {
+      findBehavior<HearingBehavior>().reset();
+    } catch (_) {}
+    // Audio loop se maneja en onMount/onRemove
+    try {
+      findBehavior<ScreamBehavior>().reset();
+    } catch (_) {}
+  }
+
   @override
   Future<void> onLoad() async {
     // Solo agregar componentes si no existen (para permitir reuso del pool)
@@ -66,8 +67,19 @@ class VigiaComponent extends PositionedEntity
 
       // ScreamBehavior que será activado por el HearingBehavior
       await add(ScreamBehavior());
+    }
+    // Iniciar loop de audio estático
+    // MOVIDO A onMount para soportar pooling
+  }
 
-      // Iniciar loop de audio estático
+  @override
+  void onMount() {
+    super.onMount();
+    _startAudioLoop();
+  }
+
+  Future<void> _startAudioLoop() async {
+    if (_staticHumLoopId == null) {
       _staticHumLoopId = await AudioManager.instance.startPositionalLoop(
         soundId: 'vigia_static_hum_loop',
         sourcePosition: math.Point(position.x, position.y),
@@ -100,11 +112,11 @@ class VigiaComponent extends PositionedEntity
   void render(Canvas canvas) {
     // NO renderizar en first-person: el raycaster proyecta los enemigos en 3D
     final game = findParent<BlackEchoGame>();
-    if (game != null && 
+    if (game != null &&
         game.gameBloc.state.enfoqueActual == Enfoque.firstPerson) {
       return;
     }
-    
+
     // Renderizar el Vigía: cuadrado naranja con borde (top-down/side-scroll)
     final rect = size.toRect();
     canvas.drawRect(

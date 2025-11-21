@@ -168,9 +168,16 @@ class RaycastRendererComponent extends Component
     final isCrouched = game.gameBloc.state.estaAgachado;
     final crouchOffset = isCrouched ? -80.0 : 0.0; // Negative = horizon goes UP
 
+    // Get dynamic lighting from current chunk
+    final chunk = game.levelManager.currentChunk;
+    final ambientColor = chunk?.ambientLight ?? const Color(0xFF0B1C33);
+    final fogColor =
+        chunk?.fogColor?.withOpacity(1.0) ?? const Color(0xFF002233);
+
     // Cielo y suelo (fondo)
-    final skyPaint = Paint()..color = const Color(0xFF0B1C33);
-    final floorPaint = Paint()..color = const Color(0xFF132A2A);
+    // Sky is slightly lighter than ambient
+    final skyPaint = Paint()..color = ambientColor.withOpacity(0.8);
+    final floorPaint = Paint()..color = ambientColor;
 
     // NO aplicar transformación: renderizar en espacio de canvas directamente
     canvas.drawRect(
@@ -341,30 +348,30 @@ class RaycastRendererComponent extends Component
           const Color(0xFFFFAA00),
           pulse,
         )!;
-        color = Color.lerp(baseColor, const Color(0xFF002233), 1 - shade)!;
+        color = Color.lerp(baseColor, fogColor, 1 - shade)!;
       } else if (entidadDetectada is CazadorComponent) {
         color = Color.lerp(
           const Color(0xFFFF2222),
-          const Color(0xFF002233),
+          fogColor,
           1 - shade,
         )!;
       } else if (entidadDetectada is VigiaComponent) {
         color = Color.lerp(
           const Color(0xFF8A2BE2),
-          const Color(0xFF002233),
+          fogColor,
           1 - shade,
         )!;
       } else if (entidadDetectada is BrutoComponent) {
         color = Color.lerp(
           const Color(0xFF4444FF),
-          const Color(0xFF002233),
+          fogColor,
           1 - shade,
         )!;
       } else {
         // Pared
         color = Color.lerp(
           const Color(0xFF00FFFF),
-          const Color(0xFF002233),
+          fogColor,
           1 - shade,
         )!;
 

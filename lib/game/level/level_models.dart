@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flame/components.dart';
 
 enum TipoCelda { pared, suelo, abismo }
@@ -26,7 +27,6 @@ class EstimuloDeSonido {
 typedef Grid = List<List<CeldaData>>;
 
 class CeldaData {
-
   const CeldaData({
     required this.tipo,
     this.altura = 0.0,
@@ -49,7 +49,8 @@ class EntidadSpawn {
   final Vector2 posicion;
 }
 
-abstract class LevelData { // Para debugging
+abstract class LevelData {
+  // Para debugging
 
   const LevelData({
     required this.ancho,
@@ -60,6 +61,11 @@ abstract class LevelData { // Para debugging
     this.dificultad = Dificultad.tutorial,
     this.sector = Sector.contencion,
     this.nombre = 'Chunk Sin Nombre',
+    this.spawnPoint,
+    this.exitPoint,
+    this.exitHint,
+    this.ambientLight,
+    this.fogColor,
   });
   final int ancho;
   final int alto;
@@ -71,4 +77,13 @@ abstract class LevelData { // Para debugging
   final Dificultad dificultad;
   final Sector sector;
   final String nombre;
+
+  // New fields for procedural generation safety and lore
+  final Vector2? spawnPoint;
+  final Vector2? exitPoint;
+  final String? exitHint;
+
+  // Visual atmosphere
+  final Color? ambientLight;
+  final Color? fogColor;
 }

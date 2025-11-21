@@ -1,22 +1,26 @@
 import 'package:echo_world/game/components/abyss_component.dart';
+import 'package:echo_world/game/components/eco_narrativo_component.dart';
 import 'package:echo_world/game/components/batch_geometry_renderer.dart';
 import 'package:echo_world/game/components/component_pool.dart';
 import 'package:echo_world/game/components/transition_zone_component.dart';
 import 'package:echo_world/game/components/wall_component.dart';
 import 'package:echo_world/game/entities/enemies/enemies.dart';
 import 'package:echo_world/game/level/level_models.dart';
-import 'package:echo_world/game/level/level_chunks.dart';
+
 import 'package:echo_world/game/cubit/checkpoint/cubit.dart';
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+
+import 'package:echo_world/game/level/level_generator.dart';
 
 class LevelManagerComponent extends Component with HasGameRef {
   LevelManagerComponent({required this.checkpointBloc});
 
   final CheckpointBloc checkpointBloc;
   static const double tileSize = 32;
-  late final List<LevelData> _chunks;
+
+  final LevelGenerator _generator = LevelGenerator();
   int _idx = 0;
   LevelData? _current; // Chunk actual cargado (expuesto para vistas)
   List<List<CeldaData>>? get currentGrid => _current?.grid;
@@ -59,27 +63,20 @@ class LevelManagerComponent extends Component with HasGameRef {
       preloadSize: 2,
     );
 
-    _chunks = [
-      // ===== SECTOR 1: CONTENCIÓN (Tutorial + Sigilo Básico) =====
-      ChunkInicioSeguro(), // 0: Tutorial movimiento + ECO
-      ChunkAbismoSalto(), // 1: Tutorial Enfoque + Salto
-      ChunkSigiloCazador(), // 2: Tutorial Sigilo + Ruptura
-      _chunkCorredorEmboscada(), // 3: Sigilo con 2 Cazadores
-      _chunkSalaSegura(), // 4: Respiro (sin enemigos)
-      ChunkLaberintoVertical(), // 5: MEJORADO - Zigzag vertical + 3 enemigos
-      _chunkPuzzleAbismos(), // 6: SideScroll + plataformas
-      // ===== SECTOR 2: LABORATORIOS (Vigías + Puzzles) =====
-      _chunkVigiaTest(), // 7: Introducción Vigía
-      _chunkSilencioTotal(), // 8: Vigía + prohibido ECO
-      _chunkParalelo(), // 9: 2 corredores (TopDown + SideScroll)
-      _chunkDestruccionTactica(), // 10: Paredes destructibles estratégicas
-      _chunkAlarmaEnCadena(), // 11: 2 Vigías + timing perfecto
-      // ===== SECTOR 3: SALIDA (Combate Intenso) =====
-      _chunkBrutoTest(), // 12: Introducción Bruto
-      ChunkArenaBruto(), // 13: MEJORADO - Boss arena con Bruto + 2 Vigías
-      _chunkInfierno(), // 14: Todos los arquetipos (final boss)
-    ];
-    await _cargarChunk(_chunks[_idx]);
+    // Cargar primer nivel
+    await _cargarNivel(_idx);
+  }
+
+  Future<void> _cargarNivel(int index) async {
+    final sector = _getSectorForLevel(index);
+    final chunk = _generator.generateLevel(index, sector);
+    await _cargarChunk(chunk);
+  }
+
+  Sector _getSectorForLevel(int index) {
+    if (index < 7) return Sector.contencion;
+    if (index < 13) return Sector.laboratorios;
+    return Sector.salida;
   }
 
   Future<void> _cargarChunk(LevelData chunk) async {
@@ -145,6 +142,16 @@ class LevelManagerComponent extends Component with HasGameRef {
           await parent?.add(abyss);
           _levelComponents.add(abyss);
         }
+
+        // Spawn Narrative Echo if present
+        if (celda.ecoNarrativoId != null) {
+          final eco = EcoNarrativoComponent(
+            ecoId: celda.ecoNarrativoId!,
+            position: pos + Vector2.all(tileSize / 2),
+          );
+          await parent?.add(eco);
+          _levelComponents.add(eco);
+        }
       }
     }
 
@@ -152,10 +159,7 @@ class LevelManagerComponent extends Component with HasGameRef {
     _wallBatchRenderer.markDirty();
 
     // Crear zonas de transición en los bordes del chunk
-    // Solo si no es el último chunk
-    if (_idx < _chunks.length - 1) {
-      await _crearZonasDeTransicion(chunk);
-    }
+    await _crearZonasDeTransicion(chunk);
 
     // Spawnear entidades definidas en el chunk usando pools
     for (final spawn in chunk.entidadesIniciales) {
@@ -232,461 +236,24 @@ class LevelManagerComponent extends Component with HasGameRef {
     return true;
   }
 
-  LevelData _chunkVigiaTest() {
-    const w = 20;
-    const h = 12;
-    final grid = List.generate(
-      h,
-      (y) => List.generate(
-        w,
-        (x) {
-          if (y == 0 || y == h - 1 || x == 0 || x == w - 1) {
-            return CeldaData.pared;
-          }
-          // Crear un corredor con un cuarto al final
-          if (y == 6 && x >= 5 && x <= 7) {
-            return CeldaData.pared; // pared horizontal
-          }
-          if (x == 5 && y >= 6 && y <= 8) {
-            return CeldaData.pared; // pared vertical
-          }
-          return CeldaData.suelo;
-        },
-      ),
-    );
-
-    // Spawnear un Vigía en el cuarto (estático) y un Cazador al inicio
-    final entidades = [
-      EntidadSpawn(
-        tipoEnemigo: VigiaComponent,
-        posicion: Vector2(15, 6), // Vigía estático en el cuarto al fondo
-      ),
-      EntidadSpawn(
-        tipoEnemigo: CazadorComponent,
-        posicion: Vector2(8, 3), // Cazador patrullando cerca
-      ),
-    ];
-
-    return _SimpleLevel(
-      ancho: w,
-      alto: h,
-      grid: grid,
-      entidades: entidades,
-      nombre: 'Vigía Test',
-      dificultad: Dificultad.media,
-      sector: Sector.laboratorios,
-    );
-  }
-
-  LevelData _chunkBrutoTest() {
-    const w = 22;
-    const h = 14;
-    final grid = List.generate(
-      h,
-      (y) => List.generate(
-        w,
-        (x) {
-          if (y == 0 || y == h - 1 || x == 0 || x == w - 1) {
-            return CeldaData.pared;
-          }
-          // Crear un corredor con paredes destructibles
-          if (y == 7 && x >= 8 && x <= 14) {
-            return const CeldaData(tipo: TipoCelda.pared, esDestructible: true);
-          }
-          // Pared destructible vertical
-          if (x == 11 && y >= 4 && y <= 6) {
-            return const CeldaData(tipo: TipoCelda.pared, esDestructible: true);
-          }
-          return CeldaData.suelo;
-        },
-      ),
-    );
-
-    // Spawnear un Bruto que debe romper las paredes para llegar al jugador
-    final entidades = [
-      EntidadSpawn(
-        tipoEnemigo: BrutoComponent,
-        posicion: Vector2(11, 10), // Bruto detrás de la pared destructible
-      ),
-    ];
-
-    return _SimpleLevel(
-      ancho: w,
-      alto: h,
-      grid: grid,
-      entidades: entidades,
-      nombre: 'Bruto Test',
-      dificultad: Dificultad.alta,
-      sector: Sector.salida,
-    );
-  }
-
-  // ========================================================================
-  // SECTOR 1: CHUNKS DE CONTENCIÓN (Tutorial + Sigilo Básico)
-  // ========================================================================
-
-  /// Chunk 3: Corredor con Emboscada
-  /// Objetivo: Enseñar a usar cobertura y sigilo contra múltiples enemigos
-  LevelData _chunkCorredorEmboscada() {
-    const w = 24;
-    const h = 12;
-    final grid = List.generate(
-      h,
-      (y) => List.generate(
-        w,
-        (x) {
-          if (y == 0 || y == h - 1 || x == 0 || x == w - 1) {
-            return CeldaData.pared;
-          }
-
-          // Corredor con obstáculos para cobertura
-          if ((x == 8 || x == 16) && y >= 4 && y <= 7) return CeldaData.pared;
-          if (x == 12 && (y == 3 || y == 8)) return CeldaData.pared;
-
-          return CeldaData.suelo;
-        },
-      ),
-    );
-
-    // Dos Cazadores: uno al inicio, otro al final
-    final entidades = [
-      EntidadSpawn(tipoEnemigo: CazadorComponent, posicion: Vector2(6, 6)),
-      EntidadSpawn(tipoEnemigo: CazadorComponent, posicion: Vector2(18, 6)),
-    ];
-
-    return _SimpleLevel(
-      ancho: w,
-      alto: h,
-      grid: grid,
-      entidades: entidades,
-      nombre: 'Corredor Emboscada',
-      dificultad: Dificultad.baja,
-    );
-  }
-
-  /// Chunk 4: Sala Segura (Respiro)
-  /// Objetivo: Dar respiro al jugador, permitir recuperación estratégica
-  LevelData _chunkSalaSegura() {
-    const w = 16;
-    const h = 10;
-    final grid = List.generate(
-      h,
-      (y) => List.generate(
-        w,
-        (x) {
-          if (y == 0 || y == h - 1 || x == 0 || x == w - 1) {
-            return CeldaData.pared;
-          }
-
-          // Sala amplia sin obstáculos
-          return CeldaData.suelo;
-        },
-      ),
-    );
-
-    // Sin enemigos (sala segura)
-    return _SimpleLevel(
-      ancho: w,
-      alto: h,
-      grid: grid,
-      nombre: 'Sala Segura',
-    );
-  }
-
-  /// Chunk 6: Puzzle de Abismos
-  /// Objetivo: Combinar SideScroll + plataformeo con timing
-  LevelData _chunkPuzzleAbismos() {
-    const w = 26;
-    const h = 14;
-    final grid = List.generate(
-      h,
-      (y) => List.generate(
-        w,
-        (x) {
-          if (y == 0 || y == h - 1 || x == 0 || x == w - 1) {
-            return CeldaData.pared;
-          }
-
-          // Crear plataformas con abismos entre ellas
-          if (y == 8 &&
-              (x >= 4 && x <= 7 || x >= 12 && x <= 15 || x >= 20 && x <= 23)) {
-            return CeldaData.abismo;
-          }
-          if (y == 10 && x >= 8 && x <= 19) return CeldaData.abismo;
-
-          return CeldaData.suelo;
-        },
-      ),
-    );
-
-    // Sin enemigos (enfocado en puzzle de plataformeo)
-    return _SimpleLevel(
-      ancho: w,
-      alto: h,
-      grid: grid,
-      nombre: 'Puzzle Abismos',
-      dificultad: Dificultad.baja,
-    );
-  }
-
-  // ========================================================================
-  // SECTOR 2: CHUNKS DE LABORATORIOS (Vigías + Puzzles Complejos)
-  // ========================================================================
-
-  /// Chunk 8: Silencio Total
-  /// Objetivo: Vigía central + prohibido usar ECO (detecta sonido medio)
-  LevelData _chunkSilencioTotal() {
-    const w = 22;
-    const h = 12;
-    final grid = List.generate(
-      h,
-      (y) => List.generate(
-        w,
-        (x) {
-          if (y == 0 || y == h - 1 || x == 0 || x == w - 1) {
-            return CeldaData.pared;
-          }
-
-          // Corredor con Vigía en el centro
-          if ((x == 7 || x == 15) && y >= 3 && y <= 8) return CeldaData.pared;
-
-          return CeldaData.suelo;
-        },
-      ),
-    );
-
-    final entidades = [
-      EntidadSpawn(
-        tipoEnemigo: VigiaComponent,
-        posicion: Vector2(11, 6),
-      ), // Centro
-    ];
-
-    return _SimpleLevel(
-      ancho: w,
-      alto: h,
-      grid: grid,
-      entidades: entidades,
-      nombre: 'Silencio Total',
-      dificultad: Dificultad.media,
-      sector: Sector.laboratorios,
-    );
-  }
-
-  /// Chunk 9: Corredor Paralelo
-  /// Objetivo: 2 corredores (TopDown superior + SideScroll inferior con abismos)
-  LevelData _chunkParalelo() {
-    const w = 28;
-    const h = 16;
-    final grid = List.generate(
-      h,
-      (y) => List.generate(
-        w,
-        (x) {
-          if (y == 0 || y == h - 1 || x == 0 || x == w - 1) {
-            return CeldaData.pared;
-          }
-
-          // Pared divisoria horizontal
-          if (y == 8 && x >= 2 && x <= w - 3) return CeldaData.pared;
-
-          // Abismos en el corredor inferior (requiere SideScroll)
-          if (y == 11 && (x >= 6 && x <= 10 || x >= 16 && x <= 20)) {
-            return CeldaData.abismo;
-          }
-
-          return CeldaData.suelo;
-        },
-      ),
-    );
-
-    final entidades = [
-      EntidadSpawn(
-        tipoEnemigo: CazadorComponent,
-        posicion: Vector2(8, 4),
-      ), // Corredor superior
-      EntidadSpawn(
-        tipoEnemigo: CazadorComponent,
-        posicion: Vector2(20, 12),
-      ), // Corredor inferior
-    ];
-
-    return _SimpleLevel(
-      ancho: w,
-      alto: h,
-      grid: grid,
-      entidades: entidades,
-      nombre: 'Corredor Paralelo',
-      dificultad: Dificultad.media,
-      sector: Sector.laboratorios,
-    );
-  }
-
-  /// Chunk 10: Destrucción Táctica
-  /// Objetivo: Paredes destructibles crean shortcuts pero alertan enemigos
-  LevelData _chunkDestruccionTactica() {
-    const w = 24;
-    const h = 14;
-    final grid = List.generate(
-      h,
-      (y) => List.generate(
-        w,
-        (x) {
-          if (y == 0 || y == h - 1 || x == 0 || x == w - 1) {
-            return CeldaData.pared;
-          }
-
-          // Paredes destructibles estratégicas (shortcuts)
-          if ((x == 8 || x == 16) && y >= 2 && y <= 11) {
-            return const CeldaData(tipo: TipoCelda.pared, esDestructible: true);
-          }
-
-          // Paredes normales (laberinto)
-          if (y == 6 && (x >= 3 && x <= 6 || x >= 18 && x <= 21)) {
-            return CeldaData.pared;
-          }
-
-          return CeldaData.suelo;
-        },
-      ),
-    );
-
-    final entidades = [
-      EntidadSpawn(tipoEnemigo: CazadorComponent, posicion: Vector2(12, 4)),
-      EntidadSpawn(tipoEnemigo: CazadorComponent, posicion: Vector2(12, 10)),
-    ];
-
-    return _SimpleLevel(
-      ancho: w,
-      alto: h,
-      grid: grid,
-      entidades: entidades,
-      nombre: 'Destrucción Táctica',
-      dificultad: Dificultad.media,
-      sector: Sector.laboratorios,
-    );
-  }
-
-  /// Chunk 11: Alarma en Cadena
-  /// Objetivo: 2 Vigías posicionados estratégicamente, timing perfecto requerido
-  LevelData _chunkAlarmaEnCadena() {
-    const w = 26;
-    const h = 12;
-    final grid = List.generate(
-      h,
-      (y) => List.generate(
-        w,
-        (x) {
-          if (y == 0 || y == h - 1 || x == 0 || x == w - 1) {
-            return CeldaData.pared;
-          }
-
-          // Dos cuartos separados con Vigías
-          if (x == 12 && y >= 2 && y <= 9) {
-            return CeldaData.pared; // División central
-          }
-          if (y == 6 && (x >= 4 && x <= 8 || x >= 16 && x <= 20)) {
-            return CeldaData.pared;
-          }
-
-          return CeldaData.suelo;
-        },
-      ),
-    );
-
-    final entidades = [
-      EntidadSpawn(
-        tipoEnemigo: VigiaComponent,
-        posicion: Vector2(6, 4),
-      ), // Vigía izquierdo
-      EntidadSpawn(
-        tipoEnemigo: VigiaComponent,
-        posicion: Vector2(18, 4),
-      ), // Vigía derecho
-    ];
-
-    return _SimpleLevel(
-      ancho: w,
-      alto: h,
-      grid: grid,
-      entidades: entidades,
-      nombre: 'Alarma en Cadena',
-      dificultad: Dificultad.alta,
-      sector: Sector.laboratorios,
-    );
-  }
-
-  // ========================================================================
-  // SECTOR 3: CHUNKS DE SALIDA (Combate Intenso + Boss)
-  // ========================================================================
-
-  /// Chunk 13: Arena
-  /// Objetivo: 2 Brutos + 1 Cazador en sala cerrada (combate inevitable)
-
-  /// Chunk 14: Infierno (Final Boss)
-  /// Objetivo: Todos los arquetipos + requiere los 3 enfoques + nivel más difícil
-  LevelData _chunkInfierno() {
-    const w = 30;
-    const h = 18;
-    final grid = List.generate(
-      h,
-      (y) => List.generate(
-        w,
-        (x) {
-          if (y == 0 || y == h - 1 || x == 0 || x == w - 1) {
-            return CeldaData.pared;
-          }
-
-          // Laberinto complejo
-          if (x == 10 && y >= 2 && y <= 15) return CeldaData.pared;
-          if (x == 20 && y >= 2 && y <= 15) return CeldaData.pared;
-          if (y == 9 && x >= 3 && x <= 27) return CeldaData.pared;
-
-          // Abismos estratégicos (requiere SideScroll)
-          if (y == 12 && x >= 6 && x <= 8) return CeldaData.abismo;
-          if (y == 12 && x >= 22 && x <= 24) return CeldaData.abismo;
-
-          // Paredes destructibles
-          if ((x == 15 && y >= 4 && y <= 7) ||
-              (x == 15 && y >= 11 && y <= 14)) {
-            return const CeldaData(tipo: TipoCelda.pared, esDestructible: true);
-          }
-
-          return CeldaData.suelo;
-        },
-      ),
-    );
-
-    final entidades = [
-      // Brutos estratégicamente posicionados
-      EntidadSpawn(tipoEnemigo: BrutoComponent, posicion: Vector2(5, 5)),
-      EntidadSpawn(tipoEnemigo: BrutoComponent, posicion: Vector2(25, 5)),
-      EntidadSpawn(tipoEnemigo: BrutoComponent, posicion: Vector2(15, 13)),
-      // Vigías de alarma
-      EntidadSpawn(tipoEnemigo: VigiaComponent, posicion: Vector2(15, 4)),
-      EntidadSpawn(tipoEnemigo: VigiaComponent, posicion: Vector2(15, 14)),
-      // Cazadores patrullando
-      EntidadSpawn(tipoEnemigo: CazadorComponent, posicion: Vector2(7, 11)),
-      EntidadSpawn(tipoEnemigo: CazadorComponent, posicion: Vector2(23, 11)),
-    ];
-
-    return _SimpleLevel(
-      ancho: w,
-      alto: h,
-      grid: grid,
-      entidades: entidades,
-      nombre: 'Infierno',
-      dificultad: Dificultad.alta,
-      sector: Sector.salida,
-    );
-  }
-
   /// Crea zonas de transición en los bordes del chunk para detectar
   /// cuándo el jugador debe avanzar al siguiente nivel
   Future<void> _crearZonasDeTransicion(LevelData chunk) async {
-    const zoneThickness = tileSize * 2; // 2 tiles de grosor
+    // Si hay un punto de salida definido, usarlo
+    if (chunk.exitPoint != null) {
+      final exitPos = chunk.exitPoint! * tileSize;
+      final zone = TransitionZoneComponent(
+        position: exitPos,
+        size: Vector2(tileSize, tileSize),
+        targetChunkDirection: 'east',
+      );
+      await parent?.add(zone);
+      _levelComponents.add(zone);
+      return;
+    }
 
-    // Zona Este (derecha): para avanzar al siguiente chunk
+    // Fallback: Zona Este (derecha) completa
+    const zoneThickness = tileSize * 2;
     final eastZone = TransitionZoneComponent(
       position: Vector2((chunk.ancho - 2) * tileSize, 0),
       size: Vector2(zoneThickness, chunk.alto * tileSize),
@@ -694,22 +261,25 @@ class LevelManagerComponent extends Component with HasGameRef {
     );
     await parent?.add(eastZone);
     _levelComponents.add(eastZone);
-
-    // Podríamos añadir más zonas en otros bordes si el diseño lo requiere:
-    // Norte, Sur, Oeste para navegación bidireccional
   }
 
   Future<void> siguienteChunk() async {
-    _idx = (_idx + 1) % _chunks.length;
-    await _cargarChunk(_chunks[_idx]);
+    _idx++;
+    await _cargarNivel(_idx);
 
-    // Reposicionar al jugador al centro del nuevo chunk
+    // Reposicionar al jugador
     final game = gameRef as BlackEchoGame;
-    final chunk = _chunks[_idx];
-    game.player.position = Vector2(
-      (chunk.ancho / 2) * tileSize,
-      (chunk.alto / 2) * tileSize,
-    );
+    final chunk = _current!;
+
+    if (chunk.spawnPoint != null) {
+      game.player.position = chunk.spawnPoint! * tileSize;
+    } else {
+      // Fallback: centro del mapa
+      game.player.position = Vector2(
+        (chunk.ancho / 2) * tileSize,
+        (chunk.alto / 2) * tileSize,
+      );
+    }
   }
 }
 
@@ -717,16 +287,4 @@ extension LevelManagerSnapshot on LevelManagerComponent {
   /// Acceso de solo lectura al grid del chunk actual
   List<List<CeldaData>>? get currentGrid => _current?.grid;
   LevelData? get currentChunk => _current;
-}
-
-class _SimpleLevel extends LevelData {
-  const _SimpleLevel({
-    required super.ancho,
-    required super.alto,
-    required super.grid,
-    List<EntidadSpawn> entidades = const [],
-    super.dificultad = Dificultad.tutorial,
-    super.sector = Sector.contencion,
-    super.nombre = 'Chunk',
-  }) : super(entidadesIniciales: entidades);
 }

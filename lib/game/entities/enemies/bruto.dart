@@ -14,7 +14,7 @@ import 'package:flutter/painting.dart';
 /// Puede destruir paredes débiles durante el estado CAZA.
 /// Genera sonido bajo al moverse (pisadas audibles).
 class BrutoComponent extends PositionedEntity
-  with CollisionCallbacks, HasGameRef<BlackEchoGame> {
+    with CollisionCallbacks, HasGameRef<BlackEchoGame> {
   BrutoComponent({
     required Vector2 position,
   }) : super(
@@ -34,27 +34,24 @@ class BrutoComponent extends PositionedEntity
   double _footstepTimer = 0;
   static const double _footstepInterval = 0.5; // Cada 0.5s
 
-    /// Resetea el estado del Bruto para reuso por ComponentPool
-    void reset() {
-      // Reiniciar FSM de audición (solo si ya fue cargado)
-      try {
-        findBehavior<HearingBehavior>().reset();
-      } catch (_) {}
+  /// Resetea el estado del Bruto para reuso por ComponentPool
+  void reset() {
+    // Reiniciar FSM de audición (solo si ya fue cargado)
+    try {
+      findBehavior<HearingBehavior>().reset();
+    } catch (_) {}
 
-      // Reiniciar resistencia (impactos necesarios para derrotarlo)
-      try {
-        findBehavior<ResilienceBehavior>().reset();
-      } catch (_) {}
+    // Reiniciar resistencia (impactos necesarios para derrotarlo)
+    try {
+      findBehavior<ResilienceBehavior>().reset();
+    } catch (_) {}
 
-      // Reiniciar temporizador de pasos
-      _footstepTimer = 0.0;
+    // Reiniciar temporizador de pasos
+    _footstepTimer = 0.0;
 
-      // Asegurar que no quede un loop de audio colgado entre reusos
-      if (_footstepLoopId != null) {
-        AudioManager.instance.stopPositionalLoop(_footstepLoopId!);
-        _footstepLoopId = null;
-      }
-    }
+    // Audio loop se maneja en onMount/onRemove
+  }
+
   @override
   Future<void> onLoad() async {
     // Solo agregar componentes si no existen (para permitir reuso del pool)
@@ -85,8 +82,19 @@ class BrutoComponent extends PositionedEntity
 
       // DestructionBehavior: puede destruir paredes durante CAZA
       await add(DestructionBehavior());
+    }
+    // Iniciar loop de audio de pisadas
+    // MOVIDO A onMount para soportar pooling
+  }
 
-      // Iniciar loop de audio de pisadas
+  @override
+  void onMount() {
+    super.onMount();
+    _startAudioLoop();
+  }
+
+  Future<void> _startAudioLoop() async {
+    if (_footstepLoopId == null) {
       _footstepLoopId = await AudioManager.instance.startPositionalLoop(
         soundId: 'bruto_footstep',
         sourcePosition: math.Point(position.x, position.y),
@@ -135,11 +143,11 @@ class BrutoComponent extends PositionedEntity
   void render(Canvas canvas) {
     // NO renderizar en first-person: el raycaster proyecta los enemigos en 3D
     final game = findParent<BlackEchoGame>();
-    if (game != null && 
+    if (game != null &&
         game.gameBloc.state.enfoqueActual == Enfoque.firstPerson) {
       return;
     }
-    
+
     // Renderizar el Bruto: cuadrado marrón con borde grueso (top-down/side-scroll)
     final rect = size.toRect();
 
