@@ -1,0 +1,451 @@
+Analyzing echo_world...                                         
+
+   info - Use 'const' with the constructor to improve performance - lib\game\audio\audio_manager.dart:32:20 - prefer_const_constructors
+   info - The value of the argument is redundant because it matches the default value - lib\game\audio\audio_manager.dart:33:31 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\game\audio\audio_manager.dart:37:25 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\game\audio\audio_manager.dart:40:23 - avoid_redundant_argument_values
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\game\audio\audio_manager.dart:41:22 - prefer_const_literals_to_create_immutables
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\audio\audio_manager.dart:70:7 - avoid_catches_without_on_clauses
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\audio\audio_manager.dart:85:9 - avoid_catches_without_on_clauses
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\audio\audio_manager.dart:120:9 - avoid_catches_without_on_clauses
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\audio\audio_manager.dart:176:7 - avoid_catches_without_on_clauses
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\audio\audio_manager.dart:220:7 - avoid_catches_without_on_clauses
+   info - 'Future'-returning calls in a non-'async' function - lib\game\audio\audio_manager.dart:251:14 - discarded_futures
+   info - Unnecessary duplication of receiver - lib\game\audio\audio_manager.dart:252:7 - cascade_invocations
+   info - 'Future'-returning calls in a non-'async' function - lib\game\audio\audio_manager.dart:252:14 - discarded_futures
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\audio\audio_manager.dart:253:7 - avoid_catches_without_on_clauses
+   info - The line length exceeds the 80-character limit - lib\game\audio\audio_manager.dart:314:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\audio\audio_manager.dart:315:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\audio\audio_manager.dart:319:81 - lines_longer_than_80_chars
+   info - Sort directive sections alphabetically - lib\game\black_echo_game.dart:11:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\black_echo_game.dart:15:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\black_echo_game.dart:16:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\black_echo_game.dart:20:1 - directives_ordering
+   info - The line length exceeds the 80-character limit - lib\game\black_echo_game.dart:74:81 - lines_longer_than_80_chars
+   info - 'Future'-returning calls in a non-'async' function - lib\game\black_echo_game.dart:117:9 - discarded_futures
+   info - Missing an 'await' for the 'Future' computed by this expression - lib\game\black_echo_game.dart:141:5 - unawaited_futures
+   info - Invalid use of 'default' member in a switch - lib\game\black_echo_game.dart:151:9 - no_default_cases
+   info - 'window' is deprecated and shouldn't be used. Look up the current FlutterView from the context via View.of(context) or consult the PlatformDispatcher directly instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.7.0-32.0.pre - lib\game\black_echo_game.dart:160:27 - deprecated_member_use
+   info - 'window' is deprecated and shouldn't be used. Look up the current FlutterView from the context via View.of(context) or consult the PlatformDispatcher directly instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.7.0-32.0.pre - lib\game\black_echo_game.dart:160:52 - deprecated_member_use
+   info - The line length exceeds the 80-character limit - lib\game\black_echo_game.dart:196:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\black_echo_game.dart:223:81 - lines_longer_than_80_chars
+   info - 'Future'-returning calls in a non-'async' function - lib\game\black_echo_game.dart:226:11 - discarded_futures
+   info - Invalid use of 'default' member in a switch - lib\game\black_echo_game.dart:230:7 - no_default_cases
+   info - 'Future'-returning calls in a non-'async' function - lib\game\black_echo_game.dart:238:11 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\black_echo_game.dart:240:29 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\black_echo_game.dart:253:31 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\black_echo_game.dart:255:31 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\black_echo_game.dart:260:11 - discarded_futures
+   info - The line length exceeds the 80-character limit - lib\game\components\absorption_vfx_component.dart:9:81 - lines_longer_than_80_chars
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\absorption_vfx_component.dart:10:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\components\absorption_vfx_component.dart:49:21 - deprecated_member_use
+   info - Closure should be a tearoff - lib\game\components\absorption_vfx_component.dart:63:17 - unnecessary_lambdas
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\abyss_component.dart:6:53 - deprecated_member_use
+   info - The line length exceeds the 80-character limit - lib\game\components\abyss_component.dart:18:81 - lines_longer_than_80_chars
+   info - Unnecessary duplication of receiver - lib\game\components\abyss_component.dart:23:5 - cascade_invocations
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\batch_geometry_renderer.dart:15:8 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\components\batch_geometry_renderer.dart:97:31 - deprecated_member_use
+   info - The line length exceeds the 80-character limit - lib\game\components\batch_geometry_renderer.dart:121:81 - lines_longer_than_80_chars
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\camera_shake_component.dart:6:51 - deprecated_member_use
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\crosshair_component.dart:9:49 - deprecated_member_use
+   info - Unnecessary use of a 'double' literal - lib\game\components\crosshair_component.dart:12:23 - prefer_int_literals
+   info - Unnecessary use of a 'double' literal - lib\game\components\crosshair_component.dart:13:36 - prefer_int_literals
+   info - Unnecessary duplication of receiver - lib\game\components\crosshair_component.dart:58:5 - cascade_invocations
+   info - Unnecessary duplication of receiver - lib\game\components\crosshair_component.dart:65:5 - cascade_invocations
+   info - Unnecessary duplication of receiver - lib\game\components\crosshair_component.dart:72:5 - cascade_invocations
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\echolocation_outline_component.dart:10:8 - deprecated_member_use
+   info - The line length exceeds the 80-character limit - lib\game\components\echolocation_outline_component.dart:37:81 - lines_longer_than_80_chars
+   info - Sort directive sections alphabetically - lib\game\components\echolocation_vfx_component.dart:3:1 - directives_ordering
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\echolocation_vfx_component.dart:12:10 - deprecated_member_use
+   info - 'Future'-returning calls in a non-'async' function - lib\game\components\echolocation_vfx_component.dart:106:19 - discarded_futures
+   info - The referenced name isn't visible in scope - lib\game\components\eco_narrativo_component.dart:11:29 - comment_references
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\eco_narrativo_component.dart:14:28 - deprecated_member_use
+   info - The referenced name isn't visible in scope - lib\game\components\eco_narrativo_component.dart:30:54 - comment_references
+   info - The referenced name isn't visible in scope - lib\game\components\eco_narrativo_component.dart:33:41 - comment_references
+   info - The line length exceeds the 80-character limit - lib\game\components\eco_narrativo_component.dart:44:81 - lines_longer_than_80_chars
+   info - Unnecessary duplication of receiver - lib\game\components\eco_narrativo_component.dart:78:5 - cascade_invocations
+   info - The referenced name isn't visible in scope - lib\game\components\eco_narrativo_component.dart:99:36 - comment_references
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\enemy_death_vfx_component.dart:19:8 - deprecated_member_use
+   info - Unnecessary duplication of receiver - lib\game\components\enemy_death_vfx_component.dart:95:11 - cascade_invocations
+   info - The line length exceeds the 80-character limit - lib\game\components\enemy_death_vfx_component.dart:123:81 - lines_longer_than_80_chars
+   info - 'Future'-returning calls in a non-'async' function - lib\game\components\enemy_death_vfx_component.dart:131:19 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\components\enemy_death_vfx_component.dart:132:19 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\components\enemy_death_vfx_component.dart:133:19 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\components\enemy_death_vfx_component.dart:141:19 - discarded_futures
+   info - Unnecessary duplication of receiver - lib\game\components\enemy_death_vfx_component.dart:147:5 - cascade_invocations
+   info - 'Future'-returning calls in a non-'async' function - lib\game\components\enemy_death_vfx_component.dart:147:13 - discarded_futures
+   info - The value of the argument is redundant because it matches the default value - lib\game\components\landing_dust_component.dart:17:18 - avoid_redundant_argument_values
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\components\landing_dust_component.dart:33:53 - deprecated_member_use
+   info - Closure should be a tearoff - lib\game\components\landing_dust_component.dart:46:17 - unnecessary_lambdas
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\nucleo_resonante_component.dart:15:28 - deprecated_member_use
+   info - The line length exceeds the 80-character limit - lib\game\components\nucleo_resonante_component.dart:67:81 - lines_longer_than_80_chars
+   info - Sort directive sections alphabetically - lib\game\components\raycast_renderer_component.dart:6:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\components\raycast_renderer_component.dart:10:1 - directives_ordering
+   info - The import of 'package:echo_world/game/components/echolocation_vfx_component.dart' is unnecessary because all of the used elements are also provided by the import of 'package:echo_world/game/components/components.dart' - lib\game\components\raycast_renderer_component.dart:10:8 - unnecessary_import
+   info - The referenced name isn't visible in scope - lib\game\components\raycast_renderer_component.dart:32:28 - comment_references
+   info - The line length exceeds the 80-character limit - lib\game\components\raycast_renderer_component.dart:32:81 - lines_longer_than_80_chars
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\raycast_renderer_component.dart:85:10 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\components\raycast_renderer_component.dart:175:26 - deprecated_member_use
+   info - Unnecessary use of a 'double' literal - lib\game\components\raycast_renderer_component.dart:175:38 - prefer_int_literals
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\components\raycast_renderer_component.dart:179:52 - deprecated_member_use
+   info - Unnecessary duplication of receiver - lib\game\components\raycast_renderer_component.dart:192:5 - cascade_invocations
+   info - Unnecessary type annotation on a local variable - lib\game\components\raycast_renderer_component.dart:224:5 - omit_local_variable_types
+   info - Unnecessary use of a 'double' literal - lib\game\components\raycast_renderer_component.dart:224:31 - prefer_int_literals
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\components\raycast_renderer_component.dart:437:39 - deprecated_member_use
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\rejection_vfx_component.dart:9:52 - deprecated_member_use
+   info - The value of the argument is redundant because it matches the default value - lib\game\components\rejection_vfx_component.dart:42:17 - avoid_redundant_argument_values
+   info - The expression has no effect and can be removed - lib\game\components\rejection_vfx_component.dart:86:38 - noop_primitive_operations
+   info - The expression has no effect and can be removed - lib\game\components\rejection_vfx_component.dart:94:39 - noop_primitive_operations
+   info - The expression has no effect and can be removed - lib\game\components\rejection_vfx_component.dart:94:60 - noop_primitive_operations
+   info - The line length exceeds the 80-character limit - lib\game\components\rejection_vfx_component.dart:94:81 - lines_longer_than_80_chars
+   info - The referenced name isn't visible in scope - lib\game\components\ruido_mental_system_component.dart:14:36 - comment_references
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\ruido_mental_system_component.dart:18:8 - deprecated_member_use
+   info - The line length exceeds the 80-character limit - lib\game\components\ruido_mental_system_component.dart:56:81 - lines_longer_than_80_chars
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\components\rupture_vfx_component.dart:28:49 - deprecated_member_use
+   info - Closure should be a tearoff - lib\game\components\rupture_vfx_component.dart:66:17 - unnecessary_lambdas
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\screen_transition_component.dart:7:56 - deprecated_member_use
+   info - Unnecessary type annotation on a local variable - lib\game\components\screen_transition_component.dart:43:5 - omit_local_variable_types
+   info - Unnecessary use of a 'double' literal - lib\game\components\screen_transition_component.dart:43:22 - prefer_int_literals
+   info - The line length exceeds the 80-character limit - lib\game\components\screen_transition_component.dart:55:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\components\screen_transition_component.dart:56:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\components\screen_transition_component.dart:57:81 - lines_longer_than_80_chars
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\components\screen_transition_component.dart:60:30 - deprecated_member_use
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\components\transition_zone_component.dart:10:28 - deprecated_member_use
+   info - 'Future'-returning calls in a non-'async' function - lib\game\components\transition_zone_component.dart:47:7 - discarded_futures
+   info - Sort directive sections alphabetically - lib\game\cubit\checkpoint\checkpoint_bloc.dart:2:1 - directives_ordering
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\cubit\checkpoint\checkpoint_bloc.dart:49:7 - avoid_catches_without_on_clauses
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\cubit\checkpoint\checkpoint_bloc.dart:58:7 - avoid_catches_without_on_clauses
+   info - Invalid location for the unnamed constructor - lib\game\cubit\checkpoint\checkpoint_state.dart:24:9 - sort_unnamed_constructors_first
+   info - Missing a deprecation message - lib\game\cubit\game\game_state.dart:9:3 - provide_deprecation_message
+   info - Invalid location for the unnamed constructor - lib\game\cubit\game\game_state.dart:35:9 - sort_unnamed_constructors_first
+   info - Unnecessary type annotation on a local variable - lib\game\entities\enemies\behaviors\ai_movement_behavior.dart:31:5 - omit_local_variable_types
+   info - The line length exceeds the 80-character limit - lib\game\entities\enemies\behaviors\ai_movement_behavior.dart:37:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\entities\enemies\behaviors\ai_movement_behavior.dart:84:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\entities\enemies\behaviors\destruction_behavior.dart:7:81 - lines_longer_than_80_chars
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\entities\enemies\behaviors\destruction_behavior.dart:10:8 - deprecated_member_use
+   info - Sort directive sections alphabetically - lib\game\entities\enemies\behaviors\hearing_behavior.dart:3:1 - directives_ordering
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\entities\enemies\behaviors\hearing_behavior.dart:18:10 - deprecated_member_use
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\entities\enemies\behaviors\hearing_behavior.dart:99:11 - avoid_catches_without_on_clauses
+   info - Use 'const' for final variables initialized to a constant value - lib\game\entities\enemies\behaviors\patrol_behavior.dart:51:5 - prefer_const_declarations
+   info - Unnecessary type annotation on a local variable - lib\game\entities\enemies\behaviors\patrol_behavior.dart:56:10 - omit_local_variable_types
+   info - Unnecessary duplication of receiver - lib\game\entities\enemies\behaviors\patrol_behavior.dart:88:5 - cascade_invocations
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\entities\enemies\behaviors\positional_audio_behavior.dart:11:8 - deprecated_member_use
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\enemies\behaviors\positional_audio_behavior.dart:47:21 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\enemies\behaviors\positional_audio_behavior.dart:62:14 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\enemies\behaviors\positional_audio_behavior.dart:66:23 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\enemies\behaviors\positional_audio_behavior.dart:75:23 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\enemies\behaviors\positional_audio_behavior.dart:90:21 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\enemies\behaviors\positional_audio_behavior.dart:99:21 - discarded_futures
+   info - The referenced name isn't visible in scope - lib\game\entities\enemies\behaviors\resilience_behavior.dart:3:65 - comment_references
+   info - The line length exceeds the 80-character limit - lib\game\entities\enemies\behaviors\resilience_behavior.dart:3:81 - lines_longer_than_80_chars
+   info - The referenced name isn't visible in scope - lib\game\entities\enemies\behaviors\resilience_behavior.dart:8:30 - comment_references
+   info - The referenced name isn't visible in scope - lib\game\entities\enemies\behaviors\resilience_behavior.dart:17:31 - comment_references
+   info - The line length exceeds the 80-character limit - lib\game\entities\enemies\behaviors\resilience_behavior.dart:17:81 - lines_longer_than_80_chars
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\entities\enemies\behaviors\scream_behavior.dart:10:8 - deprecated_member_use
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\enemies\behaviors\scream_behavior.dart:35:27 - discarded_futures
+   info - The referenced name isn't visible in scope - lib\game\entities\enemies\bruto.dart:13:59 - comment_references
+   info - The line length exceeds the 80-character limit - lib\game\entities\enemies\bruto.dart:13:81 - lines_longer_than_80_chars
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\entities\enemies\bruto.dart:17:30 - deprecated_member_use
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\entities\enemies\bruto.dart:42:7 - avoid_catches_without_on_clauses
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\entities\enemies\bruto.dart:47:7 - avoid_catches_without_on_clauses
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\enemies\bruto.dart:93:5 - discarded_futures
+   info - The 'if' statement could be replaced by a null-aware assignment - lib\game\entities\enemies\bruto.dart:97:5 - prefer_conditional_assignment
+   info - Unnecessary duplication of receiver - lib\game\entities\enemies\bruto.dart:158:5 - cascade_invocations
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\enemies\bruto.dart:184:29 - discarded_futures
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\entities\enemies\cazador.dart:33:7 - avoid_catches_without_on_clauses
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\entities\enemies\cazador.dart:36:7 - avoid_catches_without_on_clauses
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\entities\enemies\cazador.dart:39:7 - avoid_catches_without_on_clauses
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\entities\enemies\cazador.dart:42:7 - avoid_catches_without_on_clauses
+   info - The line length exceeds the 80-character limit - lib\game\entities\enemies\vigia.dart:14:81 - lines_longer_than_80_chars
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\entities\enemies\vigia.dart:16:30 - deprecated_member_use
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\entities\enemies\vigia.dart:36:7 - avoid_catches_without_on_clauses
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\entities\enemies\vigia.dart:39:7 - avoid_catches_without_on_clauses
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\game\entities\enemies\vigia.dart:43:7 - avoid_catches_without_on_clauses
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\enemies\vigia.dart:78:5 - discarded_futures
+   info - The 'if' statement could be replaced by a null-aware assignment - lib\game\entities\enemies\vigia.dart:82:5 - prefer_conditional_assignment
+   info - Unnecessary duplication of receiver - lib\game\entities\enemies\vigia.dart:126:5 - cascade_invocations
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\enemies\vigia.dart:147:29 - discarded_futures
+   info - Sort directive sections alphabetically - lib\game\entities\player\behaviors\collision_handler.dart:4:1 - directives_ordering
+   info - The line length exceeds the 80-character limit - lib\game\entities\player\behaviors\collision_handler.dart:6:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\entities\player\behaviors\collision_handler.dart:8:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\entities\player\behaviors\collision_handler.dart:10:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\entities\player\behaviors\collision_handler.dart:48:81 - lines_longer_than_80_chars
+   info - Unnecessary use of a 'double' literal - lib\game\entities\player\behaviors\collision_handler.dart:55:35 - prefer_int_literals
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\behaviors\echolocation_behavior.dart:13:27 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\behaviors\echolocation_behavior.dart:15:20 - discarded_futures
+   info - Sort directive sections alphabetically - lib\game\entities\player\behaviors\first_person_movement_behavior.dart:3:1 - directives_ordering
+   info - Place 'dart:' imports before other imports - lib\game\entities\player\behaviors\first_person_movement_behavior.dart:6:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\entities\player\behaviors\first_person_movement_behavior.dart:8:1 - directives_ordering
+   info - Unnecessary use of a 'double' literal - lib\game\entities\player\behaviors\first_person_movement_behavior.dart:34:33 - prefer_int_literals
+   info - Unnecessary use of a 'double' literal - lib\game\entities\player\behaviors\first_person_movement_behavior.dart:35:42 - prefer_int_literals
+   info - Statements in a while should be enclosed in a block - lib\game\entities\player\behaviors\first_person_movement_behavior.dart:62:38 - curly_braces_in_flow_control_structures
+   info - Statements in a while should be enclosed in a block - lib\game\entities\player\behaviors\first_person_movement_behavior.dart:63:39 - curly_braces_in_flow_control_structures
+   info - Place 'dart:' imports before other imports - lib\game\entities\player\behaviors\gravity_behavior.dart:6:1 - directives_ordering
+   info - The method is used to change a property - lib\game\entities\player\behaviors\gravity_behavior.dart:12:8 - use_setters_to_change_properties
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\behaviors\gravity_behavior.dart:45:24 - discarded_futures
+   info - Sort directive sections alphabetically - lib\game\entities\player\behaviors\jump_behavior.dart:3:1 - directives_ordering
+   info - Unnecessary duplication of receiver - lib\game\entities\player\behaviors\jump_behavior.dart:14:5 - cascade_invocations
+   info - The value of the argument is redundant because it matches the default value - lib\game\entities\player\behaviors\rupture_behavior.dart:30:32 - avoid_redundant_argument_values
+   info - The line length exceeds the 80-character limit - lib\game\entities\player\behaviors\rupture_behavior.dart:36:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\entities\player\behaviors\rupture_behavior.dart:39:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\entities\player\behaviors\rupture_behavior.dart:62:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\entities\player\behaviors\rupture_behavior.dart:70:81 - lines_longer_than_80_chars
+   info - Place 'dart:' imports before other imports - lib\game\entities\player\behaviors\side_scroll_movement_behavior.dart:6:1 - directives_ordering
+   info - The line length exceeds the 80-character limit - lib\game\entities\player\behaviors\stealth_behavior.dart:10:81 - lines_longer_than_80_chars
+   info - Sort directive sections alphabetically - lib\game\entities\player\behaviors\top_down_movement_behavior.dart:7:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\entities\player\player.dart:5:1 - directives_ordering
+   info - The import of 'package:echo_world/game/entities/player/behaviors/rupture_behavior.dart' is unnecessary because all of the used elements are also provided by the import of 'package:echo_world/game/entities/player/behaviors/behaviors.dart' - lib\game\entities\player\player.dart:7:8 - unnecessary_import
+   info - Sort directive sections alphabetically - lib\game\entities\player\player.dart:8:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\entities\player\player.dart:10:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\entities\player\player.dart:11:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\entities\player\player.dart:12:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\entities\player\player.dart:15:1 - directives_ordering
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\entities\player\player.dart:20:30 - deprecated_member_use
+   info - Use 'forEach' and a tear-off rather than a 'for' loop to apply a function to every element - lib\game\entities\player\player.dart:70:5 - prefer_foreach
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:76:9 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:77:9 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:78:9 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:79:9 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:81:9 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:82:9 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:83:9 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:84:9 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:85:9 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:88:9 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:89:9 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:90:9 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:91:9 - discarded_futures
+   info - Invalid use of 'default' member in a switch - lib\game\entities\player\player.dart:92:7 - no_default_cases
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\entities\player\player.dart:112:45 - deprecated_member_use
+   info - Unnecessary duplication of receiver - lib\game\entities\player\player.dart:127:5 - cascade_invocations
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:159:33 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\entities\player\player.dart:168:19 - discarded_futures
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\input\input_manager.dart:7:43 - deprecated_member_use
+   info - The line length exceeds the 80-character limit - lib\game\input\input_manager.dart:33:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\input\input_manager.dart:35:81 - lines_longer_than_80_chars
+   info - Sort directive sections alphabetically - lib\game\level\level_chunks.dart:3:1 - directives_ordering
+   info - Use the constant 'CeldaData.pared' rather than a constructor returning the same object - lib\game\level\level_chunks.dart:205:13 - use_named_constants
+   info - Unnecessary 'await' - lib\game\level\level_generator.dart:50:12 - unnecessary_await_in_return
+   info - Sort directive sections alphabetically - lib\game\level\level_manager.dart:3:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\level\level_manager.dart:10:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\level\level_manager.dart:11:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\level\level_manager.dart:15:1 - directives_ordering
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\level\level_manager.dart:18:52 - deprecated_member_use
+   info - Unnecessary duplication of receiver - lib\game\level\level_manager.dart:187:11 - cascade_invocations
+   info - Unnecessary duplication of receiver - lib\game\level\level_manager.dart:193:11 - cascade_invocations
+   info - Unnecessary duplication of receiver - lib\game\level\level_manager.dart:199:11 - cascade_invocations
+   info - Use 'const' for final variables initialized to a constant value - lib\game\level\level_manager.dart:229:5 - prefer_const_declarations
+   info - Constructor declarations should be before non-constructor declarations - lib\game\level\level_models.dart:100:3 - sort_constructors_first
+   info - Constructor declarations should be before non-constructor declarations - lib\game\level\level_models.dart:112:3 - sort_constructors_first
+   info - Parameters ''ancho', 'alto', 'grid', 'entidadesIniciales', 'nombre', 'dificultad', 'sector', 'spawnPoint', 'exitPoint', 'exitHint', 'ambientLight', and 'fogColor'' could be super parameters - lib\game\level\level_models.dart:112:3 - use_super_parameters
+   info - Constructor declarations should be before non-constructor declarations - lib\game\level\level_models.dart:152:3 - sort_constructors_first
+   info - Constructor declarations should be before non-constructor declarations - lib\game\level\level_models.dart:163:3 - sort_constructors_first
+   info - Constructor declarations should be before non-constructor declarations - lib\game\level\modular\chunk_blueprint.dart:22:9 - sort_constructors_first
+   info - The line length exceeds the 80-character limit - lib\game\level\modular\chunk_library.dart:18:81 - lines_longer_than_80_chars
+   info - Sort directive sections alphabetically - lib\game\level\modular\chunk_manager_component.dart:3:1 - directives_ordering
+   info - 'HasGameRef' is deprecated and shouldn't be used. Use HasGameReference instead. This mixin will be removed in a future version of Flame - lib\game\level\modular\chunk_manager_component.dart:16:52 - deprecated_member_use
+   info - Unnecessary use of a 'double' literal - lib\game\level\modular\chunk_manager_component.dart:27:34 - prefer_int_literals
+   info - Constructor declarations should be before non-constructor declarations - lib\game\level\modular\chunk_manager_component.dart:36:3 - sort_constructors_first
+   info - The line length exceeds the 80-character limit - lib\game\level\modular\chunk_manager_component.dart:64:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\level\modular\chunk_manager_component.dart:66:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\level\modular\chunk_manager_component.dart:67:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\level\modular\chunk_manager_component.dart:68:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\level\modular\chunk_manager_component.dart:70:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\level\modular\chunk_manager_component.dart:73:81 - lines_longer_than_80_chars
+   info - 'Future'-returning calls in a non-'async' function - lib\game\level\modular\chunk_manager_component.dart:75:15 - discarded_futures
+   info - Unnecessary type annotation on a local variable - lib\game\level\modular\chunk_manager_component.dart:85:5 - omit_local_variable_types
+   info - Statements in an if should be enclosed in a block - lib\game\level\modular\chunk_manager_component.dart:105:7 - curly_braces_in_flow_control_structures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\level\modular\chunk_manager_component.dart:109:9 - discarded_futures
+   info - Unnecessary 'break' statement - lib\game\level\modular\chunk_manager_component.dart:162:11 - unnecessary_breaks
+   info - Unnecessary 'break' statement - lib\game\level\modular\chunk_manager_component.dart:169:11 - unnecessary_breaks
+   info - Unnecessary 'break' statement - lib\game\level\modular\chunk_manager_component.dart:176:11 - unnecessary_breaks
+   info - Unnecessary duplication of receiver - lib\game\level\modular\chunk_manager_component.dart:182:13 - cascade_invocations
+   info - Unnecessary duplication of receiver - lib\game\level\modular\chunk_manager_component.dart:183:13 - cascade_invocations
+   info - Unnecessary duplication of receiver - lib\game\level\modular\chunk_manager_component.dart:187:13 - cascade_invocations
+   info - Unnecessary duplication of receiver - lib\game\level\modular\chunk_manager_component.dart:188:13 - cascade_invocations
+   info - Unnecessary duplication of receiver - lib\game\level\modular\chunk_manager_component.dart:192:13 - cascade_invocations
+   info - Unnecessary duplication of receiver - lib\game\level\modular\chunk_manager_component.dart:193:13 - cascade_invocations
+   info - Unnecessary 'break' statement - lib\game\level\modular\chunk_manager_component.dart:196:11 - unnecessary_breaks
+   info - Statements in an if should be enclosed in a block - lib\game\level\modular\chunk_manager_component.dart:218:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\game\level\modular\chunk_manager_component.dart:220:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\game\level\modular\chunk_manager_component.dart:222:9 - curly_braces_in_flow_control_structures
+   info - Constructor declarations should be before non-constructor declarations - lib\game\level\modular\chunk_manager_component.dart:251:3 - sort_constructors_first
+   info - Constructor declarations should be before non-constructor declarations - lib\game\level\modular\chunk_manager_component.dart:263:3 - sort_constructors_first
+   info - Constructor declarations should be before non-constructor declarations - lib\game\level\modular\chunk_manager_component.dart:274:3 - sort_constructors_first
+   info - Statements in an if should be enclosed in a block - lib\game\level\modular\chunk_manager_component.dart:294:9 - curly_braces_in_flow_control_structures
+   info - Unnecessary type annotation on a local variable - lib\game\level\modular\chunk_manager_component.dart:338:5 - omit_local_variable_types
+   info - Unnecessary duplication of receiver - lib\game\level\modular\modular_level_builder.dart:22:5 - cascade_invocations
+   info - Unnecessary 'break' statement - lib\game\level\modular\modular_level_builder.dart:37:11 - unnecessary_breaks
+   info - Unnecessary 'break' statement - lib\game\level\modular\modular_level_builder.dart:41:11 - unnecessary_breaks
+   info - Unnecessary 'break' statement - lib\game\level\modular\modular_level_builder.dart:45:11 - unnecessary_breaks
+   info - Unnecessary type annotation on a local variable - lib\game\level\modular\modular_level_builder.dart:81:5 - omit_local_variable_types
+   info - Unnecessary type annotation on a local variable - lib\game\level\modular\modular_level_builder.dart:82:5 - omit_local_variable_types
+   info - Unnecessary type annotation on a local variable - lib\game\level\modular\modular_level_builder.dart:101:5 - omit_local_variable_types
+   info - Use 'isEven' rather than '% 2' - lib\game\level\modular\modular_level_builder.dart:176:11 - use_is_even_rather_than_modulo
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\level\modular\modular_level_builder.dart:192:41 - deprecated_member_use
+   info - The line length exceeds the 80-character limit - lib\game\level\procedural\cellular_automata.dart:13:81 - lines_longer_than_80_chars
+   info - Local variables should be final - lib\game\level\procedural\cellular_automata.dart:204:7 - prefer_final_locals
+   info - Local variables should be final - lib\game\level\procedural\cellular_automata.dart:205:7 - prefer_final_locals
+   info - Unnecessary use of a 'double' literal - lib\game\level\procedural\event_manager.dart:40:16 - prefer_int_literals
+   info - The line length exceeds the 80-character limit - lib\game\level\procedural\layout_builder.dart:133:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\level\procedural\layout_builder.dart:252:81 - lines_longer_than_80_chars
+   info - Constructor declarations should be before non-constructor declarations - lib\game\level\procedural\room_module.dart:13:9 - sort_constructors_first
+   info - Sort directive sections alphabetically - lib\game\level\procedural\room_templates.dart:3:1 - directives_ordering
+   info - Use 'isEven' rather than '% 2' - lib\game\level\procedural\room_templates.dart:192:15 - use_is_even_rather_than_modulo
+   info - Sort directive sections alphabetically - lib\game\utils\pathfinding.dart:4:1 - directives_ordering
+   info - The method '==' should not be overridden in classes not annotated with '@immutable' - lib\game\utils\pathfinding.dart:21:3 - avoid_equals_and_hash_code_on_mutable_classes
+   info - The method 'hashCode' should not be overridden in classes not annotated with '@immutable' - lib\game\utils\pathfinding.dart:27:3 - avoid_equals_and_hash_code_on_mutable_classes
+   info - Use 'const' for final variables initialized to a constant value - lib\game\utils\pathfinding.dart:38:3 - prefer_const_declarations
+   info - The value of the argument is redundant because it matches the default value - lib\game\utils\pathfinding.dart:54:34 - avoid_redundant_argument_values
+   info - Use 'const' for final variables initialized to a constant value - lib\game\utils\pathfinding.dart:109:3 - prefer_const_declarations
+   info - Sort directive sections alphabetically - lib\game\view\game_page.dart:5:1 - directives_ordering
+   info - Sort directive sections alphabetically - lib\game\view\game_page.dart:7:1 - directives_ordering
+   info - The import of 'package:echo_world/game/level/level_models.dart' is unnecessary because all of the used elements are also provided by the import of 'package:echo_world/game/game.dart' - lib\game\view\game_page.dart:7:8 - unnecessary_import
+   info - Sort directive sections alphabetically - lib\game\view\game_page.dart:9:1 - directives_ordering
+   info - The line length exceeds the 80-character limit - lib\game\view\game_page.dart:118:81 - lines_longer_than_80_chars
+   info - Invalid use of 'default' member in a switch - lib\game\view\game_page.dart:197:7 - no_default_cases
+   info - The line length exceeds the 80-character limit - lib\game\view\game_page.dart:232:81 - lines_longer_than_80_chars
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\view\game_page.dart:236:33 - deprecated_member_use
+   info - 'Future'-returning calls in a non-'async' function - lib\game\view\game_page.dart:405:34 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\view\game_page.dart:413:45 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\view\game_page.dart:448:30 - discarded_futures
+   info - Unnecessary use of parentheses - lib\game\view\game_page.dart:563:25 - unnecessary_parenthesis
+   info - 'Future'-returning calls in a non-'async' function - lib\game\view\game_page.dart:585:34 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\view\game_page.dart:588:45 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\view\game_page.dart:618:30 - discarded_futures
+   info - The line length exceeds the 80-character limit - lib\game\view\game_page.dart:701:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\game\view\game_page.dart:702:81 - lines_longer_than_80_chars
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\view\game_page.dart:774:69 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\view\game_page.dart:847:69 - deprecated_member_use
+   info - 'Future'-returning calls in a non-'async' function - lib\game\view\game_page.dart:917:38 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\view\game_page.dart:918:49 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\game\view\game_page.dart:953:36 - discarded_futures
+   info - The line length exceeds the 80-character limit - lib\game\view\game_page.dart:1008:81 - lines_longer_than_80_chars
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\view\game_page.dart:1089:31 - deprecated_member_use
+   info - 'Future'-returning calls in a non-'async' function - lib\game\view\game_page.dart:1191:8 - discarded_futures
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\view\game_page.dart:1237:24 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\view\game_page.dart:1261:30 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\game\view\game_page.dart:1278:43 - deprecated_member_use
+   info - Use 'isEven' rather than '% 2' - lib\game\view\game_page.dart:1283:13 - use_is_even_rather_than_modulo
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:56:81 - lines_longer_than_80_chars
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\journal\view\journal_screen.dart:163:50 - deprecated_member_use
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:221:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:223:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:225:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:227:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:229:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:231:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:233:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:235:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:237:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:239:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:241:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - lib\journal\view\journal_screen.dart:243:81 - lines_longer_than_80_chars
+   info - Sort directive sections alphabetically - lib\lore\cubit\lore_bloc.dart:2:1 - directives_ordering
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\lore\cubit\lore_bloc.dart:43:7 - avoid_catches_without_on_clauses
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\lore\cubit\lore_bloc.dart:52:7 - avoid_catches_without_on_clauses
+   info - Invalid location for the unnamed constructor - lib\lore\cubit\lore_state.dart:21:9 - sort_unnamed_constructors_first
+   info - The import of 'package:audioplayers/audioplayers.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flame_audio/flame_audio.dart' - lib\title\view\title_page.dart:1:8 - unnecessary_import
+   info - The line length exceeds the 80-character limit - lib\title\view\title_page.dart:36:81 - lines_longer_than_80_chars
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:50:16 - prefer_single_quotes
+   info - Use 'const' with the constructor to improve performance - lib\title\view\title_page.dart:55:18 - prefer_const_constructors
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:56:29 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:63:21 - avoid_redundant_argument_values
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\title\view\title_page.dart:64:20 - prefer_const_literals_to_create_immutables
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:69:26 - discarded_futures
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:70:18 - prefer_single_quotes
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\title\view\title_page.dart:71:7 - avoid_catches_without_on_clauses
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:72:18 - prefer_single_quotes
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:76:5 - discarded_futures
+   info - Unnecessary type annotation on a local variable - lib\title\view\title_page.dart:86:10 - omit_local_variable_types
+   info - Unnecessary type annotation on a local variable - lib\title\view\title_page.dart:87:13 - omit_local_variable_types
+   info - Unnecessary type annotation on a local variable - lib\title\view\title_page.dart:88:13 - omit_local_variable_types
+   info - Unnecessary use of a 'double' literal - lib\title\view\title_page.dart:90:49 - prefer_int_literals
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:100:16 - prefer_single_quotes
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:103:13 - prefer_single_quotes
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:110:28 - prefer_single_quotes
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:111:29 - discarded_futures
+   info - Unnecessary duplication of receiver - lib\title\view\title_page.dart:112:17 - cascade_invocations
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:112:29 - discarded_futures
+   info - Unnecessary use of a 'double' literal - lib\title\view\title_page.dart:112:39 - prefer_int_literals
+   info - Unnecessary duplication of receiver - lib\title\view\title_page.dart:113:17 - cascade_invocations
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:113:29 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:117:35 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:120:16 - discarded_futures
+warning - The type of error can't be inferred; a type must be explicitly provided - lib\title\view\title_page.dart:120:28 - inference_failure_on_untyped_parameter
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:121:28 - prefer_single_quotes
+   info - Missing an 'await' for the 'Future' computed by this expression - lib\title\view\title_page.dart:136:24 - unawaited_futures
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:136:60 - avoid_redundant_argument_values
+   info - Unnecessary use of a 'double' literal - lib\title\view\title_page.dart:136:60 - prefer_int_literals
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:137:20 - prefer_single_quotes
+   info - Catch clause should use 'on' to specify the type of exception being caught - lib\title\view\title_page.dart:139:7 - avoid_catches_without_on_clauses
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:140:18 - prefer_single_quotes
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:146:16 - prefer_single_quotes
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:147:17 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:150:20 - discarded_futures
+   info - Unnecessary type annotation on a local variable - lib\title\view\title_page.dart:158:10 - omit_local_variable_types
+   info - Unnecessary type annotation on a local variable - lib\title\view\title_page.dart:160:13 - omit_local_variable_types
+   info - Unnecessary type annotation on a local variable - lib\title\view\title_page.dart:163:15 - omit_local_variable_types
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:175:20 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:186:18 - discarded_futures
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:186:50 - avoid_redundant_argument_values
+   info - Unnecessary use of a 'double' literal - lib\title\view\title_page.dart:186:50 - prefer_int_literals
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:190:22 - prefer_single_quotes
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:191:26 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:192:33 - discarded_futures
+   info - Unnecessary 'break' statement - lib\title\view\title_page.dart:193:11 - unnecessary_breaks
+   info - Don't invoke 'print' in production code - lib\title\view\title_page.dart:195:11 - avoid_print
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:195:17 - prefer_single_quotes
+   info - Unnecessary 'break' statement - lib\title\view\title_page.dart:196:11 - unnecessary_breaks
+   info - Don't invoke 'print' in production code - lib\title\view\title_page.dart:198:11 - avoid_print
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:198:17 - prefer_single_quotes
+   info - Unnecessary 'break' statement - lib\title\view\title_page.dart:199:11 - unnecessary_breaks
+   info - Don't invoke 'print' in production code - lib\title\view\title_page.dart:201:11 - avoid_print
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:201:17 - prefer_single_quotes
+   info - Unnecessary 'break' statement - lib\title\view\title_page.dart:202:11 - unnecessary_breaks
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:204:22 - prefer_single_quotes
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:205:26 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - lib\title\view\title_page.dart:206:27 - discarded_futures
+   info - Unnecessary 'break' statement - lib\title\view\title_page.dart:207:11 - unnecessary_breaks
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:237:22 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:238:20 - avoid_redundant_argument_values
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\title\view\title_page.dart:241:30 - deprecated_member_use
+   info - Unnecessary use of a 'double' literal - lib\title\view\title_page.dart:252:52 - prefer_int_literals
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:263:23 - prefer_single_quotes
+   info - Unnecessary use of a 'double' literal - lib\title\view\title_page.dart:268:40 - prefer_int_literals
+   info - Unnecessary use of double quotes - lib\title\view\title_page.dart:276:23 - prefer_single_quotes
+   info - Unnecessary use of a 'double' literal - lib\title\view\title_page.dart:279:40 - prefer_int_literals
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:291:32 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:293:35 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:304:32 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:306:35 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:317:32 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:319:35 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:330:32 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:332:35 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:344:32 - avoid_redundant_argument_values
+   info - The value of the argument is redundant because it matches the default value - lib\title\view\title_page.dart:346:35 - avoid_redundant_argument_values
+   info - Constructor declarations should be before non-constructor declarations - lib\title\view\title_page.dart:367:9 - sort_constructors_first
+   info - Required named parameters should be before optional named parameters - lib\title\view\title_page.dart:369:19 - always_put_required_named_parameters_first
+   info - Required named parameters should be before optional named parameters - lib\title\view\title_page.dart:373:19 - always_put_required_named_parameters_first
+   info - Dependencies not sorted alphabetically - pubspec.yaml:26:3 - sort_pub_dependencies
+   info - Unreachable member 'MockAudioPlayer' in an executable library - test\game\audio\audio_manager_test.dart:6:7 - unreachable_from_main
+   info - The line length exceeds the 80-character limit - test\game\audio\audio_manager_test.dart:23:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - test\game\audio\audio_manager_test.dart:24:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - test\game\audio\audio_manager_test.dart:29:81 - lines_longer_than_80_chars
+   info - The import of 'package:flame/camera.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flame/components.dart' - test\game\entities\player\player_test.dart:9:8 - unnecessary_import
+   info - The import of 'package:flame/game.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flame/components.dart' - test\game\entities\player\player_test.dart:11:8 - unnecessary_import
+   info - 'Future'-returning calls in a non-'async' function - test\game\entities\player\player_test.dart:75:5 - discarded_futures
+   info - 'Future'-returning calls in a non-'async' function - test\game\entities\player\player_test.dart:100:5 - discarded_futures
+   info - Unnecessary duplication of receiver - test\game\entities\player\player_test.dart:110:9 - cascade_invocations
+   info - The line length exceeds the 80-character limit - test\game\entities\player\player_test.dart:118:81 - lines_longer_than_80_chars
+   info - The line length exceeds the 80-character limit - test\game\level\procedural\cellular_automata_test.dart:21:81 - lines_longer_than_80_chars
+warning - Unused import: 'package:flame_audio/bgm.dart' - test\game\view\game_page_test.dart:13:8 - unused_import
+warning - Unused import: 'package:flutter_bloc/flutter_bloc.dart' - test\game\view\game_page_test.dart:16:8 - unused_import
+   info - Place 'package:' imports before relative imports - test\game\view\game_page_test.dart:22:1 - directives_ordering
+   info - Place 'package:' imports before relative imports - test\game\view\game_page_test.dart:23:1 - directives_ordering
+   info - Place 'package:' imports before relative imports - test\game\view\game_page_test.dart:24:1 - directives_ordering
+   info - Place 'package:' imports before relative imports - test\game\view\game_page_test.dart:25:1 - directives_ordering
+   info - Sort directive sections alphabetically - test\helpers\mocks.dart:4:1 - directives_ordering
+   info - Sort directive sections alphabetically - test\helpers\pump_app.dart:2:1 - directives_ordering
+

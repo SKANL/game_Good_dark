@@ -117,7 +117,7 @@ class _MenuPrincipalState extends State<MenuPrincipal>
                   _animController.forward();
                 }
               })
-              .catchError((error) {
+              .catchError((Object error) {
                 debugPrint("Error initializing video: $error");
               });
   }

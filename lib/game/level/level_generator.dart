@@ -2,19 +2,16 @@ import 'dart:math';
 
 import 'package:echo_world/game/level/level_chunks.dart';
 import 'package:echo_world/game/level/level_models.dart';
-import 'package:echo_world/game/level/procedural/layout_builder.dart' as proc;
+import 'package:echo_world/game/level/modular/modular_level_builder.dart';
 
 /// Handles the procedural generation of levels by selecting chunks
 /// based on the current sector and difficulty progression.
 class LevelGenerator {
   final Random _random = Random();
-  final proc.LayoutBuilder _layoutBuilder = proc.LayoutBuilder(
-    widthInModules: 4,
-    heightInModules: 3,
-  );
+  final ModularLevelBuilder _modularBuilder = ModularLevelBuilder();
 
   /// Generates the next level based on the current index and sector.
-  LevelData generateLevel(int levelIndex, Sector sector) {
+  Future<LevelData> generateLevel(int levelIndex, Sector sector) async {
     // Phase 1: Smoother Progression
 
     // 1. Tutorial (Fixed) - Levels 0-2
@@ -38,10 +35,7 @@ class LevelGenerator {
       return pool[_random.nextInt(pool.length)];
     }
 
-    // 4. Endless Mode (Procedural) - Levels 15+
-    // Use organic terrain for variety (50% chance)
-    final useOrganic = _random.nextDouble() < 0.5;
-
+    // 4. Endless Mode (Modular Composition) - Levels 15+
     // Calculate dynamic difficulty
     Dificultad dynamicDifficulty;
     if (levelIndex < 20) {
@@ -50,11 +44,14 @@ class LevelGenerator {
       dynamicDifficulty = Dificultad.alta;
     }
 
-    return _layoutBuilder.buildLevel(
-      name: 'Procedural Level ${levelIndex - 14}',
+    // Generate a modular level with 5-10 chunks
+    final length = 5 + _random.nextInt(6); // 5 to 10 chunks
+
+    return await _modularBuilder.buildLevel(
+      length: length,
       dificultad: dynamicDifficulty,
       sector: sector,
-      useOrganicTerrain: useOrganic,
+      name: 'Modular Level ${levelIndex - 14}',
     );
   }
 

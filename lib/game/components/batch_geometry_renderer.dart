@@ -11,8 +11,7 @@ import 'package:flame/components.dart';
 /// y lo renderiza de una vez (1 draw call).
 ///
 /// Esto mejora dramáticamente el rendimiento en dispositivos móviles.
-class BatchGeometryRenderer extends Component
-  with HasGameRef<BlackEchoGame> {
+class BatchGeometryRenderer extends Component with HasGameRef<BlackEchoGame> {
   BatchGeometryRenderer();
 
   /// Canvas pre-renderizado con toda la geometría estática
@@ -30,6 +29,7 @@ class BatchGeometryRenderer extends Component
   }
 
   /// Añade una geometría al batch (pared, plataforma, etc.)
+  /// NOTA: No marca el batch como sucio automáticamente. Debe llamarse a [markDirty] manualmente.
   void addGeometry({
     required Vector2 position,
     required Vector2 size,
@@ -44,7 +44,29 @@ class BatchGeometryRenderer extends Component
         destructible: destructible,
       ),
     );
-    _needsRebuild = true;
+    // _needsRebuild = true; // REMOVED: Manual control requested
+  }
+
+  /// Añade múltiples rectángulos al batch con un offset compartido.
+  /// Útil para cargar chunks enteros de una vez.
+  /// NOTA: No marca el batch como sucio automáticamente. Debe llamarse a [markDirty] manualmente.
+  void addRects({
+    required List<Rect> rects,
+    required Vector2 offset,
+    required Color color,
+    bool destructible = false,
+  }) {
+    for (final rect in rects) {
+      _geometries.add(
+        _GeometryData(
+          position: Vector2(rect.left + offset.x, rect.top + offset.y),
+          size: Vector2(rect.width, rect.height),
+          color: color,
+          destructible: destructible,
+        ),
+      );
+    }
+    // _needsRebuild = true; // REMOVED: Manual control requested
   }
 
   /// Remueve una geometría del batch (cuando una pared es destruida)
@@ -117,7 +139,7 @@ class BatchGeometryRenderer extends Component
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    
+
     // NO renderizar geometría 2D en first-person: el raycaster proyecta las paredes en 3D
     if (game.gameBloc.state.enfoqueActual == Enfoque.firstPerson) return;
 

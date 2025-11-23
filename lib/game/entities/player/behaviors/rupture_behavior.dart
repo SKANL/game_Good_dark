@@ -33,13 +33,36 @@ class RuptureBehavior extends Behavior<PlayerComponent> {
     );
 
     // Interacción: destruir paredes destructibles en radio
-    final walls = game.levelManager.children.whereType<WallComponent>();
+    // FIX: Query walls from world.children instead of levelManager.children
+    // because ChunkManagerComponent adds walls directly to world
+    final walls = game.world.children.query<WallComponent>();
+
+    // DEBUG: Log wall query results
+    print('[RUPTURE DEBUG] Total walls in world: ${walls.length}');
+    print('[RUPTURE DEBUG] Player position: ${parent.position}');
+
+    var wallsDestroyed = 0;
     for (final w in walls) {
       final center = w.position + w.size / 2;
-      if (center.distanceTo(parent.position) <= radius) {
-        w.destroy();
+      final distance = center.distanceTo(parent.position);
+
+      // DEBUG: Log wall info
+      if (distance <= radius + 50) {
+        // Log walls slightly outside radius too
+        print(
+          '[RUPTURE DEBUG] Wall at ${w.position}, distance: $distance, destructible: ${w.destructible}',
+        );
+      }
+
+      if (distance <= radius) {
+        if (w.destructible) {
+          w.destroy();
+          wallsDestroyed++;
+        }
       }
     }
+
+    print('[RUPTURE DEBUG] Walls destroyed: $wallsDestroyed');
 
     // NUEVO: Derrotar enemigos en radio (con soporte para ResilienceBehavior)
     final enemies = game.world.children.query<PositionedEntity>();

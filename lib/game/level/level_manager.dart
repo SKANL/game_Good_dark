@@ -13,6 +13,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
 import 'package:echo_world/game/level/level_generator.dart';
+import 'package:echo_world/game/level/modular/chunk_manager_component.dart';
 
 class LevelManagerComponent extends Component with HasGameRef {
   LevelManagerComponent({required this.checkpointBloc});
@@ -69,7 +70,7 @@ class LevelManagerComponent extends Component with HasGameRef {
 
   Future<void> _cargarNivel(int index) async {
     final sector = _getSectorForLevel(index);
-    final chunk = _generator.generateLevel(index, sector);
+    final chunk = await _generator.generateLevel(index, sector);
     await _cargarChunk(chunk);
   }
 
@@ -89,8 +90,8 @@ class LevelManagerComponent extends Component with HasGameRef {
     _wallBatchRenderer.clearGeometries();
 
     // Liberar componentes del nivel anterior (devolverlos a los pools)
+    // Si usábamos ChunkManager, él ya limpió. Si no, limpiamos manual.
     for (final c in _levelComponents) {
-      // Si es un enemigo, devolverlo al pool antes de remover
       if (c is CazadorComponent) {
         c.removeFromParent();
         _cazadorPool.release(c);
@@ -101,95 +102,110 @@ class LevelManagerComponent extends Component with HasGameRef {
         c.removeFromParent();
         _brutoPool.release(c);
       } else {
-        // Otros componentes (abismos, transiciones) se destruyen normalmente
         c.removeFromParent();
       }
     }
     _levelComponents.clear();
 
-    // Cargar geometría del chunk
-    // OPTIMIZACIÓN: Paredes se agregan al batch renderer (1 draw call)
-    // Solo WallComponents físicos invisibles para colisiones
-    for (var y = 0; y < chunk.alto; y++) {
-      for (var x = 0; x < chunk.ancho; x++) {
-        final celda = chunk.grid[y][x];
-        final pos = Vector2(x * tileSize, y * tileSize);
+    // Remove old ChunkManager if exists
+    final oldManager = parent?.children
+        .whereType<ChunkManagerComponent>()
+        .firstOrNull;
+    if (oldManager != null) oldManager.removeFromParent();
 
-        if (celda.tipo == TipoCelda.pared) {
-          // Agregar geometría al batch renderer para renderizado eficiente
-          _wallBatchRenderer.addGeometry(
-            position: pos,
-            size: Vector2(tileSize, tileSize),
-            color: celda.esDestructible
-                ? const Color(0xFF444444) // Paredes destructibles más claras
-                : const Color(0xFF222222), // Paredes normales
-            destructible: celda.esDestructible,
-          );
+    // Check if it's a Modular Level (LevelMapData)
+    if (chunk is LevelMapData) {
+      // Use ChunkManager for dynamic loading
+      final manager = ChunkManagerComponent(
+        levelData: chunk,
+        wallBatchRenderer: _wallBatchRenderer,
+        cazadorPool: _cazadorPool,
+        vigiaPool: _vigiaPool,
+        brutoPool: _brutoPool,
+      );
+      await parent?.add(manager);
+      _levelComponents.add(manager);
 
-          // Crear WallComponent invisible solo para colisiones
-          final wall = WallComponent(
-            position: pos,
-            size: Vector2(tileSize, tileSize),
-            destructible: celda.esDestructible,
-          );
-          await parent?.add(wall);
-          _levelComponents.add(wall);
-        } else if (celda.tipo == TipoCelda.abismo) {
-          final abyss = AbyssComponent(
-            position: pos,
-            size: Vector2(tileSize, tileSize),
-          );
-          await parent?.add(abyss);
-          _levelComponents.add(abyss);
+      // Force initial update to load first chunks
+      manager.update(0);
+    } else {
+      // Legacy/Static Chunk Loading (for Tutorial/Early levels)
+
+      // Cargar geometría del chunk
+      for (var y = 0; y < chunk.alto; y++) {
+        for (var x = 0; x < chunk.ancho; x++) {
+          final celda = chunk.grid[y][x];
+          final pos = Vector2(x * tileSize, y * tileSize);
+
+          if (celda.tipo == TipoCelda.pared) {
+            _wallBatchRenderer.addGeometry(
+              position: pos,
+              size: Vector2(tileSize, tileSize),
+              color: celda.esDestructible
+                  ? const Color(0xFF444444)
+                  : const Color(0xFF222222),
+              destructible: celda.esDestructible,
+            );
+
+            final wall = WallComponent(
+              position: pos,
+              size: Vector2(tileSize, tileSize),
+              destructible: celda.esDestructible,
+            );
+            await parent?.add(wall);
+            _levelComponents.add(wall);
+          } else if (celda.tipo == TipoCelda.abismo) {
+            final abyss = AbyssComponent(
+              position: pos,
+              size: Vector2(tileSize, tileSize),
+            );
+            await parent?.add(abyss);
+            _levelComponents.add(abyss);
+          }
+
+          if (celda.ecoNarrativoId != null) {
+            final eco = EcoNarrativoComponent(
+              ecoId: celda.ecoNarrativoId!,
+              position: pos + Vector2.all(tileSize / 2),
+            );
+            await parent?.add(eco);
+            _levelComponents.add(eco);
+          }
         }
+      }
+      _wallBatchRenderer.markDirty();
 
-        // Spawn Narrative Echo if present
-        if (celda.ecoNarrativoId != null) {
-          final eco = EcoNarrativoComponent(
-            ecoId: celda.ecoNarrativoId!,
-            position: pos + Vector2.all(tileSize / 2),
-          );
-          await parent?.add(eco);
-          _levelComponents.add(eco);
+      // Spawnear entidades
+      for (final spawn in chunk.entidadesIniciales) {
+        final pos = Vector2(
+          spawn.posicion.x * tileSize,
+          spawn.posicion.y * tileSize,
+        );
+
+        if (spawn.tipoEnemigo == CazadorComponent) {
+          final enemy = _cazadorPool.acquire();
+          enemy.position = pos;
+          await parent?.add(enemy);
+          enemy.reset();
+          _levelComponents.add(enemy);
+        } else if (spawn.tipoEnemigo == VigiaComponent) {
+          final enemy = _vigiaPool.acquire();
+          enemy.position = pos;
+          await parent?.add(enemy);
+          enemy.reset();
+          _levelComponents.add(enemy);
+        } else if (spawn.tipoEnemigo == BrutoComponent) {
+          final enemy = _brutoPool.acquire();
+          enemy.position = pos;
+          await parent?.add(enemy);
+          enemy.reset();
+          _levelComponents.add(enemy);
         }
       }
     }
-
-    // Marcar el batch como dirty para que se re-renderice
-    _wallBatchRenderer.markDirty();
 
     // Crear zonas de transición en los bordes del chunk
     await _crearZonasDeTransicion(chunk);
-
-    // Spawnear entidades definidas en el chunk usando pools
-    for (final spawn in chunk.entidadesIniciales) {
-      final pos = Vector2(
-        spawn.posicion.x * tileSize,
-        spawn.posicion.y * tileSize,
-      );
-
-      // Usar pools en lugar de crear nuevas instancias
-      if (spawn.tipoEnemigo == CazadorComponent) {
-        final enemy = _cazadorPool.acquire();
-        enemy.position = pos;
-        await parent?.add(enemy);
-        // Resetear DESPUÉS de agregar al árbol (behaviors ya están montados)
-        enemy.reset();
-        _levelComponents.add(enemy);
-      } else if (spawn.tipoEnemigo == VigiaComponent) {
-        final enemy = _vigiaPool.acquire();
-        enemy.position = pos;
-        await parent?.add(enemy);
-        enemy.reset();
-        _levelComponents.add(enemy);
-      } else if (spawn.tipoEnemigo == BrutoComponent) {
-        final enemy = _brutoPool.acquire();
-        enemy.position = pos;
-        await parent?.add(enemy);
-        enemy.reset();
-        _levelComponents.add(enemy);
-      }
-    }
   }
 
   @override
@@ -252,15 +268,17 @@ class LevelManagerComponent extends Component with HasGameRef {
       return;
     }
 
-    // Fallback: Zona Este (derecha) completa
-    const zoneThickness = tileSize * 2;
-    final eastZone = TransitionZoneComponent(
-      position: Vector2((chunk.ancho - 2) * tileSize, 0),
-      size: Vector2(zoneThickness, chunk.alto * tileSize),
-      targetChunkDirection: 'east',
-    );
-    await parent?.add(eastZone);
-    _levelComponents.add(eastZone);
+    // Fallback: Zona Este (derecha) completa (SOLO para niveles estáticos)
+    if (chunk is! LevelMapData) {
+      const zoneThickness = tileSize * 2;
+      final eastZone = TransitionZoneComponent(
+        position: Vector2((chunk.ancho - 2) * tileSize, 0),
+        size: Vector2(zoneThickness, chunk.alto * tileSize),
+        targetChunkDirection: 'east',
+      );
+      await parent?.add(eastZone);
+      _levelComponents.add(eastZone);
+    }
   }
 
   Future<void> siguienteChunk() async {

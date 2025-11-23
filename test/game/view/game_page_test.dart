@@ -10,10 +10,10 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:echo_world/game/game.dart';
 import 'package:echo_world/loading/cubit/cubit.dart';
 import 'package:flame/cache.dart';
-import 'package:flame_audio/bgm.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/components/components.dart';
 import 'package:echo_world/game/entities/enemies/cazador.dart';
@@ -6,6 +7,7 @@ import 'package:echo_world/game/entities/enemies/vigia.dart';
 import 'package:echo_world/game/entities/enemies/bruto.dart';
 import 'package:echo_world/game/level/level_manager.dart';
 import 'package:echo_world/game/level/level_models.dart';
+import 'package:flame/cache.dart';
 import 'package:flame/components.dart';
 import 'package:echo_world/game/components/echolocation_vfx_component.dart';
 import 'package:echo_world/game/components/rupture_vfx_component.dart';
@@ -99,6 +101,24 @@ class RaycastRendererComponent extends Component
   int _currentRayCount = 200;
   double _frameTimeAccumulator = 0;
   int _frameCount = 0;
+
+  // Texturas
+  ui.Image? _wallTexture;
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    try {
+      // Cargar la textura de la pared
+      // Usamos una instancia local de Images con prefix 'assets/' porque
+      // la imagen está en assets/levels/walls/, no en assets/images/
+      final loader = Images(prefix: 'assets/');
+      _wallTexture = await loader.load('levels/walls/wall_1.png');
+    } catch (e) {
+      debugPrint('Error loading wall texture: $e');
+      // Fallback: _wallTexture quedará null y se usará el renderizado antiguo
+    }
+  }
 
   @override
   void update(double dt) {
@@ -249,6 +269,8 @@ class RaycastRendererComponent extends Component
       var hit = false;
       var side = false; // Para sombreado
       dynamic entidadDetectada;
+      double wallX =
+          0.0; // Coordenada X exacta del impacto en la pared (0.0 - 1.0)
 
       // Marcha del rayo
       while (dist < maxDepth) {
@@ -314,6 +336,15 @@ class RaycastRendererComponent extends Component
         if (grid[my][mx].tipo == TipoCelda.pared) {
           hit = true;
           side = (hitX - mx).abs() < (hitY - my).abs();
+
+          // Calcular coordenada exacta de textura
+          if (side) {
+            // Impacto en eje Y (lado horizontal)
+            wallX = hitY - hitY.floor();
+          } else {
+            // Impacto en eje X (lado vertical)
+            wallX = hitX - hitX.floor();
+          }
           break;
         }
 
@@ -340,6 +371,8 @@ class RaycastRendererComponent extends Component
 
       // Color según tipo de entidad
       Color color;
+      bool isWall = false;
+
       if (entidadDetectada is NucleoResonanteComponent) {
         // Pulse effect
         final pulse = (math.sin(_time * 5) + 1) / 2;
@@ -369,6 +402,7 @@ class RaycastRendererComponent extends Component
         )!;
       } else {
         // Pared
+        isWall = true;
         color = Color.lerp(
           const Color(0xFF00FFFF),
           fogColor,
@@ -402,11 +436,8 @@ class RaycastRendererComponent extends Component
         ];
         color = neonColors[random.nextInt(neonColors.length)];
         shade = 1.0; // Full brightness
+        isWall = false; // Disable texture for glitch
       }
-
-      final paint = Paint()
-        ..color = color
-        ..strokeWidth = colWidth + 1;
 
       // Glitch: Desplazamiento vertical (Wave + Random)
       var drawYTop = yTop.toDouble();
@@ -426,8 +457,54 @@ class RaycastRendererComponent extends Component
         }
       }
 
-      final x = i * colWidth + colWidth / 2;
-      canvas.drawLine(Offset(x, drawYTop), Offset(x, drawYBottom), paint);
+      final x = i * colWidth;
+      final rectHeight = drawYBottom - drawYTop;
+
+      // RENDERIZADO
+      if (isWall && _wallTexture != null) {
+        // Renderizar Textura
+        final texW = _wallTexture!.width;
+        final texH = _wallTexture!.height;
+
+        // Calcular franja de textura
+        final srcX = (wallX * texW).floorToDouble();
+        // Asegurar que no nos salimos
+        final clampedSrcX = srcX.clamp(0.0, texW - 1.0);
+
+        final srcRect = Rect.fromLTWH(clampedSrcX, 0, 1, texH.toDouble());
+        final dstRect = Rect.fromLTWH(x, drawYTop, colWidth + 1, rectHeight);
+
+        // Dibujar textura
+        canvas.drawImageRect(_wallTexture!, srcRect, dstRect, Paint());
+
+        // Aplicar sombra encima (multiply o darken)
+        final shadowPaint = Paint()
+          ..color = Colors.black.withOpacity(1.0 - shade)
+          ..blendMode = BlendMode.darken; // O srcOver con opacidad
+
+        canvas.drawRect(dstRect, shadowPaint);
+
+        // Aplicar tinte de color si es necesario (ej. eco)
+        if (color != const Color(0xFF00FFFF)) {
+          // Si no es el color base
+          final tintPaint = Paint()
+            ..color = color.withOpacity(0.3)
+            ..blendMode = BlendMode.srcOver;
+          canvas.drawRect(dstRect, tintPaint);
+        }
+      } else {
+        // Renderizado Fallback / Entidades (Líneas sólidas)
+        final paint = Paint()
+          ..color = color
+          ..strokeWidth = colWidth + 1;
+
+        // Usar drawLine para entidades o fallback
+        canvas.drawLine(
+          Offset(x + colWidth / 2, drawYTop),
+          Offset(x + colWidth / 2, drawYBottom),
+          paint,
+        );
+      }
     }
 
     // Rupture Flash Overlay

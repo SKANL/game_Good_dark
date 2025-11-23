@@ -44,6 +44,13 @@ class EcholocationVfxComponent extends PositionComponent
   void _detectAndIlluminate(double oldRadius, double newRadius) {
     // Buscar paredes en el rango del anillo
     final walls = gameRef.world.children.query<WallComponent>();
+
+    // DEBUG: Log on first detection
+    if (oldRadius == 0) {
+      print('[ECHOLOCATION DEBUG] Total walls in world: ${walls.length}');
+      print('[ECHOLOCATION DEBUG] Pulse origin: $position');
+    }
+
     for (final wall in walls) {
       final wallCenter = wall.position + wall.size / 2;
       final distance = wallCenter.distanceTo(position);

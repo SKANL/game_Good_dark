@@ -50,8 +50,6 @@ class EntidadSpawn {
 }
 
 abstract class LevelData {
-  // Para debugging
-
   const LevelData({
     required this.ancho,
     required this.alto,
@@ -86,4 +84,83 @@ abstract class LevelData {
   // Visual atmosphere
   final Color? ambientLight;
   final Color? fogColor;
+}
+
+/// Represents a single chunk instance within a larger level map.
+class ChunkInstance {
+  final String id;
+  final Rect bounds;
+  final Grid grid;
+  final List<EntidadSpawn> entities;
+  final int yOffset; // Vertical offset in the global grid
+
+  // Runtime state
+  bool isLoaded = false;
+  final List<Component> loadedComponents = [];
+
+  ChunkInstance({
+    required this.id,
+    required this.bounds,
+    required this.grid,
+    required this.entities,
+    this.yOffset = 0,
+  });
+}
+
+/// Represents a full level composed of multiple chunks.
+class LevelMapData extends LevelData {
+  final List<ChunkInstance> chunks;
+
+  LevelMapData({
+    required this.chunks,
+    required int ancho,
+    required int alto,
+    required Grid grid,
+    required List<EntidadSpawn> entidadesIniciales,
+    required String nombre,
+    required Dificultad dificultad,
+    required Sector sector,
+    Vector2? spawnPoint,
+    Vector2? exitPoint,
+    String? exitHint,
+    Color? ambientLight,
+    Color? fogColor,
+  }) : super(
+         ancho: ancho,
+         alto: alto,
+         grid: grid,
+         entidadesIniciales: entidadesIniciales,
+         nombre: nombre,
+         dificultad: dificultad,
+         sector: sector,
+         spawnPoint: spawnPoint,
+         exitPoint: exitPoint,
+         exitHint: exitHint,
+         ambientLight: ambientLight,
+         fogColor: fogColor,
+       );
+}
+
+// --- DTOs for Isolate Generation ---
+
+enum EntityType { wall, abyss, enemy, echo }
+
+class EntityData {
+  final EntityType type;
+  final Vector2 position; // Global position
+  final Vector2 size;
+  final Map<String, dynamic> properties;
+
+  EntityData({
+    required this.type,
+    required this.position,
+    required this.size,
+    this.properties = const {},
+  });
+}
+
+class ChunkGenerationData {
+  final List<EntityData> entities;
+
+  ChunkGenerationData({required this.entities});
 }
