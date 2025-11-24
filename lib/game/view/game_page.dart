@@ -222,155 +222,31 @@ class _HudTopDown extends StatelessWidget {
     final bloc = context.read<GameBloc>();
     final size = MediaQuery.of(context).size;
     final topInset = MediaQuery.of(context).padding.top;
-    final hudScale = (size.shortestSide / 360).clamp(0.8, 1.4);
-    final barHeight = 20.0 * hudScale;
-    final labelWidth = 80.0 * hudScale;
-    final valueWidth = 40.0 * hudScale;
-    final fontSize = (14.0 * hudScale).clamp(12.0, 20.0);
+
+    // Ajuste de escala para que no se vea gigante en tablets ni minúsculo en móvil
+    final hudWidth = size.width.clamp(300.0, 600.0);
+
     return Column(
       children: [
-        // Barras de estado en la parte superior con fondo oscuro para mejor visibilidad
-        Container(
-          padding: EdgeInsets.fromLTRB(12, 12 + topInset, 12, 12),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
-            border: Border.all(color: const Color(0xFF00FFFF), width: 2),
-          ),
+        SizedBox(height: topInset + 10), // Margen superior seguro
+        // --- AQUÍ INSERTAMOS EL NUEVO HUD CYBERPUNK ---
+        SizedBox(
+          width: hudWidth,
           child: BlocBuilder<GameBloc, GameState>(
+            buildWhen: (previous, current) =>
+                previous.energiaGrito != current.energiaGrito ||
+                previous.ruidoMental != current.ruidoMental,
             builder: (context, state) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Energía de Grito (cyan)
-                  Row(
-                    children: [
-                      SizedBox(
-                        width: labelWidth,
-                        child: Text(
-                          'ENERGÍA:',
-                          style: TextStyle(
-                            color: const Color(0xFF00FFFF),
-                            fontSize: fontSize,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Stack(
-                          children: [
-                            Container(
-                              height: barHeight,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: const Color(0xFF00FFFF),
-                                  width: 2,
-                                ),
-                                color: Colors.black,
-                              ),
-                            ),
-                            TweenAnimationBuilder<double>(
-                              tween: Tween<double>(
-                                begin: 0,
-                                end: state.energiaGrito / 100,
-                              ),
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeOut,
-                              builder: (context, value, child) {
-                                return FractionallySizedBox(
-                                  widthFactor: value.clamp(0.0, 1.0),
-                                  child: Container(
-                                    height: barHeight,
-                                    color: const Color(0xFF00FFFF),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: 8 * hudScale),
-                      SizedBox(
-                        width: valueWidth,
-                        child: Text(
-                          '${state.energiaGrito}',
-                          style: TextStyle(
-                            color: const Color(0xFF00FFFF),
-                            fontSize: fontSize,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8 * hudScale),
-                  // Ruido Mental (violeta)
-                  Row(
-                    children: [
-                      SizedBox(
-                        width: labelWidth,
-                        child: Text(
-                          'RUIDO:',
-                          style: TextStyle(
-                            color: const Color(0xFF8A2BE2),
-                            fontSize: fontSize,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Stack(
-                          children: [
-                            Container(
-                              height: barHeight,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: const Color(0xFF8A2BE2),
-                                  width: 2,
-                                ),
-                                color: Colors.black,
-                              ),
-                            ),
-                            TweenAnimationBuilder<double>(
-                              tween: Tween<double>(
-                                begin: 0,
-                                end: state.ruidoMental / 100,
-                              ),
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeOut,
-                              builder: (context, value, child) {
-                                return FractionallySizedBox(
-                                  widthFactor: value.clamp(0.0, 1.0),
-                                  child: Container(
-                                    height: barHeight,
-                                    color: const Color(0xFF8A2BE2),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: 8 * hudScale),
-                      SizedBox(
-                        width: valueWidth,
-                        child: Text(
-                          '${state.ruidoMental}',
-                          style: TextStyle(
-                            color: const Color(0xFF8A2BE2),
-                            fontSize: fontSize,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              return BlackEchoHUD(
+                energia: state.energiaGrito,
+                ruido: state.ruidoMental,
               );
             },
           ),
         ),
-        // Botón [ABSORBER] contextual (aparece cuando puedeAbsorber=true)
+        // ----------------------------------------------
+
+        // Botón [ABSORBER] contextual (Lógica original intacta)
         BlocSelector<GameBloc, GameState, bool>(
           selector: (state) => state.puedeAbsorber,
           builder: (context, puedeAbsorber) {
@@ -431,96 +307,98 @@ class _HudTopDown extends StatelessWidget {
             );
           },
         ),
+
         const Spacer(),
-        // Botones de control en la parte inferior
+
+        // Botones de control inferiores
         Align(
           alignment: Alignment.bottomCenter,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _HudButton(
-                label: 'ENFOQUE',
-                onPressed: () => bloc.add(EnfoqueCambiado()),
-              ),
-              _HudButton(
-                label: 'ECO',
-                onPressed: () {
-                  game.world.add(
-                    EcholocationVfxComponent(
-                      origin: game.player.position.clone(),
-                    ),
-                  );
-                  game.emitSound(
-                    game.player.position.clone(),
-                    NivelSonido.medio,
-                    ttl: 0.8,
-                  );
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _HudButton(
+                  label: 'ENFOQUE',
+                  onPressed: () => bloc.add(EnfoqueCambiado()),
+                ),
+                _HudButton(
+                  label: 'ECO',
+                  onPressed: () {
+                    game.world.add(
+                      EcholocationVfxComponent(
+                        origin: game.player.position.clone(),
+                      ),
+                    );
+                    game.emitSound(
+                      game.player.position.clone(),
+                      NivelSonido.medio,
+                      ttl: 0.8,
+                    );
 
-                  // Penalización: Sobrecarga Sensorial (> 50 ruidoMental)
-                  if (bloc.state.ruidoMental > 50) {
-                    // Aumentar 0.5 de ruido por cada ECO
-                    final nuevoRuido = (bloc.state.ruidoMental + 0.5)
-                        .clamp(0, 100)
-                        .toInt();
-                    bloc.add(
-                      EcoNarrativoAbsorbido(
-                        'sobrecarga_sensorial',
-                        nuevoRuido - bloc.state.ruidoMental,
-                      ),
-                    );
-                  }
-                },
-              ),
-              _HudButton(
-                label: 'RUPTURA',
-                onPressed: () async {
-                  if (bloc.state.energiaGrito >= 40) {
-                    await game.player.rupture();
-                    bloc.add(GritoActivado());
-                  }
-                },
-              ),
-              // Botón SIGILO: mantener presionado
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: BlocSelector<GameBloc, GameState, bool>(
-                  selector: (state) => state.estaAgachado,
-                  builder: (context, estaAgachado) {
-                    return GestureDetector(
-                      onTapDown: (_) => bloc.add(ModoSigiloActivado()),
-                      onTapUp: (_) => bloc.add(ModoSigiloDesactivado()),
-                      onTapCancel: () => bloc.add(ModoSigiloDesactivado()),
-                      child: ElevatedButton(
-                        onPressed: () {}, // El GestureDetector maneja la lógica
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: estaAgachado
-                              ? const Color(0xFF00FFFF)
-                              : null,
-                          foregroundColor: estaAgachado
-                              ? const Color(0xFF000000)
-                              : null,
+                    if (bloc.state.ruidoMental > 50) {
+                      final nuevoRuido = (bloc.state.ruidoMental + 0.5)
+                          .clamp(0, 100)
+                          .toInt();
+                      bloc.add(
+                        EcoNarrativoAbsorbido(
+                          'sobrecarga_sensorial',
+                          nuevoRuido - bloc.state.ruidoMental,
                         ),
-                        child: Text(
-                          estaAgachado ? 'SIGILO ✓' : 'SIGILO',
-                          style: TextStyle(
-                            fontWeight: estaAgachado
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                    );
+                      );
+                    }
                   },
                 ),
-              ),
-              // DEV ONLY: avanzar al siguiente chunk para probar tutoriales
-              _HudButton(
-                label: 'CHUNK +',
-                onPressed: () => game.levelManager.siguienteChunk(),
-              ),
-            ],
+                _HudButton(
+                  label: 'RUPTURA',
+                  onPressed: () async {
+                    if (bloc.state.energiaGrito >= 40) {
+                      await game.player.rupture();
+                      bloc.add(GritoActivado());
+                    }
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: BlocSelector<GameBloc, GameState, bool>(
+                    selector: (state) => state.estaAgachado,
+                    builder: (context, estaAgachado) {
+                      return GestureDetector(
+                        onTapDown: (_) => bloc.add(ModoSigiloActivado()),
+                        onTapUp: (_) => bloc.add(ModoSigiloDesactivado()),
+                        onTapCancel: () => bloc.add(ModoSigiloDesactivado()),
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: estaAgachado
+                                ? const Color(0xFF00FFFF)
+                                : null,
+                            foregroundColor: estaAgachado
+                                ? const Color(0xFF000000)
+                                : null,
+                          ),
+                          child: Text(
+                            estaAgachado ? 'SIGILO ✓' : 'SIGILO',
+                            style: TextStyle(
+                              fontWeight: estaAgachado
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                _HudButton(
+                  label: 'CHUNK +',
+                  onPressed: () => game.levelManager.siguienteChunk(),
+                ),
+              ],
+            ),
           ),
         ),
+        const SizedBox(height: 20),
       ],
     );
   }
@@ -697,9 +575,6 @@ class _HudSideScroll extends StatelessWidget {
   }
 }
 
-/// HUD para modo First-Person.
-/// La vista 3D (raycasting) es renderizada por Flame (RaycastRendererComponent),
-/// este HUD muestra: retícula (renderizada en Flame), barras de estado y botones de acción.
 class _HudFirstPerson extends StatelessWidget {
   const _HudFirstPerson(this.game);
   final BlackEchoGame game;
@@ -708,334 +583,159 @@ class _HudFirstPerson extends StatelessWidget {
   Widget build(BuildContext context) {
     final bloc = context.read<GameBloc>();
     final size = MediaQuery.of(context).size;
-    // Factor de escala relativo al lado corto para mantener proporciones.
-    final hudScale = (size.shortestSide / 360).clamp(0.7, 1.3);
-    final barHeight = (18.0 * hudScale).clamp(14.0, 24.0);
-    final spacingTop = (12.0 * hudScale).clamp(8.0, 20.0);
-    final spacingSide = (12.0 * hudScale).clamp(8.0, 20.0);
-    final fontSmall = (9.0 * hudScale).clamp(8.0, 12.0);
-    final fontLabel = (11.0 * hudScale).clamp(10.0, 16.0);
-    final absorberTop = (80.0 * hudScale).clamp(60.0, 120.0);
-    final absorberFont = (18.0 * hudScale).clamp(14.0, 24.0);
-    final bottomSpacing = (12.0 * hudScale).clamp(8.0, 20.0);
+    final topInset = MediaQuery.of(context).padding.top;
+    final hudWidth = size.width.clamp(300.0, 600.0);
+
     return SizedBox.expand(
-      child: SafeArea(
-        child: Stack(
-          children: [
-            // Barras de estado superiores
-            Positioned(
-              top: spacingTop + MediaQuery.of(context).padding.top,
-              left: spacingSide,
-              right: spacingSide,
-              child: Row(
-                children: [
-                  // Energía Grito
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'ENERGÍA',
-                          style: TextStyle(
-                            color: const Color(0xFF00FFFF),
-                            fontSize: fontLabel,
-                            fontWeight: FontWeight.bold,
-                            shadows: const [
-                              Shadow(color: Color(0xFF00FFFF), blurRadius: 5),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 4 * hudScale),
-                        BlocSelector<GameBloc, GameState, int>(
-                          selector: (state) => state.energiaGrito,
-                          builder: (context, energia) {
-                            final progress = energia / 100.0;
-                            return Container(
-                              height: barHeight,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: const Color(0xFF00FFFF),
-                                  width: 2,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(2),
-                                child: TweenAnimationBuilder<double>(
-                                  tween: Tween<double>(
-                                    begin: 0,
-                                    end: progress,
-                                  ),
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeOut,
-                                  builder: (context, value, child) {
-                                    return LinearProgressIndicator(
-                                      value: value,
-                                      backgroundColor: Colors.black.withOpacity(
-                                        0.5,
-                                      ),
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        energia >= 50
-                                            ? const Color(0xFF00FFFF)
-                                            : const Color(0xFFFF4444),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        BlocSelector<GameBloc, GameState, int>(
-                          selector: (state) => state.energiaGrito,
-                          builder: (context, energia) {
-                            return Text(
-                              '$energia / 100',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: fontSmall,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: 16 * hudScale),
-                  // Ruido Mental
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'RUIDO MENTAL',
-                          style: TextStyle(
-                            color: const Color(0xFF8A2BE2),
-                            fontSize: fontLabel,
-                            fontWeight: FontWeight.bold,
-                            shadows: const [
-                              Shadow(color: Color(0xFF8A2BE2), blurRadius: 5),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 4 * hudScale),
-                        BlocSelector<GameBloc, GameState, int>(
-                          selector: (state) => state.ruidoMental,
-                          builder: (context, ruido) {
-                            final progress = ruido / 100.0;
-                            return Container(
-                              height: barHeight,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: const Color(0xFF8A2BE2),
-                                  width: 2,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(2),
-                                child: TweenAnimationBuilder<double>(
-                                  tween: Tween<double>(
-                                    begin: 0,
-                                    end: progress,
-                                  ),
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeOut,
-                                  builder: (context, value, child) {
-                                    return LinearProgressIndicator(
-                                      value: value,
-                                      backgroundColor: Colors.black.withOpacity(
-                                        0.5,
-                                      ),
-                                      valueColor:
-                                          const AlwaysStoppedAnimation<Color>(
-                                            Color(0xFF8A2BE2),
-                                          ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        BlocSelector<GameBloc, GameState, int>(
-                          selector: (state) => state.ruidoMental,
-                          builder: (context, ruido) {
-                            return Text(
-                              '$ruido / 100',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: fontSmall,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+      child: Stack(
+        // Usamos Stack como base
+        children: [
+          // 1. EL NUEVO HUD EN LA PARTE SUPERIOR
+          Positioned(
+            top: topInset + 10,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: SizedBox(
+                width: hudWidth,
+                child: BlocBuilder<GameBloc, GameState>(
+                  builder: (context, state) {
+                    return BlackEchoHUD(
+                      energia: state.energiaGrito,
+                      ruido: state.ruidoMental,
+                    );
+                  },
+                ),
               ),
             ),
+          ),
 
-            // Botón [ABSORBER] contextual (centro-superior)
-            BlocSelector<GameBloc, GameState, bool>(
-              selector: (s) => s.puedeAbsorber,
-              builder: (context, puedeAbsorber) {
-                if (!puedeAbsorber) return const SizedBox.shrink();
-                return Positioned(
-                  top: absorberTop,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFFD700),
-                        foregroundColor: const Color(0xFF000000),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        elevation: 8,
-                      ),
-                      onPressed: () {
-                        bloc.add(AbsorcionConfirmada());
-                        // Destruir núcleo más cercano con VFX
-                        final nucleos = game.world.children
-                            .query<NucleoResonanteComponent>();
-                        if (nucleos.isNotEmpty) {
-                          final closest = nucleos.reduce(
-                            (a, b) =>
-                                a.position.distanceTo(game.player.position) <
-                                    b.position.distanceTo(game.player.position)
-                                ? a
-                                : b,
-                          );
-                          final absorptionVfx = AbsorptionVfxComponent(
-                            nucleusPosition: closest.position.clone(),
-                            playerPosition: game.player.position.clone(),
-                          );
-                          game.world.add(absorptionVfx);
-                          AudioManager.instance.playSfx('absorb_inhale');
-                          closest.removeFromParent();
-                        }
-                      },
-                      child: Text(
-                        '[ABSORBER]',
-                        style: TextStyle(
-                          fontSize: absorberFont,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+          // 2. BOTÓN ABSORBER (Centrado)
+          BlocSelector<GameBloc, GameState, bool>(
+            selector: (s) => s.puedeAbsorber,
+            builder: (context, puedeAbsorber) {
+              if (!puedeAbsorber) return const SizedBox.shrink();
+              return Center(
+                // Centrado en pantalla para FP
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFD700),
+                    foregroundColor: const Color(0xFF000000),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    elevation: 8,
+                  ),
+                  onPressed: () {
+                    bloc.add(AbsorcionConfirmada());
+                    // Destruir núcleo más cercano con VFX
+                    final nucleos = game.world.children
+                        .query<NucleoResonanteComponent>();
+                    if (nucleos.isNotEmpty) {
+                      final closest = nucleos.reduce(
+                        (a, b) =>
+                            a.position.distanceTo(game.player.position) <
+                                b.position.distanceTo(game.player.position)
+                            ? a
+                            : b,
+                      );
+                      final absorptionVfx = AbsorptionVfxComponent(
+                        nucleusPosition: closest.position.clone(),
+                        playerPosition: game.player.position.clone(),
+                      );
+                      game.world.add(absorptionVfx);
+                      AudioManager.instance.playSfx('absorb_inhale');
+                      closest.removeFromParent();
+                    }
+                  },
+                  child: const Text(
+                    '[ABSORBER]',
+                    style: TextStyle(
+                      fontSize:
+                          18, // Fixed size for simplicity or use hudScale if needed
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
+          ),
 
-            // Botones de acción (parte inferior)
-            Positioned(
-              bottom: bottomSpacing,
-              left: 0,
-              right: 0,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final maxWidth = constraints.maxWidth;
-                  final buttonSpacing = 8.0 * hudScale;
-                  final buttons = <Widget>[
-                    _HudButton(
-                      label: 'ENFOQUE',
-                      onPressed: () => bloc.add(EnfoqueCambiado()),
-                    ),
-                    _HudButton(
-                      label: 'ECO',
-                      onPressed: () {
-                        final p = game.player.position.clone();
-                        game.world.add(EcholocationVfxComponent(origin: p));
-                        game.emitSound(p, NivelSonido.medio, ttl: 0.8);
-                        bloc.add(EcoActivado());
-                        if (bloc.state.ruidoMental > 50) {
-                          final nuevo = (bloc.state.ruidoMental + 0.5)
-                              .clamp(0, 100)
-                              .toInt();
-                          bloc.add(
-                            EcoNarrativoAbsorbido(
-                              'sobrecarga_sensorial',
-                              nuevo - bloc.state.ruidoMental,
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    _HudButton(
-                      label: 'RUPTURA',
-                      onPressed: () async {
-                        if (bloc.state.energiaGrito >= 40) {
-                          await game.player.rupture();
-                          bloc.add(GritoActivado());
-                        }
-                      },
-                    ),
-                    BlocSelector<GameBloc, GameState, bool>(
-                      selector: (s) => s.estaAgachado,
-                      builder: (context, estaAgachado) {
-                        return GestureDetector(
-                          onTapDown: (_) => bloc.add(ModoSigiloActivado()),
-                          onTapUp: (_) => bloc.add(ModoSigiloDesactivado()),
-                          onTapCancel: () => bloc.add(ModoSigiloDesactivado()),
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: estaAgachado
-                                  ? const Color(0xFF00FFFF)
-                                  : null,
-                              foregroundColor: estaAgachado
-                                  ? const Color(0xFF000000)
-                                  : null,
-                            ),
-                            child: Text(
-                              estaAgachado ? 'SIGILO ✓' : 'SIGILO',
-                              style: TextStyle(
-                                fontWeight: estaAgachado
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ];
-                  // Calcular ancho total aproximado (botón ~100 + padding); si excede wrap
-                  final estimatedPerButton = 100.0 * hudScale + buttonSpacing;
-                  final fitsSingleRow =
-                      estimatedPerButton * buttons.length <= maxWidth;
-                  if (fitsSingleRow) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: buttons
-                          .expand((b) => [b, SizedBox(width: buttonSpacing)])
-                          .toList()
-                          .sublist(0, buttons.length * 2 - 1),
-                    );
-                  } else {
-                    // Wrap en dos filas centradas
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Wrap(
-                          alignment: WrapAlignment.center,
-                          spacing: buttonSpacing,
-                          runSpacing: buttonSpacing,
-                          children: buttons,
+          // 3. BOTONES DE ACCIÓN (Abajo)
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _HudButton(
+                  label: 'ENFOQUE',
+                  onPressed: () => bloc.add(EnfoqueCambiado()),
+                ),
+                _HudButton(
+                  label: 'ECO',
+                  onPressed: () {
+                    final p = game.player.position.clone();
+                    game.world.add(EcholocationVfxComponent(origin: p));
+                    game.emitSound(p, NivelSonido.medio, ttl: 0.8);
+                    bloc.add(EcoActivado());
+                    if (bloc.state.ruidoMental > 50) {
+                      final nuevo = (bloc.state.ruidoMental + 0.5)
+                          .clamp(0, 100)
+                          .toInt();
+                      bloc.add(
+                        EcoNarrativoAbsorbido(
+                          'sobrecarga_sensorial',
+                          nuevo - bloc.state.ruidoMental,
                         ),
-                      ],
+                      );
+                    }
+                  },
+                ),
+                _HudButton(
+                  label: 'RUPTURA',
+                  onPressed: () async {
+                    if (bloc.state.energiaGrito >= 40) {
+                      await game.player.rupture();
+                      bloc.add(GritoActivado());
+                    }
+                  },
+                ),
+                BlocSelector<GameBloc, GameState, bool>(
+                  selector: (s) => s.estaAgachado,
+                  builder: (context, estaAgachado) {
+                    return GestureDetector(
+                      onTapDown: (_) => bloc.add(ModoSigiloActivado()),
+                      onTapUp: (_) => bloc.add(ModoSigiloDesactivado()),
+                      onTapCancel: () => bloc.add(ModoSigiloDesactivado()),
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: estaAgachado
+                              ? const Color(0xFF00FFFF)
+                              : null,
+                          foregroundColor: estaAgachado
+                              ? const Color(0xFF000000)
+                              : null,
+                        ),
+                        child: Text(
+                          estaAgachado ? 'SIGILO ✓' : 'SIGILO',
+                          style: TextStyle(
+                            fontWeight: estaAgachado
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ),
                     );
-                  }
-                },
-              ),
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1294,5 +994,323 @@ class _RuidoMentalPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _RuidoMentalPainter oldDelegate) {
     return oldDelegate.intensity != intensity || oldDelegate.tick != tick;
+  }
+}
+
+// --- NUEVO COMPONENTE VISUAL: HUD CYBERPUNK ---
+
+class BlackEchoHUD extends StatelessWidget {
+  final int energia;
+  final int ruido;
+
+  const BlackEchoHUD({
+    super.key,
+    required this.energia,
+    required this.ruido,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // --- VARIABLES DE AJUSTE MANUAL DEL CONTENEDOR ---
+    // Modifica estos valores para mover/escalar la imagen de fondo principal
+    const double containerX = 0.0;
+    const double containerY = -40.0;
+    const double? containerW = null; // null = automático (llenar)
+    const double? containerH = 180; // null = automático (llenar)
+
+    // --- VARIABLES DE AJUSTE BARRA CENTRAL (VIDA) ---
+    const double centralX = 0.0;
+    const double centralY = -25;
+    const double? centralW = null; // null = automático
+    const double? centralH = null; // null = automático
+
+    // --- FÓRMULA DE VIDA ---
+    // Convierte energía (0-100) a vida con un mínimo de 10%
+    // Si energía = 0 -> vida = 10%
+    // Si energía = 100 -> vida = 100%
+    final int vidaPorcentaje = energia == 0 ? 10 : energia;
+
+    return AspectRatio(
+      aspectRatio: 21 / 5, // Proporción aproximada del contenedor
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // 1. FONDO (El contenedor ancho de rejilla)
+          Positioned(
+            left: containerX,
+            top: containerY,
+            width: containerW,
+            height: containerH,
+            // Lógica corregida: Si movemos X, restamos a right para MANTENER el tamaño
+            // (Desplazamiento puro en lugar de encogimiento)
+            right: containerW == null ? -containerX : null,
+            bottom: containerH == null ? -containerY : null,
+
+            child: Image.asset(
+              'assets/img/contenedor_barras.png',
+              fit: BoxFit.fill,
+            ),
+          ),
+
+          // 2. BARRAS DE PROGRESO (Izquierda y Derecha)
+          // Usamos FractionallySizedBox para márgenes porcentuales seguros
+          Positioned.fill(
+            child: FractionallySizedBox(
+              widthFactor: 1.0, // ~4% margen lateral
+              heightFactor: 1.75, // ~12% margen vertical
+              child: Row(
+                children: [
+                  // --- BARRA IZQUIERDA (ENERGÍA) ---
+                  Expanded(
+                    child: Padding(
+                      // Ajustamos márgenes para que no toque los bordes del contenedor
+                      padding: const EdgeInsets.only(
+                        left: 12.0,
+                        right: 4.0,
+                        top: 8,
+                        bottom: 8,
+                      ),
+                      child: HUDBar(
+                        frameAsset: 'assets/img/barra_energia.png',
+                        fillAsset: 'assets/img/barra_azul.png',
+                        bgAsset: 'assets/img/barra_gris.png',
+                        percentage: energia / 100.0,
+
+                        // --- AJUSTES MANUALES BARRA IZQUIERDA ---
+
+                        // MARCO (Frame)
+                        frameX: 0.0,
+                        frameY: -30.0,
+                        frameWidth: null, // null = automático
+                        frameHeight: null, // null = automático
+                        // FONDO (Gris)
+                        bgX: 43.0,
+                        bgY: 74.0,
+                        bgWidth: 180,
+                        bgHeight: 35,
+
+                        // RELLENO (Azul)
+                        fillX: 43.0,
+                        fillY: 74.0,
+                        fillWidth: 180,
+                        fillHeight: 35,
+                      ),
+                    ),
+                  ),
+
+                  // Espacio central reservado para el conector
+                  const SizedBox(width: 40),
+
+                  // --- BARRA DERECHA (RUIDO MENTAL) ---
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 4.0,
+                        right: 12.0,
+                        top: 8,
+                        bottom: 8,
+                      ),
+                      child: HUDBar(
+                        frameAsset: 'assets/img/barra_ruido.png',
+                        fillAsset: 'assets/img/barra_morada.png',
+                        bgAsset: 'assets/img/barra_gris.png',
+                        percentage: ruido / 100.0,
+
+                        // --- AJUSTES MANUALES BARRA DERECHA ---
+
+                        // MARCO (Frame)
+                        frameX: 0.0,
+                        frameY: -30.0,
+                        frameWidth: null, // null = automático
+                        frameHeight: null, // null = automático
+                        // FONDO (Gris)
+                        bgX: 43.0,
+                        bgY: 74.0,
+                        bgWidth: 180,
+                        bgHeight: 35,
+
+                        // RELLENO (Morado)
+                        fillX: 43.0,
+                        fillY: 74.0,
+                        fillWidth: 180,
+                        fillHeight: 35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 3. CONECTOR CENTRAL (SALUD/INFO)
+          Positioned(
+            left: centralX,
+            top: centralY,
+            width: centralW,
+            height: centralH,
+            // Misma lógica de desplazamiento sin deformación
+            right: centralW == null ? -centralX : null,
+            bottom: centralH == null ? -centralY : null,
+            child: FractionallySizedBox(
+              heightFactor: 0.90, // Ocupa el 65% de la altura del HUD
+              child: Image.asset(
+                'assets/img/barra_central_vida.png',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+
+          // 4. TEXTO DE ESTADO (Restaurado - Dinámico)
+          Positioned(
+            left: centralX,
+            top: centralY,
+            // Usamos el mismo desplazamiento que la barra central para que el texto se mueva con ella
+            right: centralW == null ? -centralX : null,
+            bottom: centralH == null ? -centralY : null,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "SALUD",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                    shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+                  ),
+                ),
+                Text(
+                  "$vidaPorcentaje%",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Sub-widget corregido para usar el Marco como ancla de tamaño
+class HUDBar extends StatelessWidget {
+  final String frameAsset;
+  final String fillAsset;
+  final String bgAsset;
+  final double percentage;
+
+  // Parámetros para ajuste manual de Posición y Tamaño
+
+  // Marco (Frame)
+  final double frameX;
+  final double frameY;
+  final double? frameWidth;
+  final double? frameHeight;
+
+  // Fondo
+  final double bgX;
+  final double bgY;
+  final double? bgWidth;
+  final double? bgHeight;
+
+  // Relleno
+  final double fillX;
+  final double fillY;
+  final double? fillWidth;
+  final double? fillHeight;
+
+  const HUDBar({
+    super.key,
+    required this.frameAsset,
+    required this.fillAsset,
+    required this.bgAsset,
+    required this.percentage,
+
+    // Valores por defecto
+    this.frameX = 0.0,
+    this.frameY = 0.0,
+    this.frameWidth,
+    this.frameHeight,
+
+    this.bgX = 0.0,
+    this.bgY = 0.0,
+    this.bgWidth,
+    this.bgHeight,
+
+    this.fillX = 0.0,
+    this.fillY = 0.0,
+    this.fillWidth,
+    this.fillHeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // SOLUCIÓN: Usamos el marco como hijo directo del Stack (no Positioned)
+    // para que el Stack tome EXACTAMENTE el tamaño del marco.
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // 1. EL MARCO (ANCLA DE TAMAÑO)
+        // Ahora también es personalizable con Positioned
+        Positioned(
+          left: frameX,
+          top: frameY,
+          width: frameWidth,
+          height: frameHeight,
+          // Lógica corregida: Si width es null (auto-fill), usamos -X en right
+          // para desplazar el bloque sin cambiar su tamaño.
+          right: frameWidth == null ? -frameX : null,
+          bottom: frameHeight == null ? -frameY : null,
+          child: Image.asset(frameAsset, fit: BoxFit.contain),
+        ),
+
+        // 2. FONDO (Detrás del relleno)
+        Positioned(
+          left: bgX,
+          top: bgY,
+          width: bgWidth,
+          height: bgHeight,
+          right: bgWidth == null ? -bgX : null,
+          bottom: bgHeight == null ? -bgY : null,
+          child: Image.asset(bgAsset, fit: BoxFit.fill),
+        ),
+
+        // 3. RELLENO (Animado/Variable)
+        Positioned(
+          left: fillX,
+          top: fillY,
+          width: fillWidth,
+          height: fillHeight,
+          right: fillWidth == null ? -fillX : null,
+          bottom: fillHeight == null ? -fillY : null,
+          child: Align(
+            alignment: Alignment.centerLeft, // Crece de izquierda a derecha
+            child: FractionallySizedBox(
+              widthFactor: percentage.clamp(0.0, 1.0),
+              heightFactor: 1.0, // Forzar altura completa del contenedor
+              child: Image.asset(fillAsset, fit: BoxFit.fill),
+            ),
+          ),
+        ),
+
+        // 4. MARCO (SUPERIOR - OPCIONAL)
+        // Volvemos a pintar el marco encima para tapar los bordes del relleno si fuera necesario.
+        Positioned(
+          left: frameX,
+          top: frameY,
+          width: frameWidth,
+          height: frameHeight,
+          right: frameWidth == null ? -frameX : null,
+          bottom: frameHeight == null ? -frameY : null,
+          child: Image.asset(frameAsset, fit: BoxFit.contain),
+        ),
+      ],
+    );
   }
 }
