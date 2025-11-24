@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/components/core/batch_geometry_renderer.dart';
 import 'package:echo_world/game/components/core/component_pool.dart';
@@ -291,14 +293,81 @@ class LevelManagerComponent extends Component with HasGameRef {
     final chunk = _current!;
 
     if (chunk.spawnPoint != null) {
-      game.player.position = chunk.spawnPoint! * tileSize;
-    } else {
-      // Fallback: centro del mapa
-      game.player.position = Vector2(
-        (chunk.ancho / 2) * tileSize,
-        (chunk.alto / 2) * tileSize,
+      // Validate spawn point from data
+      final safe = _findValidSpawn(
+        chunk.grid,
+        chunk.spawnPoint!.x.toInt(),
+        chunk.spawnPoint!.y.toInt(),
       );
+      game.player.position = safe * tileSize;
+    } else {
+      // Fallback: center of map
+      final centerX = chunk.ancho ~/ 2;
+      final centerY = chunk.alto ~/ 2;
+      final safe = _findValidSpawn(chunk.grid, centerX, centerY);
+      game.player.position = safe * tileSize;
     }
+  }
+
+  /// Searches for the nearest valid floor tile starting from [startX], [startY].
+  /// Returns the center of the tile as a Vector2.
+  Vector2 _findValidSpawn(List<List<CeldaData>> grid, int startX, int startY) {
+    // Check bounds first
+    if (startY < 0 ||
+        startY >= grid.length ||
+        startX < 0 ||
+        startX >= grid[0].length) {
+      return Vector2(startX + 0.5, startY + 0.5);
+    }
+
+    // If already valid, return it
+    if (grid[startY][startX].tipo == TipoCelda.suelo) {
+      return Vector2(startX + 0.5, startY + 0.5);
+    }
+
+    // BFS to find nearest floor
+    final queue = <Point<int>>[Point(startX, startY)];
+    final visited = <Point<int>>{Point(startX, startY)};
+    // 8 directions for better coverage
+    final directions = [
+      const Point(0, 1),
+      const Point(0, -1),
+      const Point(1, 0),
+      const Point(-1, 0),
+      const Point(1, 1),
+      const Point(1, -1),
+      const Point(-1, 1),
+      const Point(-1, -1),
+    ];
+
+    // Limit search radius
+    int checks = 0;
+    const maxChecks = 200;
+
+    while (queue.isNotEmpty && checks < maxChecks) {
+      final current = queue.removeAt(0);
+      checks++;
+
+      if (current.y >= 0 &&
+          current.y < grid.length &&
+          current.x >= 0 &&
+          current.x < grid[0].length) {
+        if (grid[current.y][current.x].tipo == TipoCelda.suelo) {
+          return Vector2(current.x + 0.5, current.y + 0.5);
+        }
+      }
+
+      for (final dir in directions) {
+        final next = Point(current.x + dir.x, current.y + dir.y);
+        if (!visited.contains(next)) {
+          visited.add(next);
+          queue.add(next);
+        }
+      }
+    }
+
+    // Absolute fallback
+    return Vector2(startX + 0.5, startY + 0.5);
   }
 }
 

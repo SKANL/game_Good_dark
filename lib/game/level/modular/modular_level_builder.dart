@@ -265,7 +265,10 @@ class ModularLevelBuilder {
       }
 
       if (blueprint.type == ChunkType.start) {
-        spawnPoint = Vector2(finalX + 2.0, finalY + h / 2.0);
+        // Initial guess: (2, h/2) relative to chunk
+        final initialX = finalX + 2;
+        final initialY = finalY + (h ~/ 2);
+        spawnPoint = _findValidSpawn(grid, initialX, initialY);
       }
       // Last chunk is exit
       if (i == placedChunks.length - 1) {
@@ -453,6 +456,54 @@ class ModularLevelBuilder {
         localY < chunk.grid.length) {
       chunk.grid[localY][localX] = CeldaData.suelo;
     }
+  }
+
+  /// Searches for the nearest valid floor tile starting from [startX], [startY].
+  /// Returns the center of the tile as a Vector2.
+  Vector2 _findValidSpawn(List<List<CeldaData>> grid, int startX, int startY) {
+    // BFS to find nearest floor
+    final queue = <Point<int>>[Point(startX, startY)];
+    final visited = <Point<int>>{Point(startX, startY)};
+    // 8 directions for better coverage
+    final directions = [
+      const Point(0, 0), // Check start first
+      const Point(0, 1), const Point(0, -1),
+      const Point(1, 0), const Point(-1, 0),
+      const Point(1, 1), const Point(1, -1),
+      const Point(-1, 1), const Point(-1, -1),
+    ];
+
+    // Limit search radius to avoid infinite loops in bad maps
+    int checks = 0;
+    const maxChecks = 100;
+
+    while (queue.isNotEmpty && checks < maxChecks) {
+      final current = queue.removeAt(0);
+      checks++;
+
+      if (current.y >= 0 &&
+          current.y < grid.length &&
+          current.x >= 0 &&
+          current.x < grid[0].length) {
+        if (grid[current.y][current.x].tipo == TipoCelda.suelo) {
+          // Return center of tile
+          return Vector2(current.x + 0.5, current.y + 0.5);
+        }
+      }
+
+      for (final dir in directions) {
+        if (dir.x == 0 && dir.y == 0) continue;
+        final next = Point(current.x + dir.x, current.y + dir.y);
+        if (!visited.contains(next)) {
+          visited.add(next);
+          queue.add(next);
+        }
+      }
+    }
+
+    // Fallback if no floor found (should be impossible in a valid level)
+    // Return original but centered
+    return Vector2(startX + 0.5, startY + 0.5);
   }
 }
 
