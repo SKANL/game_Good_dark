@@ -1,5 +1,5 @@
 import 'package:echo_world/game/black_echo_game.dart';
-import 'package:echo_world/game/components/wall_component.dart';
+import 'package:echo_world/game/components/world/wall_component.dart';
 import 'package:echo_world/game/entities/enemies/behaviors/hearing_behavior.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
@@ -7,7 +7,7 @@ import 'package:flame_behaviors/flame_behaviors.dart';
 /// Behavior que permite a ciertos enemigos (como Bruto) destruir paredes débiles
 /// cuando están en estado de CAZA.
 class DestructionBehavior extends Behavior<PositionedEntity>
-  with HasGameRef<BlackEchoGame> {
+    with HasGameRef<BlackEchoGame> {
   DestructionBehavior();
 
   /// Tiempo mínimo entre destrucciones de pared (cooldown)

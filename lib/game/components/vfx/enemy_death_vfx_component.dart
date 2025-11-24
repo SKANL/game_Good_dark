@@ -1,22 +1,18 @@
 import 'dart:math' as math;
 import 'dart:ui';
-
 import 'package:echo_world/game/black_echo_game.dart';
-import 'package:echo_world/game/components/nucleo_resonante_component.dart';
+import 'package:echo_world/game/components/world/nucleo_resonante_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/particles.dart';
-import 'package:flutter/painting.dart';
 
-/// Componente de VFX que se ejecuta cuando un enemigo es derrotado.
 ///
 /// Comportamiento:
 /// 1. Genera partículas de desintegración en la posición del enemigo
 /// 2. Espera un delay de 0.4s
 /// 3. Spawns el NucleoResonanteComponent con efecto de aparición suave
 /// 4. Se autodestruye
-class EnemyDeathVfxComponent extends Component
-  with HasGameRef<BlackEchoGame> {
+class EnemyDeathVfxComponent extends Component with HasGameRef<BlackEchoGame> {
   EnemyDeathVfxComponent({
     required this.enemyPosition,
     required this.enemySize,
@@ -120,7 +116,8 @@ class EnemyDeathVfxComponent extends Component
             speed: direction * 60,
             child: CircleParticle(
               radius: 4,
-              paint: Paint()..color = const Color(0xFF666666).withValues(alpha: 0.4),
+              paint: Paint()
+                ..color = const Color(0xFF666666).withValues(alpha: 0.4),
             ),
           );
         },

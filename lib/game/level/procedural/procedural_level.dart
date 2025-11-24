@@ -1,4 +1,4 @@
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 
 /// Concrete implementation of LevelData for procedurally generated levels
 class ProceduralLevel extends LevelData {

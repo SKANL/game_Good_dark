@@ -2,7 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/entities/enemies/behaviors/hearing_behavior.dart';
-import 'package:echo_world/game/level/level_manager.dart';
+import 'package:echo_world/game/level/manager/level_manager.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 

@@ -1,18 +1,14 @@
 import 'dart:ui';
-
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 
-/// Núcleo Resonante que se spawnea al derrotar un Cazador.
-/// Es la recompensa energética del loop de "Canibalismo Energético".
-/// Render: círculo dorado pulsante.
 /// Comportamiento: Emite EstimuloDeSonido (Bajo) constante.
 class NucleoResonanteComponent extends PositionComponent
-  with CollisionCallbacks, HasGameRef<BlackEchoGame> {
+    with CollisionCallbacks, HasGameRef<BlackEchoGame> {
   NucleoResonanteComponent({required super.position})
     : super(
         size: Vector2.all(20),
@@ -63,7 +59,7 @@ class NucleoResonanteComponent extends PositionComponent
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    
+
     // NO renderizar núcleo visual en first-person (el raycaster lo proyecta en 3D)
     if (gameRef.gameBloc.state.enfoqueActual == Enfoque.firstPerson) return;
 

@@ -1,4 +1,4 @@
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:echo_world/game/level/procedural/room_module.dart';
 import 'package:echo_world/game/entities/enemies/enemies.dart';
 import 'package:flame/components.dart';

@@ -1,31 +1,32 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui'
-    as ui; // Para adaptar resolución del viewport según tamaño de pantalla
+import 'dart:ui' as ui;
 
 import 'package:echo_world/game/audio/audio_manager.dart';
-import 'package:echo_world/game/components/components.dart';
-import 'package:echo_world/game/components/screen_transition_component.dart';
+import 'package:echo_world/game/components/core/raycast_renderer_component.dart';
+import 'package:echo_world/game/components/core/ruido_mental_system_component.dart';
+import 'package:echo_world/game/components/ui/crosshair_component.dart';
+import 'package:echo_world/game/components/vfx/camera_shake_component.dart';
+import 'package:echo_world/game/components/vfx/screen_transition_component.dart';
+import 'package:echo_world/game/cubit/checkpoint/checkpoint_bloc.dart';
 import 'package:echo_world/game/cubit/game/game_bloc.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
-import 'package:echo_world/game/cubit/checkpoint/cubit.dart';
 import 'package:echo_world/game/entities/player/player.dart';
-import 'package:echo_world/game/level/level_manager.dart';
-import 'package:echo_world/game/level/sound_bus.dart';
-import 'package:echo_world/game/level/level_models.dart';
 import 'package:echo_world/game/input/input_manager.dart';
+import 'package:echo_world/game/level/core/sound_bus.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
+import 'package:echo_world/game/level/manager/level_manager.dart';
 import 'package:echo_world/lore/lore.dart';
+import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
-import 'package:flame/camera.dart';
-import 'package:flutter/painting.dart';
 
 class BlackEchoGame extends FlameGame with HasCollisionDetection {
   BlackEchoGame({
     required this.gameBloc,
     required this.checkpointBloc,
     required this.loreBloc,
-  });
+  }) : super(world: World());
 
   final GameBloc gameBloc;
   final CheckpointBloc checkpointBloc;
@@ -36,10 +37,8 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
 
   late final PlayerComponent player;
   late final LevelManagerComponent levelManager;
-  @override
-  late final World world;
+
   late final InputManager input;
-  late final CameraComponent cameraComponent;
   late final SoundBusComponent soundBus;
   late final RuidoMentalSystemComponent ruidoMentalSystem;
   bool _cameraReady = false;
@@ -60,21 +59,18 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
   Enfoque? _lastEnfoque; // Cache para detectar cambios correctamente
 
   @override
-  Color backgroundColor() => const Color(0xFF000000);
+  ui.Color backgroundColor() => const ui.Color(0xFF000000);
 
   @override
   Future<void> onLoad() async {
     // Inicializar AudioManager (preload de assets)
     await AudioManager.instance.preload();
 
-    world = World(children: []);
-    cameraComponent = CameraComponent(world: world);
     // Resolución dinámica en función del alto lógico del dispositivo.
     // Mantiene una altura base de 360 y ajusta el ancho según el aspect ratio.
     // Evita deformaciones en pantallas muy alargadas o muy anchas mediante clamp.
     _cameraReady = true;
     _recalcularViewport();
-    await addAll([world, cameraComponent]);
 
     levelManager = LevelManagerComponent(checkpointBloc: checkpointBloc);
     await world.add(levelManager);
@@ -82,7 +78,7 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
     player = PlayerComponent(gameBloc: gameBloc)..position = Vector2(80, 80);
     await world.add(player);
 
-    cameraComponent.follow(player);
+    camera.follow(player);
 
     input = InputManager();
     await add(input);
@@ -166,7 +162,7 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
     final deviceWidth = windowSize.width;
     final deviceHeight = windowSize.height;
 
-    cameraComponent.viewport = FixedResolutionViewport(
+    camera.viewport = FixedResolutionViewport(
       resolution: Vector2(deviceWidth, deviceHeight),
     );
   }
@@ -209,14 +205,14 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
           remove(_raycastRenderer!);
           _raycastRenderer = null;
         }
-        cameraComponent.follow(player);
+        camera.follow(player);
       case Enfoque.sideScroll:
         // Quitar raycaster si existe
         if (_raycastRenderer != null) {
           remove(_raycastRenderer!);
           _raycastRenderer = null;
         }
-        cameraComponent.follow(player);
+        camera.follow(player);
       case Enfoque.firstPerson:
         // Añadir raycaster para renderizar en 3D
         // CRÍTICO: Se agrega al GAME directamente, no al world
@@ -226,7 +222,7 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
           add(_raycastRenderer!);
         }
         // CRÍTICO: Detener la cámara. El raycaster maneja la vista.
-        cameraComponent.stop();
+        camera.stop();
       default:
         // Enfoque.scan y otros futuros
         break;

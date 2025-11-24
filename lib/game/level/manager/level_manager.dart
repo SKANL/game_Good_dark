@@ -1,19 +1,20 @@
-import 'package:echo_world/game/components/abyss_component.dart';
-import 'package:echo_world/game/components/eco_narrativo_component.dart';
-import 'package:echo_world/game/components/batch_geometry_renderer.dart';
-import 'package:echo_world/game/components/component_pool.dart';
-import 'package:echo_world/game/components/transition_zone_component.dart';
-import 'package:echo_world/game/components/wall_component.dart';
-import 'package:echo_world/game/entities/enemies/enemies.dart';
-import 'package:echo_world/game/level/level_models.dart';
-
-import 'package:echo_world/game/cubit/checkpoint/cubit.dart';
 import 'package:echo_world/game/black_echo_game.dart';
-import 'package:flame/components.dart';
-import 'package:flutter/material.dart';
-
-import 'package:echo_world/game/level/level_generator.dart';
+import 'package:echo_world/game/components/core/batch_geometry_renderer.dart';
+import 'package:echo_world/game/components/core/component_pool.dart';
+import 'package:echo_world/game/components/world/abyss_component.dart';
+import 'package:echo_world/game/components/world/eco_narrativo_component.dart';
+import 'package:echo_world/game/components/world/transition_zone_component.dart';
+import 'package:echo_world/game/components/world/wall_component.dart';
+import 'package:echo_world/game/cubit/checkpoint/checkpoint_bloc.dart';
+import 'package:echo_world/game/cubit/checkpoint/checkpoint_event.dart';
+import 'package:echo_world/game/entities/enemies/bruto.dart';
+import 'package:echo_world/game/entities/enemies/cazador.dart';
+import 'package:echo_world/game/entities/enemies/vigia.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
+import 'package:echo_world/game/level/manager/level_generator.dart';
 import 'package:echo_world/game/level/modular/chunk_manager_component.dart';
+import 'package:flame/components.dart';
+import 'package:flutter/painting.dart';
 
 class LevelManagerComponent extends Component with HasGameRef {
   LevelManagerComponent({required this.checkpointBloc});

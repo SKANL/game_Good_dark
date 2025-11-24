@@ -15,7 +15,7 @@ class CameraShakeComponent extends Component with HasGameRef<BlackEchoGame> {
 
   @override
   Future<void> onLoad() async {
-    _originalPos = game.cameraComponent.viewfinder.position.clone();
+    // _originalPos is initialized in update to capture current camera position
   }
 
   @override
@@ -24,17 +24,21 @@ class CameraShakeComponent extends Component with HasGameRef<BlackEchoGame> {
     _t += dt;
     if (_t >= duration) {
       if (_originalPos != null) {
-        game.cameraComponent.viewfinder.position.setFrom(_originalPos!);
+        game.camera.viewfinder.position.setFrom(_originalPos!);
+        _originalPos = null;
       }
       removeFromParent();
-      return;
-    }
-    final dx = (_rng.nextDouble() * 2 - 1) * intensity;
-    final dy = (_rng.nextDouble() * 2 - 1) * intensity;
-    if (_originalPos != null) {
-      game.cameraComponent.viewfinder.position
-        ..setFrom(_originalPos!)
-        ..add(Vector2(dx, dy));
+    } else {
+      if (_originalPos == null) {
+        _originalPos = game.camera.viewfinder.position.clone();
+      }
+
+      final offset = Vector2(
+        (_rng.nextDouble() - 0.5) * intensity,
+        (_rng.nextDouble() - 0.5) * intensity,
+      );
+
+      game.camera.viewfinder.position.setFrom(_originalPos! + offset);
     }
   }
 }

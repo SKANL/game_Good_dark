@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/cubit/game/game_bloc.dart';
 import 'package:echo_world/game/cubit/game/game_event.dart';
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/components.dart';
 
 /// Sistema de penalizaciones por ruido mental.
@@ -15,14 +15,14 @@ import 'package:flame/components.dart';
 /// - > 75: Agonía Resonante (enemigos con radio aumentado)
 /// - == 100: Colapso (Game Over)
 class RuidoMentalSystemComponent extends Component
-  with HasGameRef<BlackEchoGame> {
+    with HasGameRef<BlackEchoGame> {
   RuidoMentalSystemComponent({required this.gameBloc});
 
   final GameBloc gameBloc;
   final Random _rng = Random();
   double _falsoEstimuloTimer = 0;
   static const double _falsoEstimuloInterval = 8; // Cada 8 segundos
-  
+
   // Flags para rastrear threshold activations
   bool _sobrecargaActiva = false;
   bool _agoniaActiva = false;

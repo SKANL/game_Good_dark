@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:echo_world/game/level/modular/chunk_blueprint.dart';
 import 'package:echo_world/game/level/modular/chunk_library.dart';
 import 'package:flame/components.dart';

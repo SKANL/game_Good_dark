@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:echo_world/game/level/level_chunks.dart';
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_chunks.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:echo_world/game/level/modular/modular_level_builder.dart';
 
 /// Handles the procedural generation of levels by selecting chunks

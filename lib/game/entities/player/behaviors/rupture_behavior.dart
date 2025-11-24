@@ -1,16 +1,16 @@
+import 'dart:ui';
 import 'package:echo_world/game/audio/audio_manager.dart';
-// ignore: unused_import - Usado indirectamente para type casting de parent.game
-import 'package:echo_world/game/black_echo_game.dart';
-import 'package:echo_world/game/components/components.dart';
-import 'package:echo_world/game/components/rupture_vfx_component.dart';
+import 'package:echo_world/game/components/vfx/enemy_death_vfx_component.dart';
+import 'package:echo_world/game/components/vfx/rupture_vfx_component.dart';
+import 'package:echo_world/game/components/world/wall_component.dart';
 import 'package:echo_world/game/cubit/game/game_bloc.dart';
-import 'package:echo_world/game/entities/enemies/behaviors/behaviors.dart';
-import 'package:echo_world/game/entities/enemies/enemies.dart';
+import 'package:echo_world/game/entities/enemies/behaviors/resilience_behavior.dart';
+import 'package:echo_world/game/entities/enemies/bruto.dart';
+import 'package:echo_world/game/entities/enemies/cazador.dart';
+import 'package:echo_world/game/entities/enemies/vigia.dart';
 import 'package:echo_world/game/entities/player/player.dart';
-import 'package:echo_world/game/level/level_models.dart';
-
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
-import 'package:flutter/painting.dart';
 
 class RuptureBehavior extends Behavior<PlayerComponent> {
   RuptureBehavior({required this.gameBloc});

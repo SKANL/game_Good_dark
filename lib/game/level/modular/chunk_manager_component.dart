@@ -1,17 +1,19 @@
 import 'dart:collection';
 import 'dart:ui';
-import 'dart:async'; // Added for Future
+import 'dart:async';
 
 import 'package:echo_world/game/black_echo_game.dart';
-import 'package:echo_world/game/components/abyss_component.dart';
-import 'package:echo_world/game/components/batch_geometry_renderer.dart';
-import 'package:echo_world/game/components/component_pool.dart';
-import 'package:echo_world/game/components/eco_narrativo_component.dart';
-import 'package:echo_world/game/components/wall_component.dart';
-import 'package:echo_world/game/entities/enemies/enemies.dart';
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/components/core/batch_geometry_renderer.dart';
+import 'package:echo_world/game/components/core/component_pool.dart';
+import 'package:echo_world/game/components/world/wall_component.dart';
+import 'package:echo_world/game/components/world/abyss_component.dart';
+import 'package:echo_world/game/components/world/eco_narrativo_component.dart';
+import 'package:echo_world/game/entities/enemies/cazador.dart';
+import 'package:echo_world/game/entities/enemies/vigia.dart';
+import 'package:echo_world/game/entities/enemies/bruto.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/components.dart';
-import 'package:flutter/foundation.dart'; // For compute
+import 'package:flutter/foundation.dart';
 
 class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
   final LevelMapData levelData;

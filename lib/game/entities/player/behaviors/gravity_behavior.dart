@@ -1,9 +1,9 @@
-import 'package:echo_world/game/components/landing_dust_component.dart';
+import 'dart:ui';
+import 'package:echo_world/game/components/vfx/landing_dust_component.dart';
 import 'package:echo_world/game/entities/player/player.dart';
-import 'package:echo_world/game/level/level_manager.dart';
+import 'package:echo_world/game/level/manager/level_manager.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
-import 'dart:ui';
 
 class GravityBehavior extends Behavior<PlayerComponent> {
   double _velocityY = 0;

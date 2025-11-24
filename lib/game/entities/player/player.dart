@@ -1,5 +1,5 @@
 import 'package:echo_world/game/black_echo_game.dart';
-import 'package:echo_world/game/components/components.dart';
+import 'package:echo_world/game/components/core/components.dart';
 import 'package:echo_world/game/cubit/game/game_bloc.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/cubit/game/game_event.dart';
@@ -10,7 +10,7 @@ import 'package:echo_world/game/entities/enemies/vigia.dart';
 import 'package:echo_world/game/entities/enemies/bruto.dart';
 import 'package:echo_world/game/entities/enemies/behaviors/hearing_behavior.dart';
 import 'package:echo_world/game/audio/audio_manager.dart';
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';

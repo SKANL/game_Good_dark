@@ -1,7 +1,7 @@
 import 'package:echo_world/game/entities/enemies/cazador.dart';
 import 'package:echo_world/game/entities/enemies/vigia.dart';
 import 'package:echo_world/game/entities/enemies/bruto.dart';
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/components.dart';
 
 /// Chunk inicial seguro - Tutorial básico

@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:echo_world/game/cubit/game/game_bloc.dart';
 import 'package:echo_world/game/entities/player/player.dart';
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'dart:math' as math;
 
 import 'package:echo_world/game/entities/player/behaviors/collision_handler.dart';

@@ -1,8 +1,8 @@
 import 'dart:collection';
 import 'dart:math';
 import 'package:flame/components.dart';
-import 'package:echo_world/game/level/level_manager.dart';
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/manager/level_manager.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 
 /// Nodo para el algoritmo A*
 class Node implements Comparable<Node> {

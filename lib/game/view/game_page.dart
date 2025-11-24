@@ -4,7 +4,7 @@ import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:echo_world/game/game.dart';
 import 'package:echo_world/game/cubit/checkpoint/cubit.dart';
 import 'package:echo_world/gen/assets.gen.dart';
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:echo_world/lore/lore.dart';
 import 'package:echo_world/loading/cubit/cubit.dart';
 import 'package:flame/game.dart' hide Route;

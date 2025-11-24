@@ -1,8 +1,6 @@
 import 'dart:math';
+import 'package:echo_world/game/level/data/level_models.dart';
 
-import 'package:echo_world/game/level/level_models.dart';
-
-/// Implements Cellular Automata for generating organic, cave-like terrain
 class CellularAutomata {
   final Random _random = Random();
 

@@ -5,8 +5,7 @@ import 'package:echo_world/game/cubit/game/game_bloc.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/entities/player/behaviors/behaviors.dart';
 import 'package:echo_world/game/entities/player/player.dart';
-import 'package:echo_world/game/level/level_manager.dart';
-import 'package:flame/camera.dart';
+import 'package:echo_world/game/level/manager/level_manager.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame_test/flame_test.dart';
@@ -33,11 +32,7 @@ class TestBlackEchoGame extends BlackEchoGame {
     // Skip normal onLoad to avoid loading assets/audio
     // Manually set up what we need
     levelManager = mockLevelManager;
-    // Add player manually in test
-    world = World();
-    cameraComponent = CameraComponent(world: world);
-    await add(world);
-    await add(cameraComponent);
+    await world.add(levelManager);
   }
 }
 

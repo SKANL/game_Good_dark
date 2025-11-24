@@ -1,13 +1,13 @@
 import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:echo_world/game/black_echo_game.dart';
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 
 /// Behavior que hace que el enemigo emita un grito de alarma
 /// cuando detecta al jugador. Este grito atrae a todos los demás enemigos.
 class ScreamBehavior extends Behavior<PositionedEntity>
-  with HasGameRef<BlackEchoGame> {
+    with HasGameRef<BlackEchoGame> {
   ScreamBehavior({
     this.screamDuration = 3.0,
     this.screamRadius = 300.0,

@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:echo_world/game/level/procedural/cellular_automata.dart';
 import 'package:flutter_test/flutter_test.dart';
 

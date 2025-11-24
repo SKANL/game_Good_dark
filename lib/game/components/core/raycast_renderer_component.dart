@@ -1,16 +1,16 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:echo_world/game/black_echo_game.dart';
-import 'package:echo_world/game/components/components.dart';
+import 'package:echo_world/game/components/core/components.dart';
 import 'package:echo_world/game/entities/enemies/cazador.dart';
 import 'package:echo_world/game/entities/enemies/vigia.dart';
 import 'package:echo_world/game/entities/enemies/bruto.dart';
-import 'package:echo_world/game/level/level_manager.dart';
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/manager/level_manager.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/cache.dart';
 import 'package:flame/components.dart';
-import 'package:echo_world/game/components/echolocation_vfx_component.dart';
-import 'package:echo_world/game/components/rupture_vfx_component.dart';
+import 'package:echo_world/game/components/vfx/echolocation_vfx_component.dart';
+import 'package:echo_world/game/components/vfx/rupture_vfx_component.dart';
 import 'package:flutter/material.dart';
 
 /// RaycastRendererComponent: Renderiza el mundo en falso 3D (raycasting).

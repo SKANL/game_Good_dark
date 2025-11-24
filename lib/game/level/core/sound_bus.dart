@@ -1,4 +1,4 @@
-import 'package:echo_world/game/level/level_models.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/components.dart';
 
 class SoundBusComponent extends Component {
@@ -36,7 +36,7 @@ class SoundBusComponent extends Component {
       final score = levelScore * (1.0 / (1.0 + d));
       if (score > bestScore) {
         best = s;
-          bestScore = score.toInt();
+        bestScore = score.toInt();
       }
     }
     return best;
