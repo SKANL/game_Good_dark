@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flame/components.dart';
 
-enum TipoCelda { pared, suelo, abismo }
+enum TipoCelda { pared, suelo, abismo, tunel }
 
 enum Direccion { norte, sur, este, oeste }
 
@@ -41,6 +41,7 @@ class CeldaData {
   static const CeldaData pared = CeldaData(tipo: TipoCelda.pared);
   static const CeldaData suelo = CeldaData(tipo: TipoCelda.suelo);
   static const CeldaData abismo = CeldaData(tipo: TipoCelda.abismo);
+  static const CeldaData tunel = CeldaData(tipo: TipoCelda.tunel);
 }
 
 class EntidadSpawn {

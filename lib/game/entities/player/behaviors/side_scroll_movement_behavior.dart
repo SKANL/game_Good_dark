@@ -24,7 +24,11 @@ class SideScrollMovementBehavior extends Behavior<PlayerComponent> {
     final currentRect = parent.collisionRect;
     final rectX = currentRect.shift(Offset(dx, 0));
 
-    if (game.levelManager.isRectWalkable(rectX)) {
+    if (game.levelManager.isRectWalkable(
+      rectX,
+      checkAbyss: false, // En SideScroll, el abismo es aire transitable
+      isCrouching: gameBloc.state.estaAgachado,
+    )) {
       parent.position.x = proposedX.x;
     }
 

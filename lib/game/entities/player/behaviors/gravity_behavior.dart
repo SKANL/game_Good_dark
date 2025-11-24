@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/components/vfx/landing_dust_component.dart';
 import 'package:echo_world/game/entities/player/player.dart';
 import 'package:echo_world/game/level/manager/level_manager.dart';
@@ -28,7 +29,11 @@ class GravityBehavior extends Behavior<PlayerComponent> {
 
     final game = parent.gameRef;
 
-    if (!game.levelManager.isRectWalkable(rectY)) {
+    if (!game.levelManager.isRectWalkable(
+      rectY,
+      checkAbyss: false, // Permitir caer por abismos
+      isCrouching: parent.gameBloc.state.estaAgachado,
+    )) {
       // Colisión vertical (suelo o techo)
       if (_velocityY > 0) {
         // Cayendo -> Suelo
@@ -61,6 +66,26 @@ class GravityBehavior extends Behavior<PlayerComponent> {
     } else {
       // Sin colisión, aplicar movimiento
       parent.position.y = proposedY;
+
+      // Verificar si cayó al vacío (fuera del mapa)
+      final mapBottom =
+          game.levelManager.currentChunk!.alto * LevelManagerComponent.tileSize;
+      if (parent.position.y > mapBottom + 100) {
+        _respawn(game);
+      }
     }
+  }
+
+  void _respawn(BlackEchoGame game) {
+    // Daño por caída
+    // TODO: Implementar sistema de daño real
+    // Por ahora, solo respawn en el inicio del chunk o checkpoint
+    final chunk = game.levelManager.currentChunk!;
+    if (chunk.spawnPoint != null) {
+      parent.position = chunk.spawnPoint! * LevelManagerComponent.tileSize;
+    } else {
+      parent.position = Vector2(80, 80); // Fallback seguro
+    }
+    _velocityY = 0;
   }
 }

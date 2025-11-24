@@ -81,11 +81,62 @@ class ModularLevelBuilder {
         type = ChunkType.connector; // Last one before End should be simple
 
       // Filter library
-      final validBlueprints = ChunkLibrary.allChunks.where((c) {
+      var validBlueprints = ChunkLibrary.allChunks.where((c) {
         return c.type == type &&
             c.connectionPoints.containsKey(requiredEntry) &&
             c.connectionPoints.length > 1;
       }).toList();
+
+      // --- FORCE SPECIAL CHUNKS LOGIC ---
+      // Ensure at least one of each special chunk type appears
+      final hasSideScroll = placedChunks.any(
+        (pc) => pc.blueprint.tags.contains('side_scroll'),
+      );
+      final hasStealth = placedChunks.any(
+        (pc) => pc.blueprint.tags.contains('stealth'),
+      );
+      final hasRupture = placedChunks.any(
+        (pc) => pc.blueprint.tags.contains('rupture'),
+      );
+      final isHalfway = i > length ~/ 2;
+
+      // Force side_scroll
+      if (isHalfway && !hasSideScroll) {
+        final sideScrollChunks = ChunkLibrary.allChunks.where((c) {
+          return c.tags.contains('side_scroll') &&
+              c.connectionPoints.containsKey(requiredEntry);
+        }).toList();
+
+        if (sideScrollChunks.isNotEmpty) {
+          validBlueprints = sideScrollChunks;
+          type = ChunkType.connector;
+        }
+      }
+      // Force stealth (different condition to avoid overlap)
+      else if (i > length * 0.3 && !hasStealth) {
+        final stealthChunks = ChunkLibrary.allChunks.where((c) {
+          return c.tags.contains('stealth') &&
+              c.connectionPoints.containsKey(requiredEntry);
+        }).toList();
+
+        if (stealthChunks.isNotEmpty) {
+          validBlueprints = stealthChunks;
+          type = ChunkType.connector;
+        }
+      }
+      // Force rupture (different condition)
+      else if (i > length * 0.6 && !hasRupture) {
+        final ruptureChunks = ChunkLibrary.allChunks.where((c) {
+          return c.tags.contains('rupture') &&
+              c.connectionPoints.containsKey(requiredEntry);
+        }).toList();
+
+        if (ruptureChunks.isNotEmpty) {
+          validBlueprints = ruptureChunks;
+          type = ChunkType.connector;
+        }
+      }
+      // -------------------------------
 
       if (validBlueprints.isEmpty) {
         // Fallback to any connector

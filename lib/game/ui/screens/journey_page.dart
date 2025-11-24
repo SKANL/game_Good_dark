@@ -1,0 +1,125 @@
+import 'package:echo_world/lore/cubit/lore_bloc.dart';
+import 'package:echo_world/lore/cubit/lore_state.dart';
+import 'package:echo_world/lore/data/lore_data.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+class JourneyPage extends StatelessWidget {
+  const JourneyPage({super.key});
+
+  static Route<void> route() {
+    return MaterialPageRoute<void>(builder: (_) => const JourneyPage());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          'ECOS DE LA MEMORIA',
+          style: GoogleFonts.courierPrime(
+            color: Colors.cyanAccent,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 2.0,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.cyanAccent),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: BlocBuilder<LoreBloc, LoreState>(
+        builder: (context, state) {
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: LoreData.allEntries.length,
+            itemBuilder: (context, index) {
+              final entry = LoreData.allEntries[index];
+              final isUnlocked = state.ecosDesbloqueados.contains(entry.id);
+
+              return Card(
+                color: Colors.black.withOpacity(0.5),
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(
+                    color: isUnlocked ? Colors.cyan : Colors.grey.shade800,
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                margin: const EdgeInsets.only(bottom: 16),
+                child: Theme(
+                  data: Theme.of(
+                    context,
+                  ).copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                    enabled: isUnlocked,
+                    leading: Icon(
+                      isUnlocked ? Icons.record_voice_over : Icons.lock,
+                      color: isUnlocked ? Colors.cyanAccent : Colors.grey,
+                    ),
+                    title: Text(
+                      isUnlocked ? entry.title : '???',
+                      style: GoogleFonts.courierPrime(
+                        color: isUnlocked ? Colors.white : Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    children: [
+                      if (isUnlocked)
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                entry.content,
+                                style: GoogleFonts.robotoMono(
+                                  color: Colors.white70,
+                                  height: 1.5,
+                                ),
+                              ),
+                              if (entry.mediaPath != null) ...[
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    // TODO: Implement media playback
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Reproduciendo archivo...',
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  icon: Icon(
+                                    entry.isVideo
+                                        ? Icons.play_circle
+                                        : Icons.audiotrack,
+                                  ),
+                                  label: const Text('REPRODUCIR ARCHIVO'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.cyan.withOpacity(
+                                      0.2,
+                                    ),
+                                    foregroundColor: Colors.cyanAccent,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}

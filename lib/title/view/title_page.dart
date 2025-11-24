@@ -4,6 +4,7 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
+import 'package:echo_world/game/ui/screens/journey_page.dart';
 
 class TitlePage extends StatelessWidget {
   const TitlePage({super.key});
@@ -192,7 +193,8 @@ class _MenuPrincipalState extends State<MenuPrincipal>
           Navigator.of(context).pushReplacement(GamePage.route());
           break;
         case 1:
-          print("Buscando Resonancias...");
+          debugPrint("Buscando Resonancias...");
+          Navigator.of(context).push(JourneyPage.route());
           break;
         case 2:
           print("Accediendo a Pruebas...");

@@ -16,6 +16,7 @@ import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:echo_world/game/level/manager/level_generator.dart';
 import 'package:echo_world/game/level/modular/chunk_manager_component.dart';
 import 'package:flame/components.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
 class LevelManagerComponent extends Component with HasGameRef {
@@ -225,7 +226,15 @@ class LevelManagerComponent extends Component with HasGameRef {
   ///
   /// `rect` está en unidades de píxeles (coordenadas del juego). Devuelve
   /// `true` si todas las celdas ocupadas por `rect` son transitables.
-  bool isRectWalkable(Rect rect) {
+  ///
+  /// [checkAbyss] determina si los abismos se consideran obstáculos (Top-Down)
+  /// o aire transitable (Side-Scroll).
+  /// [isCrouching] determina si los túneles se pueden atravesar.
+  bool isRectWalkable(
+    Rect rect, {
+    bool checkAbyss = true,
+    bool isCrouching = false,
+  }) {
     final grid = _current?.grid;
     if (grid == null) return true; // si no hay grid, no bloqueamos
 
@@ -246,8 +255,19 @@ class LevelManagerComponent extends Component with HasGameRef {
     for (var y = startY; y <= endY; y++) {
       for (var x = startX; x <= endX; x++) {
         final cel = grid[y][x];
-        if (cel.tipo != TipoCelda.suelo) {
-          // pared o abismo -> no transitables
+
+        // Pared siempre bloquea
+        if (cel.tipo == TipoCelda.pared) {
+          return false;
+        }
+
+        // Abismo bloquea si checkAbyss es true (Top-Down)
+        if (checkAbyss && cel.tipo == TipoCelda.abismo) {
+          return false;
+        }
+
+        // Túnel bloquea si NO estamos agachados
+        if (cel.tipo == TipoCelda.tunel && !isCrouching) {
           return false;
         }
       }
@@ -368,6 +388,11 @@ class LevelManagerComponent extends Component with HasGameRef {
 
     // Absolute fallback
     return Vector2(startX + 0.5, startY + 0.5);
+  }
+
+  @visibleForTesting
+  void setChunkForTesting(LevelData chunk) {
+    _current = chunk;
   }
 }
 

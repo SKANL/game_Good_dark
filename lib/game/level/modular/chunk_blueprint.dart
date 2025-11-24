@@ -18,6 +18,7 @@ class ChunkBlueprint {
   final Map<Direccion, Vector2> connectionPoints;
   final int difficultyWeight;
   final List<EntidadSpawn> spawns;
+  final List<String> tags;
 
   const ChunkBlueprint({
     required this.id,
@@ -26,6 +27,7 @@ class ChunkBlueprint {
     required this.connectionPoints,
     this.difficultyWeight = 1,
     this.spawns = const [],
+    this.tags = const [],
   });
 
   /// Parses the layout strings into a Grid of CeldaData.
@@ -58,6 +60,10 @@ class ChunkBlueprint {
         return CeldaData.abismo;
       case 'D':
         return const CeldaData(tipo: TipoCelda.pared, esDestructible: true);
+      case 'T':
+        return CeldaData.tunel;
+      case 'A':
+        return CeldaData.abismo;
       default:
         return CeldaData
             .suelo; // Default to floor for unknown chars (like spawns)

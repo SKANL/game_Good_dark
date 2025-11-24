@@ -14,6 +14,8 @@ import 'package:echo_world/game/entities/enemies/bruto.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/foundation.dart';
+import 'package:echo_world/game/components/world/lore_item_component.dart';
+import 'package:echo_world/game/components/world/tunnel_component.dart';
 
 class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
   final LevelMapData levelData;
@@ -131,6 +133,7 @@ class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
         levelWidth: levelData.ancho,
         tileSize: tileSize,
         yOffset: chunk.yOffset,
+        chunkId: chunk.id, // Pass chunk ID for special handling
       ),
     );
 
@@ -209,6 +212,21 @@ class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
             component = e;
           }
           break;
+
+        case EntityType.lore:
+          final loreId = entityData.properties['loreId'] as String;
+          component = LoreItemComponent(
+            position: globalPos,
+            loreId: loreId,
+          );
+          break;
+
+        case EntityType.tunnel:
+          component = TunnelComponent(
+            position: globalPos,
+            size: entityData.size,
+          );
+          break;
       }
 
       if (component != null) {
@@ -276,7 +294,7 @@ class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
 // --- Isolate Logic ---
 
 // Enum to differentiate entity types generated in the isolate
-enum EntityType { wall, abyss, echo, enemy }
+enum EntityType { wall, abyss, echo, enemy, lore, tunnel }
 
 // Data class to hold information about an entity generated in the isolate
 class EntityData {
@@ -309,6 +327,7 @@ class _ChunkGenerationArgs {
   final int levelWidth;
   final double tileSize;
   final int yOffset;
+  final String chunkId;
 
   _ChunkGenerationArgs({
     required this.grid,
@@ -317,6 +336,7 @@ class _ChunkGenerationArgs {
     required this.levelWidth,
     required this.tileSize,
     required this.yOffset,
+    required this.chunkId,
   });
 }
 
@@ -350,6 +370,15 @@ ChunkGenerationData _generateChunkData(_ChunkGenerationArgs args) {
         entities.add(
           EntityData(
             type: EntityType.abyss,
+            position: pos,
+            size: size,
+          ),
+        );
+      } else if (celda.tipo == TipoCelda.tunel) {
+        // Spawn TunnelComponent for visual feedback
+        entities.add(
+          EntityData(
+            type: EntityType.tunnel,
             position: pos,
             size: size,
           ),
@@ -399,6 +428,30 @@ ChunkGenerationData _generateChunkData(_ChunkGenerationArgs args) {
         ),
       );
     }
+  }
+
+  // 3. LoreItems (Special Chunks)
+  // Spawn LoreItem in specific chunks
+  if (args.chunkId == 'stealth_tunnel_guarded') {
+    // Place LoreItem at center of tunnel
+    entities.add(
+      EntityData(
+        type: EntityType.lore,
+        position: Vector2(8 * args.tileSize, 5.5 * args.tileSize),
+        size: Vector2(args.tileSize, args.tileSize),
+        properties: {'loreId': 'lore_4'}, // Sujeto 7
+      ),
+    );
+  } else if (args.chunkId == 'destructible_gate') {
+    // Place LoreItem behind destructible wall
+    entities.add(
+      EntityData(
+        type: EntityType.lore,
+        position: Vector2(10 * args.tileSize, 6 * args.tileSize),
+        size: Vector2(args.tileSize, args.tileSize),
+        properties: {'loreId': 'lore_5'}, // El Incidente
+      ),
+    );
   }
 
   return ChunkGenerationData(entities: entities);
