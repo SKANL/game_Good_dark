@@ -56,13 +56,13 @@ class PlayerComponent extends PositionedEntity
     add(
       LightSourceComponent(
         color: const Color(0xFF00FFFF), // Cyan aura
-        intensity: 0.8,
-        radius: 150,
-        softness: 0.8,
+        intensity: 1.2, // Increased for 3D visibility
+        radius: 400, // Increased for 3D visibility
+        softness: 0.6,
         isPulsing: true,
         pulseSpeed: 2.0, // Heartbeat speed
-        pulseMinIntensity: 0.7,
-        pulseMaxIntensity: 1.0,
+        pulseMinIntensity: 0.8,
+        pulseMaxIntensity: 1.2,
       ),
     );
   }

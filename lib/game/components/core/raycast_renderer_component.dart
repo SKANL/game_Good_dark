@@ -12,6 +12,8 @@ import 'package:flame/components.dart';
 import 'package:echo_world/game/components/vfx/echolocation_vfx_component.dart';
 import 'package:echo_world/game/components/vfx/rupture_vfx_component.dart';
 import 'package:echo_world/game/components/lighting/light_source_component.dart';
+import 'package:echo_world/game/entities/player/player.dart';
+import 'package:echo_world/game/components/vfx/particle_overlay_system.dart';
 import 'package:flutter/material.dart';
 
 /// RaycastRendererComponent: Renderiza el mundo en falso 3D (raycasting).
@@ -106,6 +108,9 @@ class RaycastRendererComponent extends Component
   // Texturas
   ui.Image? _wallTexture;
 
+  // VFX System
+  ParticleOverlaySystem? particleSystem;
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
@@ -115,8 +120,12 @@ class RaycastRendererComponent extends Component
       // la imagen está en assets/levels/walls/, no en assets/images/
       final loader = Images(prefix: 'assets/');
       _wallTexture = await loader.load('levels/walls/wall_1.png');
+
+      // Initialize Particle System
+      particleSystem = ParticleOverlaySystem();
+      add(particleSystem!);
     } catch (e) {
-      debugPrint('Error loading wall texture: $e');
+      debugPrint('Error loading resources: $e');
       // Fallback: _wallTexture quedará null y se usará el renderizado antiguo
     }
   }
@@ -164,6 +173,10 @@ class RaycastRendererComponent extends Component
     super.render(canvas);
 
     final player = game.player;
+    final activeLights = game.lightingSystem.getNearestLights(
+      player.position,
+      limit: 10,
+    );
     final grid = game.levelManager.currentGrid;
 
     if (grid == null) return;
@@ -184,19 +197,27 @@ class RaycastRendererComponent extends Component
     final bobOffset = math.sin(_walkTime) * 10.0; // 10 pixels amplitude
 
     // Crouch offset - lower the camera when crouched
-    // When crouching, camera lowers = horizon appears HIGHER on screen
-    // So we SUBTRACT from the horizon position (negative offset)
     final isCrouched = game.gameBloc.state.estaAgachado;
-    final crouchOffset = isCrouched ? -80.0 : 0.0; // Negative = horizon goes UP
+    final crouchOffset = isCrouched ? -80.0 : 0.0;
 
     // Get dynamic lighting from current chunk
     final chunk = game.levelManager.currentChunk;
-    final ambientColor = chunk?.ambientLight ?? const Color(0xFF0B1C33);
+    // IMMERSION FIX: Restore "Blindness"
+    // Remove the artificial boost. Use the chunk's ambient (usually dark) directly.
+    final baseAmbient = chunk?.ambientLight ?? const Color(0xFF050505);
+    // Ensure ambient is VERY dark for the "blind" feel
+    final ambientColor = Color.fromARGB(
+      255,
+      (baseAmbient.red * 0.5).toInt(),
+      (baseAmbient.green * 0.5).toInt(),
+      (baseAmbient.blue * 0.5).toInt(),
+    );
+
     final fogColor =
-        chunk?.fogColor?.withOpacity(1.0) ?? const Color(0xFF002233);
+        chunk?.fogColor?.withOpacity(1.0) ??
+        const Color(0xFF000510); // Darker fog
 
     // Cielo y suelo (fondo)
-    // Sky is slightly lighter than ambient
     final skyPaint = Paint()..color = ambientColor.withOpacity(0.8);
     final floorPaint = Paint()..color = ambientColor;
 
@@ -218,6 +239,19 @@ class RaycastRendererComponent extends Component
         renderSize.y / 2 - bobOffset - crouchOffset,
       ),
       floorPaint,
+    );
+
+    // --- VERTEX-BASED FLOOR & CEILING RENDERER ---
+    _renderFloorAndCeilingVertices(
+      canvas,
+      renderSize,
+      player,
+      activeLights,
+      bobOffset,
+      crouchOffset,
+      tile,
+      ambientColor,
+      fogColor,
     );
 
     // Obtener entidades del mundo
@@ -365,10 +399,15 @@ class RaycastRendererComponent extends Component
           );
       final yBottom = (yTop + wallH).clamp(0, renderSize.y);
 
-      // Sombreado por distancia
-      var shade = (1.0 - (perp / maxDepth)).clamp(0.1, 1.0);
-      if (side) shade *= 0.75;
-      shade *= globalFlicker; // Apply flicker
+      // --- VOLUMETRIC FOG (Exponential) ---
+      // Beer's Law: intensity = exp(-density * distance)
+      // Density controls how "thick" the fog is.
+      const fogDensity = 0.15;
+      var fogFactor = math.exp(-fogDensity * perp);
+      fogFactor = fogFactor.clamp(0.0, 1.0);
+
+      // Apply flicker to fog factor for atmosphere
+      fogFactor *= globalFlicker.clamp(0.9, 1.1);
 
       // Color según tipo de entidad
       Color color;
@@ -382,33 +421,29 @@ class RaycastRendererComponent extends Component
           const Color(0xFFFFAA00),
           pulse,
         )!;
-        color = Color.lerp(baseColor, fogColor, 1 - shade)!;
+        color = Color.lerp(fogColor, baseColor, fogFactor)!;
       } else if (entidadDetectada is CazadorComponent) {
         color = Color.lerp(
-          const Color(0xFFFF2222),
           fogColor,
-          1 - shade,
+          const Color(0xFFFF2222),
+          fogFactor,
         )!;
       } else if (entidadDetectada is VigiaComponent) {
         color = Color.lerp(
-          const Color(0xFF8A2BE2),
           fogColor,
-          1 - shade,
+          const Color(0xFF8A2BE2),
+          fogFactor,
         )!;
       } else if (entidadDetectada is BrutoComponent) {
         color = Color.lerp(
-          const Color(0xFF4444FF),
           fogColor,
-          1 - shade,
+          const Color(0xFF4444FF),
+          fogFactor,
         )!;
       } else {
         // Pared
         isWall = true;
-        color = Color.lerp(
-          const Color(0xFF00FFFF),
-          fogColor,
-          1 - shade,
-        )!;
+        color = const Color(0xFF00FFFF); // Base wall color
 
         // ECHO EFFECT: Highlight walls intersected by echo pulse
         for (final echo in echoes) {
@@ -416,11 +451,40 @@ class RaycastRendererComponent extends Component
             Vector2(hitX * tile, hitY * tile),
           );
           final radius = echo.radius;
-          // Si la pared está cerca del radio del eco (anillo)
-          if ((distToEcho - radius).abs() < 20.0) {
-            // 20 pixels thickness
-            color = Color.lerp(color, const Color(0xFF00FFFF), 0.8)!;
-            shade = 1.0; // Full brightness
+          // Wider ring for better visibility in 3D
+          if ((distToEcho - radius).abs() < 40.0) {
+            // 40 pixels thickness
+            color = Color.lerp(
+              color,
+              const Color(0xFFFFFFFF),
+              0.9,
+            )!; // Brighter white
+            fogFactor = 1.0; // Cut through fog completely
+          }
+        }
+
+        // RUPTURE EFFECT: Reddish glow near rupture points
+        for (final rupture in ruptures) {
+          final distToRupture = rupture.position.distanceTo(
+            Vector2(hitX * tile, hitY * tile),
+          );
+          // Rupture affects a radius of about 5 tiles (160 pixels)
+          if (distToRupture < 160.0) {
+            final intensity = (1.0 - (distToRupture / 160.0)).clamp(0.0, 1.0);
+            // Pulse based on rupture life or time
+            final pulse = (math.sin(_time * 10) + 1) / 2;
+            final glowColor = Color.lerp(
+              const Color(0xFFFF4400), // Red-Orange
+              const Color(0xFFFF0000), // Red
+              pulse,
+            )!;
+
+            // Blend the glow onto the wall
+            color = Color.lerp(color, glowColor, intensity * 0.8)!;
+            fogFactor = math.max(
+              fogFactor,
+              intensity,
+            ); // Rupture lights up the fog
           }
         }
       }
@@ -436,7 +500,7 @@ class RaycastRendererComponent extends Component
           const Color(0xFF8A2BE2), // Violet again for higher weight
         ];
         color = neonColors[random.nextInt(neonColors.length)];
-        shade = 1.0; // Full brightness
+        fogFactor = 1.0; // Full brightness
         isWall = false; // Disable texture for glitch
       }
 
@@ -469,123 +533,286 @@ class RaycastRendererComponent extends Component
 
         // Calcular franja de textura
         final srcX = (wallX * texW).floorToDouble();
-        // Asegurar que no nos salimos
         final clampedSrcX = srcX.clamp(0.0, texW - 1.0);
 
         final srcRect = Rect.fromLTWH(clampedSrcX, 0, 1, texH.toDouble());
         final dstRect = Rect.fromLTWH(x, drawYTop, colWidth + 1, rectHeight);
 
-        // --- DYNAMIC LIGHTING ---
-        // Calculate lighting for this wall strip
-        // Base ambient (fog color or darkness)
-        var r = 0.0;
-        var g = 0.0;
-        var b = 0.0;
+        // --- REFLECTION PASS (Improved) ---
+        // Draw a mirrored version with a gradient mask for fading
+        if (drawYBottom < renderSize.y) {
+          final reflectionHeight = rectHeight * 0.5; // Longer reflection
+          final reflectionRect = Rect.fromLTWH(
+            x,
+            drawYBottom,
+            colWidth + 1,
+            reflectionHeight,
+          );
 
-        // Add ambient light (from chunk or default)
-        // Ambient is usually low in this game
-        final ambient = chunk?.ambientLight ?? const Color(0xFF050505);
-        r += ambient.red / 255.0;
-        g += ambient.green / 255.0;
-        b += ambient.blue / 255.0;
+          // Calculate Fresnel factor for reflection intensity
+          // Reflections are stronger at grazing angles (further away)
+          final fresnel = (perp / maxDepth).clamp(0.2, 0.8);
 
-        // Add dynamic lights
+          final reflectionPaint = Paint()
+            ..color = color.withOpacity(0.3 * fresnel * fogFactor)
+            ..maskFilter = const MaskFilter.blur(
+              BlurStyle.normal,
+              3.0,
+            ); // Blurrier reflection
+
+          // Draw reflection
+          canvas.drawRect(reflectionRect, reflectionPaint);
+
+          // Gradient Fade for reflection (simulated by drawing a fading rect over it)
+          // Since we are drawing per-column, we can just modulate opacity by height in the shader?
+          // Or just draw a black gradient rect on top of the reflection area later?
+          // For per-column, we can't easily do a vertical gradient efficiently without a shader.
+          // Simple approximation: Draw a second rect with "fog" color fading in.
+        }
+
+        // --- PHONG SHADING (Diffuse + Specular) ---
+
+        // 1. Calculate Wall Normal
+        // If side (Y-axis hit), normal is (0, 1) or (0, -1). If !side (X-axis hit), normal is (1, 0) or (-1, 0).
+        // We can approximate the normal based on ray direction.
+        double normalX = 0;
+        double normalY = 0;
+        if (side) {
+          normalY = dirY > 0 ? -1 : 1; // Hitting horizontal wall
+        } else {
+          normalX = dirX > 0 ? -1 : 1; // Hitting vertical wall
+        }
+
+        // 2. Accumulate Light
+        var totalDiffuse = 0.0;
+        var totalSpecular = 0.0;
+
         final hitPos = Vector2(hitX * tile, hitY * tile);
-        // Get nearest lights (cached outside loop ideally, but for now accessing game ref is fast enough if list is small)
-        // Optimization: Move getNearestLights outside the loop!
-        // We will assume 'activeLights' is passed or calculated before the loop.
 
-        // For now, let's access the system directly but we should optimize this in the next step.
-        // To avoid changing the whole file structure right now, I'll do a quick fetch here
-        // but really I should fetch it once at the start of render.
-        // Let's assume I added 'activeLights' variable at start of render.
-        // Wait, I can't assume that without changing the start of render.
-        // I will use game.lightingSystem.lights directly but iterate carefully.
-
-        final lights = game.lightingSystem.getNearestLights(
-          player.position,
-          limit: 10,
-        );
-
-        for (final light in lights) {
+        for (final light in activeLights) {
           final distSq = hitPos.distanceToSquared(light.position);
           final radiusSq = light.radius * light.radius;
+          if (distSq >= radiusSq) continue;
 
-          if (distSq < radiusSq) {
-            final dist = math.sqrt(distSq);
-            // Linear falloff for now, or quadratic?
-            // Quadratic is more realistic: 1 / (1 + d^2)
-            // Let's use a simple linear falloff for performance and control: 1 - (dist / radius)
-            final att =
-                (1.0 - (dist / light.radius)).clamp(0.0, 1.0) *
-                light.effectiveIntensity;
+          // Line of Sight Check
+          if (!_hasLineOfSight(light.position, hitPos, grid, tile)) continue;
 
-            r += (light.color.red / 255.0) * att;
-            g += (light.color.green / 255.0) * att;
-            b += (light.color.blue / 255.0) * att;
+          final distToLight = math.sqrt(distSq);
+          final lightDirX = (light.position.x - hitPos.x) / distToLight;
+          final lightDirY = (light.position.y - hitPos.y) / distToLight;
+
+          // Diffuse: dot(normal, lightDir)
+          final dotNL = (normalX * lightDirX + normalY * lightDirY).clamp(
+            0.0,
+            1.0,
+          );
+
+          // Specular: Blinn-Phong
+          // View dir is roughly -rayDir
+          final viewDirX = -dirX;
+          final viewDirY = -dirY;
+
+          // Half vector H = (L + V) / |L + V|
+          var hX = lightDirX + viewDirX;
+          var hY = lightDirY + viewDirY;
+          final hLen = math.sqrt(hX * hX + hY * hY);
+          if (hLen > 0) {
+            hX /= hLen;
+            hY /= hLen;
           }
+
+          final dotNH = (normalX * hX + normalY * hY).clamp(0.0, 1.0);
+          final specular = math.pow(dotNH, 32); // Sharper highlight (wet)
+
+          // Attenuation: Smoothstep
+          final normalizedDist = distToLight / light.radius;
+          final attLinear = (1.0 - normalizedDist).clamp(0.0, 1.0);
+          final attenuation = attLinear * attLinear * (3 - 2 * attLinear);
+
+          totalDiffuse += dotNL * attenuation * light.effectiveIntensity;
+          totalSpecular +=
+              specular *
+              attenuation *
+              light.effectiveIntensity *
+              3.0; // Boost specular
         }
 
-        // Apply distance shading (fog)
-        r *= shade;
-        g *= shade;
-        b *= shade;
+        // 3. Combine with Ambient
+        // Ambient is affected by fog
+        var r = (ambientColor.red / 255.0) * fogFactor;
+        var g = (ambientColor.green / 255.0) * fogFactor;
+        var b = (ambientColor.blue / 255.0) * fogFactor;
 
-        // Clamp
-        r = r.clamp(0.0, 1.0);
-        g = g.clamp(0.0, 1.0);
-        b = b.clamp(0.0, 1.0);
+        // Add Diffuse (modulated by wall color)
+        // Use the calculated 'color' (which includes ability tints) as the wall albedo
+        final wallR = color.red / 255.0;
+        final wallG = color.green / 255.0;
+        final wallB = color.blue / 255.0;
 
-        final lightingColor = Color.fromARGB(
+        r += totalDiffuse * wallR;
+        g += totalDiffuse * wallG;
+        b += totalDiffuse * wallB;
+
+        // Add Specular (White highlight)
+        r += totalSpecular;
+        g += totalSpecular;
+        b += totalSpecular;
+
+        // Add Fresnel Effect (Rim lighting)
+        // Fresnel = (1 - dot(N, V))^power
+        // View dir is -rayDir
+        final dotNV = (normalX * -dirX + normalY * -dirY).clamp(0.0, 1.0);
+        final fresnel = math.pow(1.0 - dotNV, 3);
+        // Add a subtle rim light based on fog color or ambient
+        r += fresnel * 0.2 * fogFactor;
+        g += fresnel * 0.2 * fogFactor;
+        b += fresnel * 0.2 * fogFactor;
+
+        // Add Emissive (Ability Glow - Additive)
+        // BOOST: Make ability lights MUCH more visible on walls
+        if (fogFactor > 0.9) {
+          // Strong emissive boost for ability-lit walls
+          r += wallR * 1.5;
+          g += wallG * 1.5;
+          b += wallB * 1.5;
+        } else if (fogFactor > 0.7) {
+          // Medium boost for partially lit walls
+          r += wallR * 0.8;
+          g += wallG * 0.8;
+          b += wallB * 0.8;
+        }
+
+        final finalColor = Color.fromARGB(
           255,
-          (r * 255).toInt(),
-          (g * 255).toInt(),
-          (b * 255).toInt(),
+          (r.clamp(0.0, 1.0) * 255).toInt(),
+          (g.clamp(0.0, 1.0) * 255).toInt(),
+          (b.clamp(0.0, 1.0) * 255).toInt(),
         );
 
-        // Dibujar textura
-        // Use modulate to apply lighting color to texture
+        // Draw Texture with Lighting
+        // Use Modulate to tint the texture with the calculated light
         final paint = Paint()
-          ..color = lightingColor
+          ..color = Colors.white
           ..filterQuality = FilterQuality.low
-          ..blendMode = BlendMode.modulate;
+          ..colorFilter = ColorFilter.mode(finalColor, BlendMode.modulate);
 
-        // Draw texture with lighting
         canvas.drawImageRect(_wallTexture!, srcRect, dstRect, paint);
 
-        // We don't need the shadowPaint anymore because we applied shading via color modulation above
-        // But we might want to keep the 'tint' logic for echoes if it wasn't handled by lights.
-        // The echo effect was:
-        /*
-        if (color != const Color(0xFF00FFFF)) {
-          final tintPaint = Paint()
-            ..color = color.withOpacity(0.3)
-            ..blendMode = BlendMode.srcOver;
-          canvas.drawRect(dstRect, tintPaint);
-        }
-        */
-        // Since 'color' variable in the original code held the Echo tint (Cyan), we should re-apply it.
-        // In the original code, 'color' was calculated before this block.
-        // If it was modified by Echo logic, we should apply it.
-
-        if (color != const Color(0xFF00FFFF)) {
-          final tintPaint = Paint()
+        // Add Glow Overlay for Abilities (Additive Pass)
+        // BOOST: Increase opacity for more visible glow
+        if (fogFactor > 0.9) {
+          final glowPaint = Paint()
             ..color = color
-                .withOpacity(0.5) // Increased opacity for visibility
-            ..blendMode = BlendMode.plus; // Additive for echo highlight
-          canvas.drawRect(dstRect, tintPaint);
+                .withOpacity(0.5) // Increased opacity
+            ..blendMode = BlendMode.plus;
+
+          canvas.drawRect(dstRect, glowPaint);
         }
       } else {
-        // Renderizado Fallback / Entidades (Líneas sólidas)
+        // Renderizado Fallback / Entidades
         final paint = Paint()
           ..color = color
           ..strokeWidth = colWidth + 1;
 
-        // Usar drawLine para entidades o fallback
         canvas.drawLine(
           Offset(x + colWidth / 2, drawYTop),
           Offset(x + colWidth / 2, drawYBottom),
           paint,
+        );
+      }
+    }
+
+    // === RADIAL LIGHT VISUALIZATION FOR ABILITIES ===
+    // This makes the ability lights visible as expanding waves from the player
+    // Query active abilities
+    final echoesVfx = game.world.children.query<EcholocationVfxComponent>();
+    final rupturesAbility = game.world.children.query<RuptureVfxComponent>();
+
+    // Render Echolocation Light Pulse
+    for (final echo in echoesVfx) {
+      final distFromPlayer = echo.position.distanceTo(player.position);
+
+      // Only render if the echo is at/near the player position
+      if (distFromPlayer < 50) {
+        final normalizedRadius = echo.radius / echo.maxRadius;
+
+        // Create expanding ring effect
+        final centerX = renderSize.x / 2;
+        final centerY = renderSize.y / 2 + bobOffset + crouchOffset;
+
+        // Calculate screen radius based on world radius
+        final screenRadiusMax = math.min(renderSize.x, renderSize.y) * 0.7;
+        final screenRadius = normalizedRadius * screenRadiusMax;
+
+        // Fade out as it expands
+        final fadeAlpha = (1.0 - normalizedRadius).clamp(0.0, 1.0);
+
+        // Draw multiple concentric rings for smoother gradient
+        for (var i = 0; i < 5; i++) {
+          final ringProgress = i / 5.0;
+          final ringRadius = screenRadius * (0.8 + ringProgress * 0.2);
+          final ringAlpha = fadeAlpha * (1.0 - ringProgress) * 0.3;
+
+          final ringPaint = Paint()
+            ..color = const Color(0xFF00FFFF).withOpacity(ringAlpha)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = screenRadiusMax * 0.05
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+
+          canvas.drawCircle(
+            Offset(centerX, centerY),
+            ringRadius,
+            ringPaint,
+          );
+        }
+
+        // Draw fill in center for initial flash
+        if (normalizedRadius < 0.3) {
+          final flashPaint = Paint()
+            ..color = const Color(0xFF00FFFF).withOpacity(fadeAlpha * 0.15);
+
+          canvas.drawCircle(
+            Offset(centerX, centerY),
+            screenRadius,
+            flashPaint,
+          );
+        }
+      }
+    }
+
+    // Render Rupture Light Flash
+    for (final ruptureAbility in rupturesAbility) {
+      final distFromPlayer = ruptureAbility.position.distanceTo(
+        player.position,
+      );
+
+      // Only render if rupture is at/near player
+      if (distFromPlayer < 50) {
+        final intensity = (ruptureAbility.life / 0.5).clamp(0.0, 1.0);
+
+        final centerX = renderSize.x / 2;
+        final centerY = renderSize.y / 2 + bobOffset + crouchOffset;
+
+        // Bright white flash
+        final flashRadius = math.min(renderSize.x, renderSize.y) * 0.4;
+
+        final gradient = ui.Gradient.radial(
+          Offset(centerX, centerY),
+          flashRadius,
+          [
+            Color.fromARGB((255 * intensity * 0.8).toInt(), 255, 255, 255),
+            Color.fromARGB((255 * intensity * 0.3).toInt(), 255, 200, 100),
+            Colors.transparent,
+          ],
+          [0.0, 0.5, 1.0],
+        );
+
+        final flashPaint = Paint()..shader = gradient;
+
+        canvas.drawCircle(
+          Offset(centerX, centerY),
+          flashRadius,
+          flashPaint,
         );
       }
     }
@@ -596,6 +823,187 @@ class RaycastRendererComponent extends Component
         Rect.fromLTWH(0, 0, renderSize.x, renderSize.y),
         Paint()..color = Colors.white.withOpacity(ruptureIntensity * 0.3),
       );
+    }
+  }
+
+  /// Checks if there is a direct line of sight between two points in the grid.
+  /// Returns true if unblocked, false if a wall obstructs the view.
+  bool _hasLineOfSight(
+    Vector2 start,
+    Vector2 end,
+    List<List<CeldaData>> grid,
+    double tileSize,
+  ) {
+    final dist = start.distanceTo(end);
+    if (dist < 1.0) return true; // Too close to be blocked
+
+    final dir = (end - start).normalized();
+    var current = start.clone();
+    // Step size: smaller than a tile to catch corners, but not too small for performance
+    final step = tileSize * 0.5;
+    var travelled = 0.0;
+
+    // Move start slightly away to avoid self-collision if start is inside a wall (unlikely for lights)
+    current += dir * (tileSize * 0.1);
+
+    while (travelled < dist - tileSize * 0.5) {
+      // Stop before hitting the target wall itself
+      current += dir * step;
+      travelled += step;
+
+      final cx = (current.x / tileSize).floor();
+      final cy = (current.y / tileSize).floor();
+
+      if (cy >= 0 && cy < grid.length && cx >= 0 && cx < grid[0].length) {
+        if (grid[cy][cx].tipo == TipoCelda.pared) {
+          return false; // Blocked by a wall
+        }
+      }
+    }
+    return true;
+  }
+
+  /// Renders floor and ceiling using a vertex grid for perspective-correct lighting.
+  void _renderFloorAndCeilingVertices(
+    Canvas canvas,
+    Vector2 renderSize,
+    PlayerComponent player,
+    List<LightSourceComponent> lights,
+    double bobOffset,
+    double crouchOffset,
+    double tileSize,
+    Color ambientColor,
+    Color fogColor,
+  ) {
+    final horizonY = renderSize.y / 2 + bobOffset + crouchOffset;
+
+    // Grid parameters
+    const int gridRows = 20; // Depth resolution
+    const int gridCols = 10; // Horizontal resolution
+
+    // We will build a mesh for the floor.
+    // The mesh is a trapezoid in screen space (wide at bottom, narrow at horizon).
+    // But to map world coordinates correctly, we need to cast rays for each vertex.
+
+    final vertices = <Offset>[];
+    final colors = <Color>[];
+    final indices = <int>[];
+
+    // Generate vertices
+    for (int row = 0; row <= gridRows; row++) {
+      // Depth factor (0.0 at horizon, 1.0 at bottom)
+      // Use non-linear spacing for better quality near camera
+      final t = row / gridRows;
+      final depthT = t * t; // Quadratic distribution
+
+      // Screen Y
+      final screenY = horizonY + (renderSize.y - horizonY) * depthT;
+
+      // Calculate World Distance for this row
+      // y = H / z  => z = H / y
+      // H is camera height (approx renderSize.y / 2)
+      // y is pixels from horizon
+      final pixelsFromHorizon = screenY - horizonY;
+      if (pixelsFromHorizon <= 0.1) continue;
+
+      final worldDist =
+          (renderSize.y * 0.5) * tileSize / pixelsFromHorizon; // Approx
+
+      // Calculate World Width at this distance
+      // width = z * tan(fov/2) * 2
+      final worldWidth = worldDist * math.tan(fov / 2) * 2;
+
+      for (int col = 0; col <= gridCols; col++) {
+        final u = col / gridCols; // 0.0 to 1.0 (Left to Right)
+
+        // Screen X
+        final screenX = u * renderSize.x;
+
+        // World Position Calculation
+        // Relative to player
+        final relX = (u - 0.5) * worldWidth;
+        final relY = worldDist;
+
+        // Rotate by player heading
+        final sinH = math.sin(player.heading);
+        final cosH = math.cos(player.heading);
+
+        final wX = player.position.x + (relY * cosH - relX * sinH);
+        final wY = player.position.y + (relY * sinH + relX * cosH);
+
+        // Calculate Lighting at (wX, wY)
+        var r = (ambientColor.red / 255.0);
+        var g = (ambientColor.green / 255.0);
+        var b = (ambientColor.blue / 255.0);
+
+        // Fog
+        const fogDensity = 0.15;
+        var fogFactor = math.exp(-fogDensity * (worldDist / tileSize));
+        fogFactor = fogFactor.clamp(0.0, 1.0);
+
+        // Dynamic Lights
+        for (final light in lights) {
+          final dx = wX - light.position.x;
+          final dy = wY - light.position.y;
+          final distSq = dx * dx + dy * dy;
+          final radiusSq = light.radius * light.radius;
+
+          if (distSq < radiusSq) {
+            final dist = math.sqrt(distSq);
+            final normDist = dist / light.radius;
+            final att = math.pow(1.0 - normDist, 2).toDouble().clamp(0.0, 1.0);
+
+            r += (light.color.red / 255.0) * att * light.effectiveIntensity;
+            g += (light.color.green / 255.0) * att * light.effectiveIntensity;
+            b += (light.color.blue / 255.0) * att * light.effectiveIntensity;
+          }
+        }
+
+        // Apply Fog
+        r = r * fogFactor + (fogColor.red / 255.0) * (1 - fogFactor);
+        g = g * fogFactor + (fogColor.green / 255.0) * (1 - fogFactor);
+        b = b * fogFactor + (fogColor.blue / 255.0) * (1 - fogFactor);
+
+        vertices.add(Offset(screenX, screenY));
+        colors.add(
+          Color.fromARGB(
+            255,
+            (r.clamp(0.0, 1.0) * 255).toInt(),
+            (g.clamp(0.0, 1.0) * 255).toInt(),
+            (b.clamp(0.0, 1.0) * 255).toInt(),
+          ),
+        );
+      }
+    }
+
+    // Generate Indices (Triangle Strip)
+    // For each row
+    for (int row = 0; row < gridRows - 1; row++) {
+      // -1 because we skip the very first row if pixelsFromHorizon is small
+      for (int col = 0; col < gridCols; col++) {
+        final i = row * (gridCols + 1) + col;
+        final nextRowI = (row + 1) * (gridCols + 1) + col;
+
+        // Triangle 1
+        indices.add(i);
+        indices.add(nextRowI);
+        indices.add(i + 1);
+
+        // Triangle 2
+        indices.add(i + 1);
+        indices.add(nextRowI);
+        indices.add(nextRowI + 1);
+      }
+    }
+
+    if (vertices.isNotEmpty) {
+      final v = ui.Vertices(
+        ui.VertexMode.triangles,
+        vertices,
+        colors: colors,
+        indices: indices,
+      );
+      canvas.drawVertices(v, BlendMode.modulate, Paint());
     }
   }
 
