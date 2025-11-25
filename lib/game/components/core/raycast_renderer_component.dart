@@ -583,9 +583,9 @@ class RaycastRendererComponent extends Component
           normalX = dirX > 0 ? -1 : 1; // Hitting vertical wall
         }
 
-        // 2. Accumulate Light
-        var totalDiffuse = 0.0;
-        var totalSpecular = 0.0;
+        // 2. Accumulate Colored Light
+        var totalDiffuseR = 0.0, totalDiffuseG = 0.0, totalDiffuseB = 0.0;
+        var totalSpecularR = 0.0, totalSpecularG = 0.0, totalSpecularB = 0.0;
 
         final hitPos = Vector2(hitX * tile, hitY * tile);
 
@@ -608,7 +608,6 @@ class RaycastRendererComponent extends Component
           );
 
           // Specular: Blinn-Phong
-          // View dir is roughly -rayDir
           final viewDirX = -dirX;
           final viewDirY = -dirY;
 
@@ -622,19 +621,30 @@ class RaycastRendererComponent extends Component
           }
 
           final dotNH = (normalX * hX + normalY * hY).clamp(0.0, 1.0);
-          final specular = math.pow(dotNH, 32); // Sharper highlight (wet)
+          final specular = math.pow(dotNH, 32); // Sharper highlight
 
           // Attenuation: Smoothstep
           final normalizedDist = distToLight / light.radius;
           final attLinear = (1.0 - normalizedDist).clamp(0.0, 1.0);
           final attenuation = attLinear * attLinear * (3 - 2 * attLinear);
 
-          totalDiffuse += dotNL * attenuation * light.effectiveIntensity;
-          totalSpecular +=
-              specular *
-              attenuation *
-              light.effectiveIntensity *
-              3.0; // Boost specular
+          // Get light color
+          final lightR = light.color.red / 255.0;
+          final lightG = light.color.green / 255.0;
+          final lightB = light.color.blue / 255.0;
+
+          // Accumulate colored diffuse
+          final diffuseContrib = dotNL * attenuation * light.effectiveIntensity;
+          totalDiffuseR += diffuseContrib * lightR;
+          totalDiffuseG += diffuseContrib * lightG;
+          totalDiffuseB += diffuseContrib * lightB;
+
+          // Accumulate colored specular
+          final specularContrib =
+              specular * attenuation * light.effectiveIntensity * 3.0;
+          totalSpecularR += specularContrib * lightR;
+          totalSpecularG += specularContrib * lightG;
+          totalSpecularB += specularContrib * lightB;
         }
 
         // 3. Combine with Ambient
@@ -649,14 +659,15 @@ class RaycastRendererComponent extends Component
         final wallG = color.green / 255.0;
         final wallB = color.blue / 255.0;
 
-        r += totalDiffuse * wallR;
-        g += totalDiffuse * wallG;
-        b += totalDiffuse * wallB;
+        // Add Colored Diffuse
+        r += totalDiffuseR * wallR;
+        g += totalDiffuseG * wallG;
+        b += totalDiffuseB * wallB;
 
-        // Add Specular (White highlight)
-        r += totalSpecular;
-        g += totalSpecular;
-        b += totalSpecular;
+        // Add Colored Specular
+        r += totalSpecularR;
+        g += totalSpecularG;
+        b += totalSpecularB;
 
         // Add Fresnel Effect (Rim lighting)
         // Fresnel = (1 - dot(N, V))^power
@@ -690,7 +701,6 @@ class RaycastRendererComponent extends Component
         );
 
         // Draw Texture with Lighting
-        // Use Modulate to tint the texture with the calculated light
         final paint = Paint()
           ..color = Colors.white
           ..filterQuality = FilterQuality.low
@@ -698,12 +708,22 @@ class RaycastRendererComponent extends Component
 
         canvas.drawImageRect(_wallTexture!, srcRect, dstRect, paint);
 
-        // Add Glow Overlay for Abilities (Additive Pass)
-        // BOOST: Increase opacity for more visible glow
+        // Add Colored Glow Overlay (Additive Pass)
         if (fogFactor > 0.9) {
+          // Calculate dominant light color from accumulated lighting
+          final totalLight =
+              totalDiffuseR + totalDiffuseG + totalDiffuseB + 0.001;
+          final avgLightR = (totalDiffuseR / totalLight).clamp(0.0, 1.0);
+          final avgLightG = (totalDiffuseG / totalLight).clamp(0.0, 1.0);
+          final avgLightB = (totalDiffuseB / totalLight).clamp(0.0, 1.0);
+
           final glowPaint = Paint()
-            ..color = color
-                .withOpacity(0.5) // Increased opacity
+            ..color = Color.fromARGB(
+              (255 * 0.6).toInt(), // Boosted opacity
+              (avgLightR * 255).toInt(),
+              (avgLightG * 255).toInt(),
+              (avgLightB * 255).toInt(),
+            )
             ..blendMode = BlendMode.plus;
 
           canvas.drawRect(dstRect, glowPaint);
