@@ -7,6 +7,7 @@ import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/entities/enemies/bruto.dart';
 import 'package:echo_world/game/entities/enemies/cazador.dart';
 import 'package:echo_world/game/entities/enemies/vigia.dart';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 
@@ -26,12 +27,31 @@ class EcholocationVfxComponent extends PositionComponent
     ..strokeWidth = 2
     ..color = const Color(0xFF00FFFF);
 
+  late final LightSourceComponent _light;
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    _light = LightSourceComponent(
+      color: const Color(0xFF00FFFF),
+      intensity: 1.0,
+      radius: 0,
+      softness: 0.2,
+      isPulsing: false,
+    );
+    add(_light);
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
     final oldRadius = radius;
     radius += 220 * dt; // speed
     _alpha = (1 - (radius / maxRadius)).clamp(0.0, 1.0);
+
+    // Update light properties
+    _light.radius = radius;
+    _light.intensity = _alpha * 1.5; // Boost intensity slightly
 
     // Detectar entidades que el pulso acaba de alcanzar
     if (radius < maxRadius) {

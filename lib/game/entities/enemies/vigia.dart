@@ -5,6 +5,7 @@ import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/entities/enemies/behaviors/behaviors.dart';
 import 'package:flame/collisions.dart';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/painting.dart';
@@ -41,6 +42,18 @@ class VigiaComponent extends PositionedEntity
     try {
       findBehavior<ScreamBehavior>().reset();
     } catch (_) {}
+    add(
+      LightSourceComponent(
+        color: const Color(0xFF8A2BE2), // Purple/Blue Violet
+        intensity: 1.0,
+        radius: 100,
+        softness: 0.4, // Harder edge for scanning feel
+        isPulsing: true,
+        pulseSpeed: 0.5, // Slow scan
+        pulseMinIntensity: 0.8,
+        pulseMaxIntensity: 1.0,
+      ),
+    );
   }
 
   @override
@@ -67,6 +80,19 @@ class VigiaComponent extends PositionedEntity
 
       // ScreamBehavior que será activado por el HearingBehavior
       await add(ScreamBehavior());
+
+      add(
+        LightSourceComponent(
+          color: const Color(0xFF8A2BE2), // Purple/Blue Violet
+          intensity: 1.0,
+          radius: 100,
+          softness: 0.4, // Harder edge for scanning feel
+          isPulsing: true,
+          pulseSpeed: 0.5, // Slow scan
+          pulseMinIntensity: 0.8,
+          pulseMaxIntensity: 1.0,
+        ),
+      );
     }
     // Iniciar loop de audio estático
     // MOVIDO A onMount para soportar pooling

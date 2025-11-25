@@ -11,6 +11,7 @@ import 'package:echo_world/game/entities/enemies/bruto.dart';
 import 'package:echo_world/game/entities/enemies/behaviors/hearing_behavior.dart';
 import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
@@ -50,6 +51,20 @@ class PlayerComponent extends PositionedEntity
       ),
     );
     setEnfoque(gameBloc.state.enfoqueActual);
+
+    // Add Player Light Source (Flashlight / Aura)
+    add(
+      LightSourceComponent(
+        color: const Color(0xFF00FFFF), // Cyan aura
+        intensity: 0.8,
+        radius: 150,
+        softness: 0.8,
+        isPulsing: true,
+        pulseSpeed: 2.0, // Heartbeat speed
+        pulseMinIntensity: 0.7,
+        pulseMaxIntensity: 1.0,
+      ),
+    );
   }
 
   /// Rectángulo de colisión estandarizado para todos los behaviors.
@@ -143,6 +158,33 @@ class PlayerComponent extends PositionedEntity
     super.update(dt);
     if (_invulnerableTimer > 0) {
       _invulnerableTimer -= dt;
+    }
+
+    // --- Dynamic Lighting Reaction ---
+    final light = children.whereType<LightSourceComponent>().firstOrNull;
+    if (light != null) {
+      final state = gameBloc.state;
+
+      // 1. Noise Reaction (Ruido Mental) -> Pulse Speed & Instability
+      // Higher noise = faster, more erratic pulse
+      final noise = state.ruidoMental;
+      light.pulseSpeed = 2.0 + (noise / 100.0) * 8.0; // 2.0 to 10.0
+
+      // 2. Energy Reaction (Energía Grito) -> Intensity & Radius
+      // Low energy = dim light (dying battery feel)
+      final energy = state.energiaGrito;
+      final energyFactor = (energy / 100.0).clamp(0.2, 1.0);
+      light.intensity = 0.8 * energyFactor;
+      light.radius = 100.0 + (50.0 * energyFactor);
+
+      // 3. Health/Damage Reaction -> Color Tint?
+      // Maybe turn red if hit? For now, let's keep it Cyan but flicker if invulnerable
+      if (_invulnerableTimer > 0) {
+        light.color = const Color(0xFFFF0000); // Red alert
+        light.intensity = 1.0; // Bright flash
+      } else {
+        light.color = const Color(0xFF00FFFF); // Normal Cyan
+      }
     }
   }
 

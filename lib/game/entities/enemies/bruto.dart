@@ -6,6 +6,7 @@ import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/entities/enemies/behaviors/behaviors.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/collisions.dart';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/painting.dart';
@@ -82,6 +83,19 @@ class BrutoComponent extends PositionedEntity
 
       // DestructionBehavior: puede destruir paredes durante CAZA
       await add(DestructionBehavior());
+
+      add(
+        LightSourceComponent(
+          color: const Color(0xFFFF4400), // Orange/Red
+          intensity: 1.2,
+          radius: 90,
+          softness: 0.7,
+          isPulsing: true,
+          pulseSpeed: 0.8, // Heavy breathing
+          pulseMinIntensity: 0.6,
+          pulseMaxIntensity: 1.0,
+        ),
+      );
     }
     // Iniciar loop de audio de pisadas
     // MOVIDO A onMount para soportar pooling

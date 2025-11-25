@@ -11,6 +11,7 @@ import 'package:flame/cache.dart';
 import 'package:flame/components.dart';
 import 'package:echo_world/game/components/vfx/echolocation_vfx_component.dart';
 import 'package:echo_world/game/components/vfx/rupture_vfx_component.dart';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:flutter/material.dart';
 
 /// RaycastRendererComponent: Renderiza el mundo en falso 3D (raycasting).
@@ -474,22 +475,104 @@ class RaycastRendererComponent extends Component
         final srcRect = Rect.fromLTWH(clampedSrcX, 0, 1, texH.toDouble());
         final dstRect = Rect.fromLTWH(x, drawYTop, colWidth + 1, rectHeight);
 
+        // --- DYNAMIC LIGHTING ---
+        // Calculate lighting for this wall strip
+        // Base ambient (fog color or darkness)
+        var r = 0.0;
+        var g = 0.0;
+        var b = 0.0;
+
+        // Add ambient light (from chunk or default)
+        // Ambient is usually low in this game
+        final ambient = chunk?.ambientLight ?? const Color(0xFF050505);
+        r += ambient.red / 255.0;
+        g += ambient.green / 255.0;
+        b += ambient.blue / 255.0;
+
+        // Add dynamic lights
+        final hitPos = Vector2(hitX * tile, hitY * tile);
+        // Get nearest lights (cached outside loop ideally, but for now accessing game ref is fast enough if list is small)
+        // Optimization: Move getNearestLights outside the loop!
+        // We will assume 'activeLights' is passed or calculated before the loop.
+
+        // For now, let's access the system directly but we should optimize this in the next step.
+        // To avoid changing the whole file structure right now, I'll do a quick fetch here
+        // but really I should fetch it once at the start of render.
+        // Let's assume I added 'activeLights' variable at start of render.
+        // Wait, I can't assume that without changing the start of render.
+        // I will use game.lightingSystem.lights directly but iterate carefully.
+
+        final lights = game.lightingSystem.getNearestLights(
+          player.position,
+          limit: 10,
+        );
+
+        for (final light in lights) {
+          final distSq = hitPos.distanceToSquared(light.position);
+          final radiusSq = light.radius * light.radius;
+
+          if (distSq < radiusSq) {
+            final dist = math.sqrt(distSq);
+            // Linear falloff for now, or quadratic?
+            // Quadratic is more realistic: 1 / (1 + d^2)
+            // Let's use a simple linear falloff for performance and control: 1 - (dist / radius)
+            final att =
+                (1.0 - (dist / light.radius)).clamp(0.0, 1.0) *
+                light.effectiveIntensity;
+
+            r += (light.color.red / 255.0) * att;
+            g += (light.color.green / 255.0) * att;
+            b += (light.color.blue / 255.0) * att;
+          }
+        }
+
+        // Apply distance shading (fog)
+        r *= shade;
+        g *= shade;
+        b *= shade;
+
+        // Clamp
+        r = r.clamp(0.0, 1.0);
+        g = g.clamp(0.0, 1.0);
+        b = b.clamp(0.0, 1.0);
+
+        final lightingColor = Color.fromARGB(
+          255,
+          (r * 255).toInt(),
+          (g * 255).toInt(),
+          (b * 255).toInt(),
+        );
+
         // Dibujar textura
-        canvas.drawImageRect(_wallTexture!, srcRect, dstRect, Paint());
+        // Use modulate to apply lighting color to texture
+        final paint = Paint()
+          ..color = lightingColor
+          ..filterQuality = FilterQuality.low
+          ..blendMode = BlendMode.modulate;
 
-        // Aplicar sombra encima (multiply o darken)
-        final shadowPaint = Paint()
-          ..color = Colors.black.withOpacity(1.0 - shade)
-          ..blendMode = BlendMode.darken; // O srcOver con opacidad
+        // Draw texture with lighting
+        canvas.drawImageRect(_wallTexture!, srcRect, dstRect, paint);
 
-        canvas.drawRect(dstRect, shadowPaint);
-
-        // Aplicar tinte de color si es necesario (ej. eco)
+        // We don't need the shadowPaint anymore because we applied shading via color modulation above
+        // But we might want to keep the 'tint' logic for echoes if it wasn't handled by lights.
+        // The echo effect was:
+        /*
         if (color != const Color(0xFF00FFFF)) {
-          // Si no es el color base
           final tintPaint = Paint()
             ..color = color.withOpacity(0.3)
             ..blendMode = BlendMode.srcOver;
+          canvas.drawRect(dstRect, tintPaint);
+        }
+        */
+        // Since 'color' variable in the original code held the Echo tint (Cyan), we should re-apply it.
+        // In the original code, 'color' was calculated before this block.
+        // If it was modified by Echo logic, we should apply it.
+
+        if (color != const Color(0xFF00FFFF)) {
+          final tintPaint = Paint()
+            ..color = color
+                .withOpacity(0.5) // Increased opacity for visibility
+            ..blendMode = BlendMode.plus; // Additive for echo highlight
           canvas.drawRect(dstRect, tintPaint);
         }
       } else {

@@ -8,6 +8,8 @@ import 'package:echo_world/game/components/core/ruido_mental_system_component.da
 import 'package:echo_world/game/components/ui/crosshair_component.dart';
 import 'package:echo_world/game/components/vfx/camera_shake_component.dart';
 import 'package:echo_world/game/components/vfx/screen_transition_component.dart';
+import 'package:echo_world/game/components/lighting/lighting_system.dart';
+import 'package:echo_world/game/components/lighting/lighting_layer_component.dart';
 import 'package:echo_world/game/cubit/checkpoint/checkpoint_bloc.dart';
 import 'package:echo_world/game/cubit/game/game_bloc.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
@@ -41,6 +43,7 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
   late final InputManager input;
   late final SoundBusComponent soundBus;
   late final RuidoMentalSystemComponent ruidoMentalSystem;
+  late final LightingSystem lightingSystem;
   bool _cameraReady = false;
 
   /// Renderizador de raycasting para el modo First-Person.
@@ -88,6 +91,14 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
 
     ruidoMentalSystem = RuidoMentalSystemComponent(gameBloc: gameBloc);
     await add(ruidoMentalSystem);
+
+    // Initialize Lighting System
+    lightingSystem = LightingSystem();
+    await add(lightingSystem);
+
+    // Add Lighting Layer (2D Darkness/Lights)
+    // Render priority is handled inside the component (100)
+    await world.add(LightingLayerComponent(lightingSystem: lightingSystem));
 
     // Añadir retícula (crosshair) para first-person
     final crosshair = CrosshairComponent();

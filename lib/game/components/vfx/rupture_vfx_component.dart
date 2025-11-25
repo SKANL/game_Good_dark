@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame/particles.dart';
 import 'package:flutter/material.dart';
@@ -8,15 +9,30 @@ class RuptureVfxComponent extends PositionComponent {
 
   double life = 0.5; // Initial life
 
+  late final LightSourceComponent _light;
+
   @override
   void update(double dt) {
     super.update(dt);
     life -= dt;
+    // Fade out light with life
+    if (life > 0) {
+      _light.intensity = (life / 0.5) * 2.0; // Max intensity 2.0
+    }
   }
 
   @override
   Future<void> onLoad() async {
     // Shockwave ring
+    _light = LightSourceComponent(
+      color: const Color(0xFFFFFFFF), // White flash
+      intensity: 2.0,
+      radius: 200,
+      softness: 0.8,
+      isPulsing: false,
+    );
+    add(_light);
+
     await add(
       ParticleSystemComponent(
         particle: ComputedParticle(
