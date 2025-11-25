@@ -200,17 +200,107 @@ class _GameViewState extends State<GameView> {
   }
 }
 
-class _HudButton extends StatelessWidget {
-  const _HudButton({required this.label, required this.onPressed});
-  final String label;
-  final VoidCallback onPressed;
+class HexImgButton extends StatefulWidget {
+  const HexImgButton({
+    super.key,
+    required this.assetPath,
+    this.onPressed,
+    this.onTapDown,
+    this.onTapUp,
+    this.onTapCancel,
+    this.posX = 0.0,
+    this.posY = 0.0,
+    this.width,
+    this.height,
+  });
+
+  final String assetPath;
+  final VoidCallback? onPressed;
+  final GestureTapDownCallback? onTapDown;
+  final GestureTapUpCallback? onTapUp;
+  final GestureTapCancelCallback? onTapCancel;
+  final double posX;
+  final double posY;
+  final double? width;
+  final double? height;
+
+  @override
+  State<HexImgButton> createState() => _HexImgButtonState();
+}
+
+class _HexImgButtonState extends State<HexImgButton> {
+  bool _isPressed = false;
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: ElevatedButton(onPressed: onPressed, child: Text(label)),
+    return Transform.translate(
+      offset: Offset(widget.posX, widget.posY),
+      child: ClipPath(
+        clipper: const HexagonClipper(),
+        child: GestureDetector(
+          onTapDown: (details) {
+            setState(() => _isPressed = true);
+            widget.onTapDown?.call(details);
+          },
+          onTapUp: (details) {
+            setState(() => _isPressed = false);
+            widget.onPressed?.call();
+            widget.onTapUp?.call(details);
+          },
+          onTapCancel: () {
+            setState(() => _isPressed = false);
+            widget.onTapCancel?.call();
+          },
+          child: SizedBox(
+            width: widget.width,
+            height: widget.height,
+            child: ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.centerLeft,
+                maxWidth: double.infinity,
+                child: FractionalTranslation(
+                  // Si está presionado, desplazar -50% del ancho de la imagen para mostrar la mitad derecha
+                  translation: Offset(_isPressed ? -0.5 : 0.0, 0.0),
+                  child: Image.asset(
+                    widget.assetPath,
+                    width:
+                        (widget.width ?? 100) *
+                        2, // El spritesheet es el doble de ancho
+                    height: widget.height,
+                    fit: BoxFit.fill,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
+}
+
+class HexagonClipper extends CustomClipper<Path> {
+  const HexagonClipper();
+
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    final w = size.width;
+    final h = size.height;
+    // Hexágono vertical (Pointy Top)
+    // Puntos: Arriba-Centro, Arriba-Der, Abajo-Der, Abajo-Centro, Abajo-Izq, Arriba-Izq
+    path.moveTo(w * 0.5, 0);
+    path.lineTo(w, h * 0.25);
+    path.lineTo(w, h * 0.75);
+    path.lineTo(w * 0.5, h);
+    path.lineTo(0, h * 0.75);
+    path.lineTo(0, h * 0.25);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
 class _HudTopDown extends StatelessWidget {
@@ -222,184 +312,182 @@ class _HudTopDown extends StatelessWidget {
     final bloc = context.read<GameBloc>();
     final size = MediaQuery.of(context).size;
     final topInset = MediaQuery.of(context).padding.top;
-
-    // Ajuste de escala para que no se vea gigante en tablets ni minúsculo en móvil
     final hudWidth = size.width.clamp(300.0, 600.0);
 
-    return Column(
-      children: [
-        SizedBox(height: topInset + 10), // Margen superior seguro
-        // --- AQUÍ INSERTAMOS EL NUEVO HUD CYBERPUNK ---
-        SizedBox(
-          width: hudWidth,
-          child: BlocBuilder<GameBloc, GameState>(
-            buildWhen: (previous, current) =>
-                previous.energiaGrito != current.energiaGrito ||
-                previous.ruidoMental != current.ruidoMental,
-            builder: (context, state) {
-              return BlackEchoHUD(
-                energia: state.energiaGrito,
-                ruido: state.ruidoMental,
-              );
-            },
-          ),
-        ),
-        // ----------------------------------------------
-
-        // Botón [ABSORBER] contextual (Lógica original intacta)
-        BlocSelector<GameBloc, GameState, bool>(
-          selector: (state) => state.puedeAbsorber,
-          builder: (context, puedeAbsorber) {
-            if (!puedeAbsorber) return const SizedBox.shrink();
-            return Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFD700),
-                    foregroundColor: const Color(0xFF000000),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                  ),
-                  onPressed: () {
-                    // Encontrar el núcleo más cercano antes de confirmar
-                    final nucleos = game.world.children
-                        .query<NucleoResonanteComponent>();
-                    if (nucleos.isNotEmpty) {
-                      final closest = nucleos.reduce(
-                        (a, b) =>
-                            a.position.distanceTo(game.player.position) <
-                                b.position.distanceTo(game.player.position)
-                            ? a
-                            : b,
-                      );
-
-                      // Crear efecto visual de absorción
-                      game.world.add(
-                        AbsorptionVfxComponent(
-                          nucleusPosition: closest.position.clone(),
-                          playerPosition: game.player.position.clone(),
-                        ),
-                      );
-
-                      // Reproducir sonido de absorción
-                      AudioManager.instance.playSfx(
-                        'absorb_inhale',
-                        volume: 0.8,
-                      );
-
-                      // Destruir el núcleo
-                      closest.removeFromParent();
-                    }
-
-                    // Confirmar absorción en el BLoC
-                    bloc.add(AbsorcionConfirmada());
-                  },
-                  child: const Text(
-                    '[ABSORBER]',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-
-        const Spacer(),
-
-        // Botones de control inferiores
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return SizedBox.expand(
+      child: Stack(
+        children: [
+          // Parte Superior: HUD + Botón Absorber
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _HudButton(
-                  label: 'ENFOQUE',
-                  onPressed: () => bloc.add(EnfoqueCambiado()),
-                ),
-                _HudButton(
-                  label: 'ECO',
-                  onPressed: () {
-                    game.world.add(
-                      EcholocationVfxComponent(
-                        origin: game.player.position.clone(),
-                      ),
-                    );
-                    game.emitSound(
-                      game.player.position.clone(),
-                      NivelSonido.medio,
-                      ttl: 0.8,
-                    );
-
-                    if (bloc.state.ruidoMental > 50) {
-                      final nuevoRuido = (bloc.state.ruidoMental + 0.5)
-                          .clamp(0, 100)
-                          .toInt();
-                      bloc.add(
-                        EcoNarrativoAbsorbido(
-                          'sobrecarga_sensorial',
-                          nuevoRuido - bloc.state.ruidoMental,
-                        ),
-                      );
-                    }
-                  },
-                ),
-                _HudButton(
-                  label: 'RUPTURA',
-                  onPressed: () async {
-                    if (bloc.state.energiaGrito >= 40) {
-                      await game.player.rupture();
-                      bloc.add(GritoActivado());
-                    }
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: BlocSelector<GameBloc, GameState, bool>(
-                    selector: (state) => state.estaAgachado,
-                    builder: (context, estaAgachado) {
-                      return GestureDetector(
-                        onTapDown: (_) => bloc.add(ModoSigiloActivado()),
-                        onTapUp: (_) => bloc.add(ModoSigiloDesactivado()),
-                        onTapCancel: () => bloc.add(ModoSigiloDesactivado()),
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: estaAgachado
-                                ? const Color(0xFF00FFFF)
-                                : null,
-                            foregroundColor: estaAgachado
-                                ? const Color(0xFF000000)
-                                : null,
-                          ),
-                          child: Text(
-                            estaAgachado ? 'SIGILO ✓' : 'SIGILO',
-                            style: TextStyle(
-                              fontWeight: estaAgachado
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ),
+                SizedBox(height: topInset + 10), // Margen superior seguro
+                // --- HUD CYBERPUNK ---
+                SizedBox(
+                  width: hudWidth,
+                  child: BlocBuilder<GameBloc, GameState>(
+                    buildWhen: (previous, current) =>
+                        previous.energiaGrito != current.energiaGrito ||
+                        previous.ruidoMental != current.ruidoMental,
+                    builder: (context, state) {
+                      return BlackEchoHUD(
+                        energia: state.energiaGrito,
+                        ruido: state.ruidoMental,
                       );
                     },
                   ),
                 ),
-                _HudButton(
-                  label: 'CHUNK +',
-                  onPressed: () => game.levelManager.siguienteChunk(),
+                // ---------------------
+
+                // Botón [ABSORBER] contextual
+                BlocSelector<GameBloc, GameState, bool>(
+                  selector: (state) => state.puedeAbsorber,
+                  builder: (context, puedeAbsorber) {
+                    if (!puedeAbsorber) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: HexImgButton(
+                        assetPath: 'assets/img/Botton_Absorver.png',
+                        posX: 0.0,
+                        posY: 20.0,
+                        width: 84,
+                        height: 112,
+                        onPressed: () {
+                          final nucleos = game.world.children
+                              .query<NucleoResonanteComponent>();
+                          if (nucleos.isNotEmpty) {
+                            final closest = nucleos.reduce(
+                              (a, b) =>
+                                  a.position.distanceTo(game.player.position) <
+                                      b.position.distanceTo(
+                                        game.player.position,
+                                      )
+                                  ? a
+                                  : b,
+                            );
+
+                            game.world.add(
+                              AbsorptionVfxComponent(
+                                nucleusPosition: closest.position.clone(),
+                                playerPosition: game.player.position.clone(),
+                              ),
+                            );
+
+                            AudioManager.instance.playSfx(
+                              'absorb_inhale',
+                              volume: 0.8,
+                            );
+
+                            closest.removeFromParent();
+                          }
+
+                          bloc.add(AbsorcionConfirmada());
+                        },
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
           ),
-        ),
-        const SizedBox(height: 20),
-      ],
+
+          // Botones de control inferiores
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 150,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  HexImgButton(
+                    assetPath: 'assets/img/Botton_Enfoque.png',
+                    posX: 640.0,
+                    posY: 0.0,
+                    width: 80,
+                    height: 105,
+                    onPressed: () => bloc.add(EnfoqueCambiado()),
+                  ),
+                  HexImgButton(
+                    assetPath: 'assets/img/Botton_Eco.png',
+                    posX: 600.0,
+                    posY: 45.0,
+                    width: 80,
+                    height: 105,
+                    onPressed: () {
+                      game.world.add(
+                        EcholocationVfxComponent(
+                          origin: game.player.position.clone(),
+                        ),
+                      );
+                      game.emitSound(
+                        game.player.position.clone(),
+                        NivelSonido.medio,
+                        ttl: 0.8,
+                      );
+
+                      if (bloc.state.ruidoMental > 50) {
+                        final nuevoRuido = (bloc.state.ruidoMental + 0.5)
+                            .clamp(0, 100)
+                            .toInt();
+                        bloc.add(
+                          EcoNarrativoAbsorbido(
+                            'sobrecarga_sensorial',
+                            nuevoRuido - bloc.state.ruidoMental,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  HexImgButton(
+                    assetPath: 'assets/img/Botton_Ruptura.png',
+                    posX: 562.0,
+                    posY: -4.0,
+                    width: 84,
+                    height: 112,
+                    onPressed: () async {
+                      if (bloc.state.energiaGrito >= 40) {
+                        await game.player.rupture();
+                        bloc.add(GritoActivado());
+                      }
+                    },
+                  ),
+
+                  BlocSelector<GameBloc, GameState, bool>(
+                    selector: (state) => state.estaAgachado,
+                    builder: (context, estaAgachado) {
+                      return HexImgButton(
+                        assetPath: 'assets/img/Botton_Sigilo.png',
+                        posX: 675.0,
+                        posY: 45.0,
+                        width: 82,
+                        height: 107,
+                        onTapDown: (_) => bloc.add(ModoSigiloActivado()),
+                        onTapUp: (_) => bloc.add(ModoSigiloDesactivado()),
+                        onTapCancel: () => bloc.add(ModoSigiloDesactivado()),
+                      );
+                    },
+                  ),
+                  HexImgButton(
+                    assetPath: 'assets/img/Botton_Chunk.png',
+                    posX: 523.0,
+                    posY: 42.0,
+                    width: 84,
+                    height: 112,
+                    onPressed: () => game.levelManager.siguienteChunk(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -416,161 +504,157 @@ class _HudSideScroll extends StatelessWidget {
     final topInset = MediaQuery.of(context).padding.top;
     final absorberTop = (80.0 * hudScale) + topInset;
     final absorberFont = (18.0 * hudScale).clamp(16.0, 26.0);
-    return Column(
-      children: [
-        // Botón [ABSORBER] contextual
-        BlocSelector<GameBloc, GameState, bool>(
-          selector: (state) => state.puedeAbsorber,
-          builder: (context, puedeAbsorber) {
-            if (!puedeAbsorber) return const SizedBox.shrink();
-            return Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: EdgeInsets.only(top: absorberTop),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFD700),
-                    foregroundColor: const Color(0xFF000000),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
+
+    return SizedBox.expand(
+      child: Stack(
+        children: [
+          // Botón [ABSORBER] contextual
+          BlocSelector<GameBloc, GameState, bool>(
+            selector: (state) => state.puedeAbsorber,
+            builder: (context, puedeAbsorber) {
+              if (!puedeAbsorber) return const SizedBox.shrink();
+              return Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: EdgeInsets.only(top: absorberTop),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFD700),
+                      foregroundColor: const Color(0xFF000000),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
                     ),
-                  ),
-                  onPressed: () {
-                    final game =
-                        (context
-                                .findAncestorWidgetOfExactType<GameWidget>()!
-                                .game)!
-                            as BlackEchoGame;
-                    bloc.add(AbsorcionConfirmada());
-                    // Destruir el núcleo más cercano
-                    final nucleos = game.world.children
-                        .query<NucleoResonanteComponent>();
-                    if (nucleos.isNotEmpty) {
-                      final closest = nucleos.reduce(
-                        (a, b) =>
-                            a.position.distanceTo(game.player.position) <
-                                b.position.distanceTo(game.player.position)
-                            ? a
-                            : b,
-                      );
+                    onPressed: () {
+                      bloc.add(AbsorcionConfirmada());
+                      final nucleos = game.world.children
+                          .query<NucleoResonanteComponent>();
+                      if (nucleos.isNotEmpty) {
+                        final closest = nucleos.reduce(
+                          (a, b) =>
+                              a.position.distanceTo(game.player.position) <
+                                  b.position.distanceTo(game.player.position)
+                              ? a
+                              : b,
+                        );
 
-                      // VFX: Partículas que fluyen hacia el jugador
-                      final absorptionVfx = AbsorptionVfxComponent(
-                        nucleusPosition: closest.position.clone(),
-                        playerPosition: game.player.position.clone(),
-                      );
-                      game.world.add(absorptionVfx);
-
-                      // Audio feedback
-                      AudioManager.instance.playSfx('absorb_inhale');
-
-                      closest.removeFromParent();
-                    }
-                  },
-                  child: Text(
-                    '[ABSORBER]',
-                    style: TextStyle(
-                      fontSize: absorberFont,
-                      fontWeight: FontWeight.bold,
+                        final absorptionVfx = AbsorptionVfxComponent(
+                          nucleusPosition: closest.position.clone(),
+                          playerPosition: game.player.position.clone(),
+                        );
+                        game.world.add(absorptionVfx);
+                        AudioManager.instance.playSfx('absorb_inhale');
+                        closest.removeFromParent();
+                      }
+                    },
+                    child: Text(
+                      '[ABSORBER]',
+                      style: TextStyle(
+                        fontSize: absorberFont,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
-        ),
-        const Spacer(),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _HudButton(
-                label: 'ENFOQUE',
-                onPressed: () => bloc.add(EnfoqueCambiado()),
-              ),
-              _HudButton(
-                label: 'ECO',
-                onPressed: () {
-                  game.world.add(
-                    EcholocationVfxComponent(
-                      origin: game.player.position.clone(),
-                    ),
-                  );
-                  game.emitSound(
-                    game.player.position.clone(),
-                    NivelSonido.medio,
-                    ttl: 0.8,
-                  );
-                  bloc.add(EcoActivado());
-
-                  // Penalización: Sobrecarga Sensorial (> 50 ruidoMental)
-                  if (bloc.state.ruidoMental > 50) {
-                    final nuevoRuido = (bloc.state.ruidoMental + 0.5)
-                        .clamp(0, 100)
-                        .toInt();
-                    bloc.add(
-                      EcoNarrativoAbsorbido(
-                        'sobrecarga_sensorial',
-                        nuevoRuido - bloc.state.ruidoMental,
-                      ),
-                    );
-                  }
-                },
-              ),
-              _HudButton(
-                label: 'RUPTURA',
-                onPressed: () async {
-                  if (bloc.state.energiaGrito >= 40) {
-                    await game.player.rupture();
-                    bloc.add(GritoActivado());
-                  }
-                },
-              ),
-              _HudButton(
-                label: 'SALTAR',
-                onPressed: () {
-                  game.player.jump();
-                },
-              ),
-              // Botón SIGILO: mantener presionado
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: BlocSelector<GameBloc, GameState, bool>(
-                  selector: (state) => state.estaAgachado,
-                  builder: (context, estaAgachado) {
-                    return GestureDetector(
-                      onTapDown: (_) => bloc.add(ModoSigiloActivado()),
-                      onTapUp: (_) => bloc.add(ModoSigiloDesactivado()),
-                      onTapCancel: () => bloc.add(ModoSigiloDesactivado()),
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: estaAgachado
-                              ? const Color(0xFF00FFFF)
-                              : null,
-                          foregroundColor: estaAgachado
-                              ? const Color(0xFF000000)
-                              : null,
-                        ),
-                        child: Text(
-                          estaAgachado ? 'SIGILO ✓' : 'SIGILO',
-                          style: TextStyle(
-                            fontWeight: estaAgachado
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+              );
+            },
           ),
-        ),
-      ],
+
+          // Botones de control inferiores
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 150,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  HexImgButton(
+                    assetPath: 'assets/img/Botton_Enfoque.png',
+                    posX: 640.0,
+                    posY: 0.0,
+                    width: 80,
+                    height: 105,
+                    onPressed: () => bloc.add(EnfoqueCambiado()),
+                  ),
+                  HexImgButton(
+                    assetPath: 'assets/img/Botton_Eco.png',
+                    posX: 600.0,
+                    posY: 45.0,
+                    width: 80,
+                    height: 105,
+                    onPressed: () {
+                      game.world.add(
+                        EcholocationVfxComponent(
+                          origin: game.player.position.clone(),
+                        ),
+                      );
+                      game.emitSound(
+                        game.player.position.clone(),
+                        NivelSonido.medio,
+                        ttl: 0.8,
+                      );
+
+                      if (bloc.state.ruidoMental > 50) {
+                        final nuevoRuido = (bloc.state.ruidoMental + 0.5)
+                            .clamp(0, 100)
+                            .toInt();
+                        bloc.add(
+                          EcoNarrativoAbsorbido(
+                            'sobrecarga_sensorial',
+                            nuevoRuido - bloc.state.ruidoMental,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  HexImgButton(
+                    assetPath: 'assets/img/Botton_Ruptura.png',
+                    posX: 562.0,
+                    posY: -4.0,
+                    width: 84,
+                    height: 112,
+                    onPressed: () async {
+                      if (bloc.state.energiaGrito >= 40) {
+                        await game.player.rupture();
+                        bloc.add(GritoActivado());
+                      }
+                    },
+                  ),
+                  HexImgButton(
+                    assetPath: 'assets/img/Botton_Salto.png',
+                    posX: 524.0,
+                    posY: 35.0,
+                    width: 84,
+                    height: 124,
+                    onPressed: () {
+                      game.player.jump();
+                    },
+                  ),
+                  BlocSelector<GameBloc, GameState, bool>(
+                    selector: (state) => state.estaAgachado,
+                    builder: (context, estaAgachado) {
+                      return HexImgButton(
+                        assetPath: 'assets/img/Botton_Sigilo.png',
+                        posX: 675.0,
+                        posY: 45.0,
+                        width: 82,
+                        height: 107,
+                        onTapDown: (_) => bloc.add(ModoSigiloActivado()),
+                        onTapUp: (_) => bloc.add(ModoSigiloDesactivado()),
+                        onTapCancel: () => bloc.add(ModoSigiloDesactivado()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -667,72 +751,74 @@ class _HudFirstPerson extends StatelessWidget {
             bottom: 20,
             left: 0,
             right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _HudButton(
-                  label: 'ENFOQUE',
-                  onPressed: () => bloc.add(EnfoqueCambiado()),
-                ),
-                _HudButton(
-                  label: 'ECO',
-                  onPressed: () {
-                    final p = game.player.position.clone();
-                    game.world.add(EcholocationVfxComponent(origin: p));
-                    game.emitSound(p, NivelSonido.medio, ttl: 0.8);
-                    bloc.add(EcoActivado());
-                    if (bloc.state.ruidoMental > 50) {
-                      final nuevo = (bloc.state.ruidoMental + 0.5)
-                          .clamp(0, 100)
-                          .toInt();
-                      bloc.add(
-                        EcoNarrativoAbsorbido(
-                          'sobrecarga_sensorial',
-                          nuevo - bloc.state.ruidoMental,
-                        ),
-                      );
-                    }
-                  },
-                ),
-                _HudButton(
-                  label: 'RUPTURA',
-                  onPressed: () async {
-                    if (bloc.state.energiaGrito >= 40) {
-                      await game.player.rupture();
-                      bloc.add(GritoActivado());
-                    }
-                  },
-                ),
-                BlocSelector<GameBloc, GameState, bool>(
-                  selector: (s) => s.estaAgachado,
-                  builder: (context, estaAgachado) {
-                    return GestureDetector(
-                      onTapDown: (_) => bloc.add(ModoSigiloActivado()),
-                      onTapUp: (_) => bloc.add(ModoSigiloDesactivado()),
-                      onTapCancel: () => bloc.add(ModoSigiloDesactivado()),
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: estaAgachado
-                              ? const Color(0xFF00FFFF)
-                              : null,
-                          foregroundColor: estaAgachado
-                              ? const Color(0xFF000000)
-                              : null,
-                        ),
-                        child: Text(
-                          estaAgachado ? 'SIGILO ✓' : 'SIGILO',
-                          style: TextStyle(
-                            fontWeight: estaAgachado
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 150, // Altura fija para el área de botones
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  HexImgButton(
+                    assetPath: 'assets/img/Botton_Enfoque.png',
+                    posX: 640.0,
+                    posY: 0.0,
+                    width: 80,
+                    height: 105,
+                    onPressed: () => bloc.add(EnfoqueCambiado()),
+                  ),
+                  HexImgButton(
+                    assetPath: 'assets/img/Botton_Eco.png',
+                    posX: 600.0,
+                    posY: 45.0,
+                    width: 80,
+                    height: 105,
+                    onPressed: () {
+                      final p = game.player.position.clone();
+                      game.world.add(EcholocationVfxComponent(origin: p));
+                      game.emitSound(p, NivelSonido.medio, ttl: 0.8);
+                      bloc.add(EcoActivado());
+                      if (bloc.state.ruidoMental > 50) {
+                        final nuevo = (bloc.state.ruidoMental + 0.5)
+                            .clamp(0, 100)
+                            .toInt();
+                        bloc.add(
+                          EcoNarrativoAbsorbido(
+                            'sobrecarga_sensorial',
+                            nuevo - bloc.state.ruidoMental,
                           ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                        );
+                      }
+                    },
+                  ),
+                  HexImgButton(
+                    assetPath: 'assets/img/Botton_Ruptura.png',
+                    posX: 562.0,
+                    posY: -4.0,
+                    width: 84,
+                    height: 112,
+                    onPressed: () async {
+                      if (bloc.state.energiaGrito >= 40) {
+                        await game.player.rupture();
+                        bloc.add(GritoActivado());
+                      }
+                    },
+                  ),
+                  BlocSelector<GameBloc, GameState, bool>(
+                    selector: (s) => s.estaAgachado,
+                    builder: (context, estaAgachado) {
+                      return HexImgButton(
+                        assetPath: 'assets/img/Botton_Sigilo.png',
+                        posX: 675.0,
+                        posY: 45.0,
+                        width: 82,
+                        height: 107,
+                        onTapDown: (_) => bloc.add(ModoSigiloActivado()),
+                        onTapUp: (_) => bloc.add(ModoSigiloDesactivado()),
+                        onTapCancel: () => bloc.add(ModoSigiloDesactivado()),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -766,10 +852,10 @@ class _PauseMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = context.read<GameBloc>();
-    return Align(
-      child: _HudButton(
-        label: 'REANUDAR',
+    return Center(
+      child: ElevatedButton(
         onPressed: () => bloc.add(JuegoReanudado()),
+        child: const Text('REANUDAR'),
       ),
     );
   }
@@ -848,8 +934,7 @@ class _OverlayFracaso extends StatelessWidget {
                 ],
 
                 // Botón de reinicio
-                _HudButton(
-                  label: 'REINTENTAR',
+                ElevatedButton(
                   onPressed: () {
                     gameBloc.add(
                       ReinicioSolicitado(
@@ -857,6 +942,7 @@ class _OverlayFracaso extends StatelessWidget {
                       ),
                     );
                   },
+                  child: const Text('REINTENTAR'),
                 ),
               ],
             ),
@@ -1257,18 +1343,28 @@ class HUDBar extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         // 1. EL MARCO (ANCLA DE TAMAÑO)
-        // Ahora también es personalizable con Positioned
-        Positioned(
-          left: frameX,
-          top: frameY,
-          width: frameWidth,
-          height: frameHeight,
-          // Lógica corregida: Si width es null (auto-fill), usamos -X en right
-          // para desplazar el bloque sin cambiar su tamaño.
-          right: frameWidth == null ? -frameX : null,
-          bottom: frameHeight == null ? -frameY : null,
-          child: Image.asset(frameAsset, fit: BoxFit.contain),
-        ),
+        // Lógica simplificada: Si frameWidth/frameHeight tienen valores, se usan directamente
+        // Si son null, se estira para llenar el espacio disponible
+        if (frameWidth != null || frameHeight != null)
+          // Modo con tamaño específico (como HexImgButton)
+          Positioned(
+            left: frameX,
+            top: frameY,
+            child: SizedBox(
+              width: frameWidth,
+              height: frameHeight,
+              child: Image.asset(frameAsset, fit: BoxFit.contain),
+            ),
+          )
+        else
+          // Modo auto-fill (comportamiento original)
+          Positioned(
+            left: frameX,
+            top: frameY,
+            right: -frameX,
+            bottom: -frameY,
+            child: Image.asset(frameAsset, fit: BoxFit.contain),
+          ),
 
         // 2. FONDO (Detrás del relleno)
         Positioned(

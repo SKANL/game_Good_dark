@@ -41,6 +41,13 @@ class _MenuPrincipalState extends State<MenuPrincipal>
   final List<Animation<Offset>> _buttonAnimations = [];
   bool _isLoaded = false;
 
+  // --- SECUENCIA DE VIDEOS ---
+  final List<String> _videoSequence = [
+    'assets/video/fondo_menu.mp4',
+    'assets/video/efect_static.mp4',
+  ];
+  int _currentVideoIndex = 0;
+
   // --- GESTIÓN DE SELECCIÓN ---
   int? _focusedIndex; // Índice del botón actualmente seleccionado/iluminado
   final List<GlobalKey> _buttonKeys = List.generate(5, (_) => GlobalKey());
@@ -97,30 +104,64 @@ class _MenuPrincipalState extends State<MenuPrincipal>
       );
     }
 
-    // 4. Carga del video de fondo
-    debugPrint("Initializing VideoPlayerController...");
+    // 4. Carga del video de fondo (secuencia)
+    _loadVideo(_currentVideoIndex);
+  }
+
+  // --- MÉTODO PARA CARGAR UN VIDEO DE LA SECUENCIA ---
+  void _loadVideo(int index) {
+    debugPrint("Loading video: ${_videoSequence[index]}");
     _controller =
         VideoPlayerController.asset(
-            "assets/video/fondo_menu.mp4",
+            _videoSequence[index],
             videoPlayerOptions: VideoPlayerOptions(
               mixWithOthers: true,
             ),
           )
           ..initialize()
               .then((_) {
-                debugPrint("Video initialized");
-                _controller.setLooping(true);
+                debugPrint("Video initialized: ${_videoSequence[index]}");
                 _controller.setVolume(0.0);
                 _controller.play();
 
+                // Listener para detectar cuando el video termina
+                _controller.addListener(_videoListener);
+
                 if (mounted) {
                   setState(() => _isLoaded = true);
-                  _animController.forward();
+                  if (index == 0) {
+                    // Solo animar botones en el primer video
+                    _animController.forward();
+                  }
                 }
               })
               .catchError((Object error) {
                 debugPrint("Error initializing video: $error");
               });
+  }
+
+  // --- LISTENER PARA DETECTAR FIN DEL VIDEO ---
+  void _videoListener() {
+    if (_controller.value.position >=
+        _controller.value.duration - const Duration(milliseconds: 100)) {
+      // Video terminó, cargar el siguiente
+      _playNextVideo();
+    }
+  }
+
+  // --- MÉTODO PARA REPRODUCIR EL SIGUIENTE VIDEO ---
+  void _playNextVideo() {
+    // Remover listener del video actual
+    _controller.removeListener(_videoListener);
+
+    // Incrementar índice (loop infinito)
+    _currentVideoIndex = (_currentVideoIndex + 1) % _videoSequence.length;
+
+    // Disponer del controller actual
+    _controller.dispose();
+
+    // Cargar el siguiente video
+    _loadVideo(_currentVideoIndex);
   }
 
   Future<void> _loadAudio() async {
@@ -145,6 +186,7 @@ class _MenuPrincipalState extends State<MenuPrincipal>
   @override
   void dispose() {
     debugPrint("Disposing MenuPrincipal");
+    _controller.removeListener(_videoListener);
     _controller.dispose();
     _animController.dispose();
     // Detener BGM al salir
