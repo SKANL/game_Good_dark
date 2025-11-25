@@ -18,8 +18,30 @@ class RuptureBehavior extends Behavior<PlayerComponent> {
 
   static const double radius = 128; // 4 tiles
 
+  bool _isRupturing = false;
+  double _cooldownTimer = 0;
+  static const double _cooldownDuration = 0.5;
+
+  @override
+  void update(double dt) {
+    if (_cooldownTimer > 0) {
+      _cooldownTimer -= dt;
+    }
+    super.update(dt);
+  }
+
   Future<void> triggerRupture() async {
-    if (gameBloc.state.energiaGrito < 40) return;
+    // COOLDOWN & STATE CHECK
+    if (_isRupturing || _cooldownTimer > 0) return;
+
+    // FORCE SYNC: Read latest state directly
+    if (gameBloc.state.energiaGrito < 40) {
+      // Optional: Play "failed" sound
+      return;
+    }
+
+    _isRupturing = true;
+    _cooldownTimer = _cooldownDuration;
 
     final game = parent.gameRef;
 
@@ -114,5 +136,7 @@ class RuptureBehavior extends Behavior<PlayerComponent> {
 
     // Emisión de sonido fuerte por la ruptura
     game.emitSound(parent.position.clone(), NivelSonido.alto, ttl: 1.2);
+
+    _isRupturing = false;
   }
 }

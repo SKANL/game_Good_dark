@@ -14,7 +14,7 @@ class CazadorComponent extends PositionedEntity with CollisionCallbacks {
     required super.position,
     this.radioBajo = 96, // 3 tiles
     this.radioMedio = 384, // 12 tiles
-    this.radioAlto = 576, // 18 tiles
+    this.radioAlto = 480, // 15 tiles
   }) : super(
          size: Vector2.all(28),
          anchor: Anchor.center,
@@ -92,7 +92,7 @@ class CazadorComponent extends PositionedEntity with CollisionCallbacks {
 
     // Relleno rojo oscuro
     final fillPaint = Paint()
-      ..color = const Color(0xFFAA0000)
+      ..color = const Color(0xFFFF2222)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(center.x, center.y), radius, fillPaint);
 

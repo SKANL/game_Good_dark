@@ -42,6 +42,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<AgoniaResonanteDesactivada>(
       (e, emit) => emit(state.copyWith(agoniaActiva: false)),
     );
+    on<EnergiaRegenerada>(_onEnergiaRegenerada);
   }
 
   final CheckpointBloc checkpointBloc;
@@ -106,5 +107,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   void _onEcoNarrativo(EcoNarrativoAbsorbido event, Emitter<GameState> emit) {
     final ruido = (state.ruidoMental + event.costeRuido).clamp(0, 100);
     emit(state.copyWith(ruidoMental: ruido));
+  }
+
+  void _onEnergiaRegenerada(EnergiaRegenerada event, Emitter<GameState> emit) {
+    final energia = (state.energiaGrito + event.cantidad).clamp(0, 100);
+    emit(state.copyWith(energiaGrito: energia));
   }
 }

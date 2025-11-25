@@ -23,7 +23,7 @@ class VigiaComponent extends PositionedEntity
          behaviors: [],
        );
 
-  final Paint _paint = Paint()..color = const Color(0xFFFF6600); // Naranja
+  final Paint _paint = Paint()..color = const Color(0xFF8A2BE2); // Violeta
 
   /// Audio loop ID para el hum estático
   String? _staticHumLoopId;
@@ -57,8 +57,8 @@ class VigiaComponent extends PositionedEntity
       await add(
         HearingBehavior(
           radioBajo: 0,
-          radioMedio: 1000,
-          radioAlto: 1000,
+          radioMedio: 640,
+          radioAlto: 640,
           velocidadPatrulla: 0, // Estático, no se mueve
           velocidadAlerta: 0,
           velocidadCaza: 0,
@@ -126,7 +126,7 @@ class VigiaComponent extends PositionedEntity
     canvas.drawRect(
       rect,
       Paint()
-        ..color = const Color(0xFFFF6600)
+        ..color = const Color(0xFF8A2BE2)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2,
     );

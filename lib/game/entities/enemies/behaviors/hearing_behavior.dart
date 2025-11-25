@@ -51,8 +51,26 @@ class HearingBehavior extends Behavior<PositionedEntity>
   double _tiempoAturdimiento = 0;
   double _duracionAturdimiento = 0;
 
+  // Knockback physics
+  Vector2 _knockbackVelocity = Vector2.zero();
+  static const double _knockbackDecay = 0.9; // Friction
+
   @override
   void update(double dt) {
+    // Apply Knockback physics
+    if (!_knockbackVelocity.isZero()) {
+      parent.position += _knockbackVelocity * dt;
+      _knockbackVelocity *= _knockbackDecay; // Apply friction
+
+      if (_knockbackVelocity.length < 10) {
+        _knockbackVelocity = Vector2.zero();
+      }
+      // Disable other movement while being knocked back strongly
+      if (_knockbackVelocity.length > 50) {
+        return;
+      }
+    }
+
     final soundBus = gameRef.soundBus;
 
     // Manejar aturdimiento (no hace nada hasta que termine)
@@ -161,6 +179,15 @@ class HearingBehavior extends Behavior<PositionedEntity>
     estadoActual = AIState.aturdido;
     _tiempoAturdimiento = 0;
     _duracionAturdimiento = duracion;
+  }
+
+  /// Aplica un empuje físico al enemigo
+  void applyKnockback(Vector2 direction, double force) {
+    _knockbackVelocity = direction.normalized() * force;
+    // También aturdir brevemente si el golpe es fuerte
+    if (force > 200) {
+      stun(0.5);
+    }
   }
 
   /// Devuelve la velocidad actual según el estado FSM

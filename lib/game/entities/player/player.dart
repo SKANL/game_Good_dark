@@ -38,6 +38,7 @@ class PlayerComponent extends PositionedEntity
   double heading = 0;
   final GameBloc gameBloc;
   final Paint _paint;
+  double _invulnerableTimer = 0;
 
   @override
   Future<void> onLoad() async {
@@ -115,6 +116,11 @@ class PlayerComponent extends PositionedEntity
       );
     }
 
+    if (_invulnerableTimer > 0) {
+      // Flicker effect: 50% opacity every 0.1s
+      if ((_invulnerableTimer * 10).toInt() % 2 == 0) return;
+    }
+
     canvas.drawCircle(
       Offset(size.x / 2, size.y / 2),
       size.x / 2,
@@ -130,6 +136,14 @@ class PlayerComponent extends PositionedEntity
   Future<void> rupture() async {
     final rb = findBehavior<RuptureBehavior>();
     await rb.triggerRupture();
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (_invulnerableTimer > 0) {
+      _invulnerableTimer -= dt;
+    }
   }
 
   @override
@@ -153,6 +167,8 @@ class PlayerComponent extends PositionedEntity
       final hearing = enemy.findBehavior<HearingBehavior>();
 
       if (hearing.estadoActual == AIState.caza) {
+        if (_invulnerableTimer > 0) return; // Ignore hits while invulnerable
+
         // Verificar si tiene escudo (energía >= 50)
         if (gameBloc.state.energiaGrito >= 50) {
           // SFX: reproducir sonido de escudo sónico
@@ -161,16 +177,43 @@ class PlayerComponent extends PositionedEntity
           // Activar rechazo sónico (escudo)
           gameBloc.add(const RechazoSonicoActivado(50));
 
-          // Aturdir al enemigo
-          hearing.stun(2.5);
+          // Aturdir al enemigo (BUFF: 4.0s)
+          hearing.stun(4.0);
+
+          // KNOCKBACK: Push enemy away
+          final dir = (enemy.position - position).normalized();
+          hearing.applyKnockback(dir, 500);
+
+          // Invulnerabilidad post-escudo
+          _invulnerableTimer = 2.0;
 
           // VFX: onda de choque expansiva
           parent?.add(RejectionVfxComponent(origin: position.clone()));
 
           // Emitir sonido alto para atraer otros enemigos
           game.emitSound(position.clone(), NivelSonido.alto, ttl: 1.5);
+        } else if (gameBloc.state.energiaGrito > 0) {
+          // MERCY SYSTEM: Desperate Push
+          // Si tiene algo de energía pero < 50, sobrevive con 0 energía
+          AudioManager.instance.playSfx('rejection_shield', volume: 0.6);
+
+          // Consumir TODA la energía restante
+          gameBloc.add(RechazoSonicoActivado(gameBloc.state.energiaGrito));
+
+          // Aturdir brevemente (BUFF: 3.0s)
+          hearing.stun(3.0);
+
+          // KNOCKBACK: Push enemy away (weaker)
+          final dir = (enemy.position - position).normalized();
+          hearing.applyKnockback(dir, 300);
+
+          // Invulnerabilidad breve
+          _invulnerableTimer = 1.0;
+
+          // VFX menor
+          parent?.add(RejectionVfxComponent(origin: position.clone()));
         } else {
-          // Game Over: energía insuficiente
+          // Game Over: energía insuficiente (0 exacto)
           gameBloc.add(JugadorAtrapado());
         }
       }

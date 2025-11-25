@@ -25,14 +25,14 @@ class BrutoComponent extends PositionedEntity
        );
 
   final Paint _paint = Paint()
-    ..color = const Color(0xFF8B4513); // Marrón (tanque)
+    ..color = const Color(0xFF4444FF); // Azul (tanque)
 
   /// Audio loop ID para pisadas
   String? _footstepLoopId;
 
   /// Tiempo acumulado para determinar cuándo emitir estímulo sonoro
   double _footstepTimer = 0;
-  static const double _footstepInterval = 0.5; // Cada 0.5s
+  static const double _footstepInterval = 0.8; // Cada 0.8s
 
   /// Resetea el estado del Bruto para reuso por ComponentPool
   void reset() {

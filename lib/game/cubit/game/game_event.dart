@@ -63,3 +63,10 @@ class SobrecargaSensorialDesactivada extends GameEvent {}
 class AgoniaResonanteActivada extends GameEvent {}
 
 class AgoniaResonanteDesactivada extends GameEvent {}
+
+class EnergiaRegenerada extends GameEvent {
+  const EnergiaRegenerada(this.cantidad);
+  final int cantidad;
+  @override
+  List<Object?> get props => [cantidad];
+}
