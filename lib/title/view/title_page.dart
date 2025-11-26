@@ -235,8 +235,10 @@ class _MenuPrincipalState extends State<MenuPrincipal>
           Navigator.of(context).pushReplacement(GamePage.route());
           break;
         case 1:
-          debugPrint("Buscando Resonancias...");
-          Navigator.of(context).push(JourneyPage.route());
+          debugPrint(
+            "Buscando Resonancias... (Deshabilitado por Journey Button)",
+          );
+          // Navigator.of(context).push(JourneyPage.route()); // MOVIDO A JOURNEY BUTTON
           break;
         case 2:
           print("Accediendo a Pruebas...");
@@ -396,6 +398,13 @@ class _MenuPrincipalState extends State<MenuPrincipal>
             ),
           ),
         ),
+
+        // NUEVO BOTÓN JOURNEY (Esquina inferior derecha)
+        const Positioned(
+          bottom: -30,
+          right: 10,
+          child: JourneyButton(),
+        ),
       ],
     );
   }
@@ -437,6 +446,67 @@ class BotonSprite extends StatelessWidget {
           ),
 
           child: Image.asset('assets/img/botones_sprite.png', fit: BoxFit.fill),
+        ),
+      ),
+    );
+  }
+}
+
+class JourneyButton extends StatefulWidget {
+  const JourneyButton({super.key});
+
+  @override
+  State<JourneyButton> createState() => _JourneyButtonState();
+}
+
+class _JourneyButtonState extends State<JourneyButton> {
+  bool _isPressed = false;
+
+  void _onTapDown(PointerDownEvent event) {
+    setState(() => _isPressed = true);
+    FlameAudio.play('select_main.mp3', volume: 1.0);
+  }
+
+  void _onTapUp(PointerUpEvent event) {
+    setState(() => _isPressed = false);
+    // Navegar a JourneyPage
+    Navigator.of(context).push(JourneyPage.route());
+  }
+
+  void _onTapCancel(PointerCancelEvent event) {
+    setState(() => _isPressed = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Dimensiones del botón (ajustar según necesidad)
+    const double width = 125;
+    const double height = 125;
+
+    return Listener(
+      onPointerDown: _onTapDown,
+      onPointerUp: _onTapUp,
+      onPointerCancel: _onTapCancel,
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: ClipRect(
+          child: OverflowBox(
+            maxWidth:
+                width * 2, // El sprite sheet tiene 2 estados horizontalmente
+            maxHeight: height,
+            minWidth: width * 2,
+            minHeight: height,
+            alignment: _isPressed
+                ? Alignment.centerRight
+                : Alignment.centerLeft,
+            child: Image.asset(
+              'assets/img/botton_jurnie.png',
+              fit: BoxFit.fill,
+              width: width * 2,
+              height: height,
+            ),
+          ),
         ),
       ),
     );
