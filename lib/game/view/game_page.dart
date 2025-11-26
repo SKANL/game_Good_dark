@@ -474,14 +474,14 @@ class _HudTopDown extends StatelessWidget {
                       );
                     },
                   ),
-                  HexImgButton(
-                    assetPath: 'assets/img/Botton_Chunk.png',
-                    posX: 523.0,
-                    posY: 42.0,
-                    width: 84,
-                    height: 112,
-                    onPressed: () => game.levelManager.siguienteChunk(),
-                  ),
+                  //                  HexImgButton(
+                  //                    assetPath: 'assets/img/Botton_Chunk.png',
+                  //                    posX: 523.0,
+                  //                    posY: 42.0,
+                  //                    width: 84,
+                  //                    height: 112,
+                  //                    onPressed: () => game.levelManager.siguienteChunk(),
+                  //                  ),
                 ],
               ),
             ),
@@ -1100,15 +1100,15 @@ class BlackEchoHUD extends StatelessWidget {
     // --- VARIABLES DE AJUSTE MANUAL DEL CONTENEDOR ---
     // Modifica estos valores para mover/escalar la imagen de fondo principal
     const double containerX = 0.0;
-    const double containerY = -40.0;
-    const double? containerW = null; // null = automático (llenar)
-    const double? containerH = 180; // null = automático (llenar)
+    const double containerY = -13.5;
+    const double containerW = 600.0; // Ancho por defecto
+    const double containerH = 85.0; // Alto por defecto
 
     // --- VARIABLES DE AJUSTE BARRA CENTRAL (VIDA) ---
-    const double centralX = 0.0;
-    const double centralY = -25;
-    const double? centralW = null; // null = automático
-    const double? centralH = null; // null = automático
+    const double centralX = 248.0;
+    const double centralY = -13.5;
+    const double centralW = 103.0; // Ancho por defecto
+    const double centralH = 81.0; // Alto por defecto
 
     // --- FÓRMULA DE VIDA ---
     // Convierte energía (0-100) a vida con un mínimo de 10%
@@ -1120,21 +1120,19 @@ class BlackEchoHUD extends StatelessWidget {
       aspectRatio: 21 / 5, // Proporción aproximada del contenedor
       child: Stack(
         alignment: Alignment.center,
+        clipBehavior: Clip.none, // Permitir que elementos salgan del área
         children: [
           // 1. FONDO (El contenedor ancho de rejilla)
           Positioned(
             left: containerX,
             top: containerY,
-            width: containerW,
-            height: containerH,
-            // Lógica corregida: Si movemos X, restamos a right para MANTENER el tamaño
-            // (Desplazamiento puro en lugar de encogimiento)
-            right: containerW == null ? -containerX : null,
-            bottom: containerH == null ? -containerY : null,
-
-            child: Image.asset(
-              'assets/img/contenedor_barras.png',
-              fit: BoxFit.fill,
+            child: SizedBox(
+              width: containerW,
+              height: containerH,
+              child: Image.asset(
+                'assets/img/contenedor_barras.png',
+                fit: BoxFit.fill, // Estirar imagen
+              ),
             ),
           ),
 
@@ -1165,21 +1163,21 @@ class BlackEchoHUD extends StatelessWidget {
                         // --- AJUSTES MANUALES BARRA IZQUIERDA ---
 
                         // MARCO (Frame)
-                        frameX: 0.0,
-                        frameY: -30.0,
-                        frameWidth: null, // null = automático
-                        frameHeight: null, // null = automático
+                        frameX: 21.0,
+                        frameY: 20.0,
+                        frameWidth: 226, // null = automático
+                        frameHeight: 100, // null = automático
                         // FONDO (Gris)
-                        bgX: 43.0,
-                        bgY: 74.0,
-                        bgWidth: 180,
-                        bgHeight: 35,
+                        bgX: 47.0,
+                        bgY: 64.0,
+                        bgWidth: 175,
+                        bgHeight: 17,
 
                         // RELLENO (Azul)
-                        fillX: 43.0,
-                        fillY: 74.0,
-                        fillWidth: 180,
-                        fillHeight: 35,
+                        fillX: 47.0,
+                        fillY: 64.0,
+                        fillWidth: 175,
+                        fillHeight: 16,
                       ),
                     ),
                   ),
@@ -1205,21 +1203,21 @@ class BlackEchoHUD extends StatelessWidget {
                         // --- AJUSTES MANUALES BARRA DERECHA ---
 
                         // MARCO (Frame)
-                        frameX: 0.0,
-                        frameY: -30.0,
-                        frameWidth: null, // null = automático
-                        frameHeight: null, // null = automático
+                        frameX: 15.0,
+                        frameY: 20.0,
+                        frameWidth: 226, // null = automático
+                        frameHeight: 100, // null = automático
                         // FONDO (Gris)
-                        bgX: 43.0,
-                        bgY: 74.0,
-                        bgWidth: 180,
-                        bgHeight: 35,
+                        bgX: 41.0,
+                        bgY: 64.0,
+                        bgWidth: 175,
+                        bgHeight: 17,
 
                         // RELLENO (Morado)
-                        fillX: 43.0,
-                        fillY: 74.0,
-                        fillWidth: 180,
-                        fillHeight: 35,
+                        fillX: 41.0,
+                        fillY: 64.0,
+                        fillWidth: 175,
+                        fillHeight: 16,
                       ),
                     ),
                   ),
@@ -1232,16 +1230,12 @@ class BlackEchoHUD extends StatelessWidget {
           Positioned(
             left: centralX,
             top: centralY,
-            width: centralW,
-            height: centralH,
-            // Misma lógica de desplazamiento sin deformación
-            right: centralW == null ? -centralX : null,
-            bottom: centralH == null ? -centralY : null,
-            child: FractionallySizedBox(
-              heightFactor: 0.90, // Ocupa el 65% de la altura del HUD
+            child: SizedBox(
+              width: centralW,
+              height: centralH,
               child: Image.asset(
                 'assets/img/barra_central_vida.png',
-                fit: BoxFit.contain,
+                fit: BoxFit.fill, // Estirar imagen
               ),
             ),
           ),
@@ -1250,32 +1244,23 @@ class BlackEchoHUD extends StatelessWidget {
           Positioned(
             left: centralX,
             top: centralY,
-            // Usamos el mismo desplazamiento que la barra central para que el texto se mueva con ella
-            right: centralW == null ? -centralX : null,
-            bottom: centralH == null ? -centralY : null,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  "SALUD",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                    shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+            child: SizedBox(
+              width: centralW,
+              height: centralH,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "   $vidaPorcentaje%",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+                    ),
                   ),
-                ),
-                Text(
-                  "$vidaPorcentaje%",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    shadows: [Shadow(color: Colors.black, blurRadius: 2)],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -1337,74 +1322,65 @@ class HUDBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // SOLUCIÓN: Usamos el marco como hijo directo del Stack (no Positioned)
-    // para que el Stack tome EXACTAMENTE el tamaño del marco.
+    // Lógica de tamaño: Si es null o 0, usar valores por defecto
+    final fW = (frameWidth != null && frameWidth! > 0) ? frameWidth! : 300.0;
+    final fH = (frameHeight != null && frameHeight! > 0) ? frameHeight! : 100.0;
+
+    // SOLUCIÓN: Usamos Stack con Clip.none para permitir que los marcos sobresalgan
     return Stack(
       alignment: Alignment.center,
+      clipBehavior:
+          Clip.none, // IMPORTANTE: Permite que los elementos salgan del área
       children: [
-        // 1. EL MARCO (ANCLA DE TAMAÑO)
-        // Lógica simplificada: Si frameWidth/frameHeight tienen valores, se usan directamente
-        // Si son null, se estira para llenar el espacio disponible
-        if (frameWidth != null || frameHeight != null)
-          // Modo con tamaño específico (como HexImgButton)
-          Positioned(
-            left: frameX,
-            top: frameY,
-            child: SizedBox(
-              width: frameWidth,
-              height: frameHeight,
-              child: Image.asset(frameAsset, fit: BoxFit.contain),
-            ),
-          )
-        else
-          // Modo auto-fill (comportamiento original)
-          Positioned(
-            left: frameX,
-            top: frameY,
-            right: -frameX,
-            bottom: -frameY,
-            child: Image.asset(frameAsset, fit: BoxFit.contain),
+        // 1. EL MARCO (CAPA INFERIOR)
+        Positioned(
+          left: frameX,
+          top: frameY,
+          child: SizedBox(
+            width: fW,
+            height: fH,
+            child: Image.asset(frameAsset, fit: BoxFit.fill),
           ),
+        ),
 
         // 2. FONDO (Detrás del relleno)
         Positioned(
           left: bgX,
           top: bgY,
-          width: bgWidth,
-          height: bgHeight,
-          right: bgWidth == null ? -bgX : null,
-          bottom: bgHeight == null ? -bgY : null,
-          child: Image.asset(bgAsset, fit: BoxFit.fill),
+          child: SizedBox(
+            width: bgWidth,
+            height: bgHeight,
+            child: Image.asset(bgAsset, fit: BoxFit.fill),
+          ),
         ),
 
         // 3. RELLENO (Animado/Variable)
         Positioned(
           left: fillX,
           top: fillY,
-          width: fillWidth,
-          height: fillHeight,
-          right: fillWidth == null ? -fillX : null,
-          bottom: fillHeight == null ? -fillY : null,
-          child: Align(
-            alignment: Alignment.centerLeft, // Crece de izquierda a derecha
-            child: FractionallySizedBox(
-              widthFactor: percentage.clamp(0.0, 1.0),
-              heightFactor: 1.0, // Forzar altura completa del contenedor
-              child: Image.asset(fillAsset, fit: BoxFit.fill),
+          child: SizedBox(
+            width: fillWidth,
+            height: fillHeight,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: percentage.clamp(0.0, 1.0),
+                heightFactor: 1.0,
+                child: Image.asset(fillAsset, fit: BoxFit.fill),
+              ),
             ),
           ),
         ),
 
-        // 4. MARCO (SUPERIOR - OPCIONAL)
-        // Volvemos a pintar el marco encima para tapar los bordes del relleno si fuera necesario.
+        // 4. MARCO (CAPA SUPERIOR) - Cubre bordes del relleno
         Positioned(
           left: frameX,
           top: frameY,
-          width: frameWidth,
-          height: frameHeight,
-          right: frameWidth == null ? -frameX : null,
-          bottom: frameHeight == null ? -frameY : null,
-          child: Image.asset(frameAsset, fit: BoxFit.contain),
+          child: SizedBox(
+            width: fW,
+            height: fH,
+            child: Image.asset(frameAsset, fit: BoxFit.fill),
+          ),
         ),
       ],
     );
