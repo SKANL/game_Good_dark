@@ -241,12 +241,17 @@ class RaycastRendererComponent extends Component
       floorPaint,
     );
 
+    // Obtener efectos activos
+    final echoes = game.world.children.query<EcholocationVfxComponent>();
+    final ruptures = game.world.children.query<RuptureVfxComponent>();
+
     // --- VERTEX-BASED FLOOR & CEILING RENDERER ---
     _renderFloorAndCeilingVertices(
       canvas,
       renderSize,
       player,
       activeLights,
+      echoes, // Pass active echoes for Sonic Wave
       bobOffset,
       crouchOffset,
       tile,
@@ -270,10 +275,6 @@ class RaycastRendererComponent extends Component
     // Flicker effect based on noise
     final flickerIntensity = (ruido / 100.0) * 0.2; // Up to 20% flicker
     final globalFlicker = 1.0 + (random.nextDouble() - 0.5) * flickerIntensity;
-
-    // Obtener efectos activos
-    final echoes = game.world.children.query<EcholocationVfxComponent>();
-    final ruptures = game.world.children.query<RuptureVfxComponent>();
 
     // Rupture effect (screen shake & flash)
     double ruptureIntensity = 0.0;
@@ -412,6 +413,8 @@ class RaycastRendererComponent extends Component
       // Color según tipo de entidad
       Color color;
       bool isWall = false;
+      double maxSweepHeight = 0.0;
+      double sweepIntensity = 0.0;
 
       if (entidadDetectada is NucleoResonanteComponent) {
         // Pulse effect
@@ -445,21 +448,36 @@ class RaycastRendererComponent extends Component
         isWall = true;
         color = const Color(0xFF00FFFF); // Base wall color
 
-        // ECHO EFFECT: Highlight walls intersected by echo pulse
+        // ECHO EFFECT: Vertical Sweep (Wall Climb)
+        // Simulates the sound wave hitting the wall and climbing up
+
         for (final echo in echoes) {
           final distToEcho = echo.position.distanceTo(
             Vector2(hitX * tile, hitY * tile),
           );
           final radius = echo.radius;
-          // Wider ring for better visibility in 3D
-          if ((distToEcho - radius).abs() < 40.0) {
-            // 40 pixels thickness
+
+          // Check if the wave has reached the wall
+          // We allow a "thickness" for the impact zone
+          final delta = radius - distToEcho;
+
+          if (delta > 0 && delta < 150.0) {
+            // Wave climbs up to 150 units
+            // Calculate intensity based on how "fresh" the hit is
+            final intensity = (1.0 - (delta / 150.0)).clamp(0.0, 1.0);
+
+            if (intensity > sweepIntensity) {
+              sweepIntensity = intensity;
+              maxSweepHeight = delta;
+            }
+
+            // Base wall highlight (impact point)
             color = Color.lerp(
               color,
               const Color(0xFFFFFFFF),
-              0.9,
-            )!; // Brighter white
-            fogFactor = 1.0; // Cut through fog completely
+              intensity * 0.8,
+            )!;
+            fogFactor = math.max(fogFactor, intensity);
           }
         }
 
@@ -562,12 +580,6 @@ class RaycastRendererComponent extends Component
 
           // Draw reflection
           canvas.drawRect(reflectionRect, reflectionPaint);
-
-          // Gradient Fade for reflection (simulated by drawing a fading rect over it)
-          // Since we are drawing per-column, we can just modulate opacity by height in the shader?
-          // Or just draw a black gradient rect on top of the reflection area later?
-          // For per-column, we can't easily do a vertical gradient efficiently without a shader.
-          // Simple approximation: Draw a second rect with "fog" color fading in.
         }
 
         // --- PHONG SHADING (Diffuse + Specular) ---
@@ -728,6 +740,35 @@ class RaycastRendererComponent extends Component
 
           canvas.drawRect(dstRect, glowPaint);
         }
+
+        // --- VERTICAL SWEEP OVERLAY (Sonic Climb) ---
+        if (sweepIntensity > 0.1) {
+          // Calculate screen height of the sweep
+          // wallH is the full wall height in pixels. Wall is 'tile' size in world.
+          final pixelsPerUnit = wallH / tile;
+          final sweepHeightPixels = maxSweepHeight * pixelsPerUnit;
+
+          final sweepRect = Rect.fromLTWH(
+            x,
+            drawYBottom - sweepHeightPixels,
+            colWidth + 1,
+            sweepHeightPixels,
+          );
+
+          // Gradient from bottom (bright) to top (transparent)
+          final sweepPaint = Paint()
+            ..shader = ui.Gradient.linear(
+              Offset(x, drawYBottom),
+              Offset(x, drawYBottom - sweepHeightPixels),
+              [
+                const Color(0xFF00FFFF).withOpacity(sweepIntensity * 0.6),
+                const Color(0xFF00FFFF).withOpacity(0.0),
+              ],
+            )
+            ..blendMode = BlendMode.plus;
+
+          canvas.drawRect(sweepRect, sweepPaint);
+        }
       } else {
         // Renderizado Fallback / Entidades
         final paint = Paint()
@@ -742,14 +783,8 @@ class RaycastRendererComponent extends Component
       }
     }
 
-    // === RADIAL LIGHT VISUALIZATION FOR ABILITIES ===
-    // This makes the ability lights visible as expanding waves from the player
-    // Query active abilities
-    final echoesVfx = game.world.children.query<EcholocationVfxComponent>();
-    final rupturesAbility = game.world.children.query<RuptureVfxComponent>();
-
     // Render Echolocation Light Pulse
-    for (final echo in echoesVfx) {
+    for (final echo in echoes) {
       final distFromPlayer = echo.position.distanceTo(player.position);
 
       // Only render if the echo is at/near the player position
@@ -764,85 +799,16 @@ class RaycastRendererComponent extends Component
         final screenRadiusMax = math.min(renderSize.x, renderSize.y) * 0.7;
         final screenRadius = normalizedRadius * screenRadiusMax;
 
-        // Fade out as it expands
-        final fadeAlpha = (1.0 - normalizedRadius).clamp(0.0, 1.0);
+        final pulsePaint = Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0 * (1.0 - normalizedRadius)
+          ..color = const Color(
+            0xFF00FFFF,
+          ).withOpacity(0.5 * (1.0 - normalizedRadius))
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
 
-        // Draw multiple concentric rings for smoother gradient
-        for (var i = 0; i < 5; i++) {
-          final ringProgress = i / 5.0;
-          final ringRadius = screenRadius * (0.8 + ringProgress * 0.2);
-          final ringAlpha = fadeAlpha * (1.0 - ringProgress) * 0.3;
-
-          final ringPaint = Paint()
-            ..color = const Color(0xFF00FFFF).withOpacity(ringAlpha)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = screenRadiusMax * 0.05
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-
-          canvas.drawCircle(
-            Offset(centerX, centerY),
-            ringRadius,
-            ringPaint,
-          );
-        }
-
-        // Draw fill in center for initial flash
-        if (normalizedRadius < 0.3) {
-          final flashPaint = Paint()
-            ..color = const Color(0xFF00FFFF).withOpacity(fadeAlpha * 0.15);
-
-          canvas.drawCircle(
-            Offset(centerX, centerY),
-            screenRadius,
-            flashPaint,
-          );
-        }
+        canvas.drawCircle(Offset(centerX, centerY), screenRadius, pulsePaint);
       }
-    }
-
-    // Render Rupture Light Flash
-    for (final ruptureAbility in rupturesAbility) {
-      final distFromPlayer = ruptureAbility.position.distanceTo(
-        player.position,
-      );
-
-      // Only render if rupture is at/near player
-      if (distFromPlayer < 50) {
-        final intensity = (ruptureAbility.life / 0.5).clamp(0.0, 1.0);
-
-        final centerX = renderSize.x / 2;
-        final centerY = renderSize.y / 2 + bobOffset + crouchOffset;
-
-        // Bright white flash
-        final flashRadius = math.min(renderSize.x, renderSize.y) * 0.4;
-
-        final gradient = ui.Gradient.radial(
-          Offset(centerX, centerY),
-          flashRadius,
-          [
-            Color.fromARGB((255 * intensity * 0.8).toInt(), 255, 255, 255),
-            Color.fromARGB((255 * intensity * 0.3).toInt(), 255, 200, 100),
-            Colors.transparent,
-          ],
-          [0.0, 0.5, 1.0],
-        );
-
-        final flashPaint = Paint()..shader = gradient;
-
-        canvas.drawCircle(
-          Offset(centerX, centerY),
-          flashRadius,
-          flashPaint,
-        );
-      }
-    }
-
-    // Rupture Flash Overlay
-    if (ruptureIntensity > 0) {
-      canvas.drawRect(
-        Rect.fromLTWH(0, 0, renderSize.x, renderSize.y),
-        Paint()..color = Colors.white.withOpacity(ruptureIntensity * 0.3),
-      );
     }
   }
 
@@ -889,6 +855,7 @@ class RaycastRendererComponent extends Component
     Vector2 renderSize,
     PlayerComponent player,
     List<LightSourceComponent> lights,
+    Iterable<EcholocationVfxComponent> echoes, // Added echoes
     double bobOffset,
     double crouchOffset,
     double tileSize,
@@ -976,6 +943,27 @@ class RaycastRendererComponent extends Component
             r += (light.color.red / 255.0) * att * light.effectiveIntensity;
             g += (light.color.green / 255.0) * att * light.effectiveIntensity;
             b += (light.color.blue / 255.0) * att * light.effectiveIntensity;
+          }
+        }
+
+        // Sonic Wave (Gaussian Falloff)
+        for (final echo in echoes) {
+          final dx = wX - echo.position.x;
+          final dy = wY - echo.position.y;
+          final dist = math.sqrt(dx * dx + dy * dy);
+
+          // Gaussian Falloff: exp(-pow(dist - radius, 2) / decay)
+          // Decay controls the width of the ring.
+          const decay = 800.0; // Adjust for ring width
+          final diff = dist - echo.radius;
+          final gaussian = math.exp(-(diff * diff) / decay);
+
+          if (gaussian > 0.01) {
+            // Additive blending for the wave
+            // Echo color is usually Cyan/White
+            r += gaussian * 0.8;
+            g += gaussian * 1.0; // Slightly more green for Cyan
+            b += gaussian * 1.0;
           }
         }
 
