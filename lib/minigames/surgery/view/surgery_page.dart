@@ -1,6 +1,8 @@
 // lib/view/surgery_screen.dart
 import 'dart:math';
 
+import 'package:echo_world/common/services/haptic_service.dart';
+import 'package:echo_world/common/widgets/glitch_overlay.dart';
 import 'package:echo_world/minigames/surgery/cubit/surgery_cubit.dart';
 import 'package:echo_world/minigames/surgery/widgets/glowing_button.dart';
 import 'package:flutter/material.dart';
@@ -14,9 +16,53 @@ class SurgeryPage extends StatefulWidget {
   State<SurgeryPage> createState() => _SurgeryPageState();
 }
 
-class _SurgeryPageState extends State<SurgeryPage> {
+class _SurgeryPageState extends State<SurgeryPage>
+    with TickerProviderStateMixin {
   String? _analyzedId;
   bool _showingResultDialog = false;
+
+  // Shake animation
+  late AnimationController _shakeController;
+  late Animation<double> _shakeAnimation;
+
+  // Flash animation
+  late AnimationController _flashController;
+  late Animation<double> _flashAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _shakeAnimation = Tween<double>(begin: 0, end: 10).animate(
+      CurvedAnimation(parent: _shakeController, curve: Curves.elasticIn),
+    );
+
+    _flashController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _flashAnimation = Tween<double>(begin: 0, end: 0.8).animate(
+      CurvedAnimation(parent: _flashController, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _shakeController.dispose();
+    _flashController.dispose();
+    super.dispose();
+  }
+
+  void _triggerShake() {
+    _shakeController.forward(from: 0).then((_) => _shakeController.reverse());
+  }
+
+  void _triggerFlash() {
+    _flashController.forward(from: 0).then((_) => _flashController.reverse());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,11 +71,14 @@ class _SurgeryPageState extends State<SurgeryPage> {
         if ((state.gameStatus == GameStatus.success ||
                 state.gameStatus == GameStatus.failure) &&
             !_showingResultDialog) {
+          _triggerShake();
+          HapticService.heavyImpact();
           _showResultAndAdvance(context, state);
         }
       },
       builder: (context, state) {
         return Scaffold(
+          backgroundColor: const Color(0xFF0a101a),
           // Add a back button to return to main menu
           floatingActionButton: FloatingActionButton(
             mini: true,
@@ -41,7 +90,38 @@ class _SurgeryPageState extends State<SurgeryPage> {
             },
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
-          body: _buildContent(context, state),
+          body: GlitchOverlay(
+            intensity: state.gameStatus == GameStatus.failure ? 0.8 : 0.1,
+            child: Stack(
+              children: [
+                AnimatedBuilder(
+                  animation: _shakeAnimation,
+                  builder: (context, child) {
+                    final offset =
+                        sin(_shakeController.value * pi * 10) *
+                        _shakeAnimation.value;
+                    return Transform.translate(
+                      offset: Offset(offset, offset),
+                      child: _buildContent(context, state),
+                    );
+                  },
+                ),
+                // Flash Overlay
+                AnimatedBuilder(
+                  animation: _flashAnimation,
+                  builder: (context, child) {
+                    if (_flashAnimation.value == 0)
+                      return const SizedBox.shrink();
+                    return Container(
+                      color: Colors.white.withValues(
+                        alpha: _flashAnimation.value,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -56,7 +136,7 @@ class _SurgeryPageState extends State<SurgeryPage> {
     final title = success ? 'EXITOSO' : 'FALLO CRÍTICO';
     final color = success ? const Color(0xFF00FFFF) : Colors.red;
 
-    await showDialog(
+    await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) {
@@ -393,6 +473,7 @@ class _SurgeryPageState extends State<SurgeryPage> {
               isDisabled: nerve == null,
               onPressed: () {
                 if (nerve != null) {
+                  HapticService.selectionClick();
                   setState(() {
                     _analyzedId = nerve.id;
                   });
@@ -404,13 +485,21 @@ class _SurgeryPageState extends State<SurgeryPage> {
               isDisabled:
                   !(nerve != null && _analyzedId == nerve.id) ||
                   state.isLaserCharged,
-              onPressed: cubit.chargeLaser,
+              onPressed: () {
+                HapticService.mediumImpact();
+                cubit.chargeLaser();
+              },
             ),
             GlowingButton(
               text: 'CORTAR',
               color: Colors.red,
               isDisabled: !state.isLaserCharged,
-              onPressed: cubit.cutNerve,
+              onPressed: () {
+                HapticService.heavyImpact();
+                _triggerShake();
+                _triggerFlash();
+                cubit.cutNerve();
+              },
             ),
           ],
         ),

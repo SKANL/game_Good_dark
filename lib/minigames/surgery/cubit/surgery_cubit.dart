@@ -6,6 +6,7 @@ import 'package:echo_world/minigames/surgery/entities/nerve_model.dart';
 import 'package:echo_world/minigames/surgery/services/mock_gemini_service.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/services.dart';
+import 'package:echo_world/common/services/haptic_service.dart';
 
 part 'surgery_state.dart';
 
@@ -129,6 +130,7 @@ class SurgeryCubit extends Cubit<SurgeryState> {
       return;
     }
     emit(state.copyWith(isLaserCharged: true));
+    HapticService.mediumImpact();
   }
 
   void cutNerve() {
@@ -140,6 +142,7 @@ class SurgeryCubit extends Cubit<SurgeryState> {
 
     final selected = state.selectedNerve!;
     emit(state.copyWith(isLaserCharged: false));
+    HapticService.heavyImpact();
 
     if (selected.isTarget) {
       selected.isCut = true;

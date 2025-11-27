@@ -3,6 +3,9 @@ import 'package:flame/extensions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:echo_world/common/services/haptic_service.dart';
+import 'package:echo_world/game/audio/audio_manager.dart';
+import 'package:echo_world/game/components/vfx/screen_shake_component.dart';
 import '../components/fuga_player_component.dart';
 import '../components/fuga_wall_component.dart';
 import '../components/fuga_shockwave_component.dart';
@@ -15,6 +18,7 @@ class FugaGame extends FlameGame {
   // World bounds computed from level geometry; used to clamp the camera
   Vector2 _worldSize = Vector2.all(1000);
   double cameraSmooth = 6.0; // smoothing factor (higher = snappier)
+  late ScreenShakeComponent screenShake;
 
   // Fijar el tamaño del juego para que la cámara funcione correctamente
   @override
@@ -32,6 +36,10 @@ class FugaGame extends FlameGame {
     player = FugaPlayerComponent(position: Vector2.zero());
     player.owner = this;
     await add(player);
+
+    // Add Screen Shake
+    screenShake = ScreenShakeComponent();
+    await add(screenShake);
 
     // Load a simple level
     _loadLevel1();
@@ -58,13 +66,15 @@ class FugaGame extends FlameGame {
       target.x.clamp(minX, maxX),
       target.y.clamp(minY, maxY),
     );
-
     final factor = (dt * cameraSmooth).clamp(0.0, 1.0);
     // perform lerp manually (avoid relying on a possibly unavailable static lerp)
     final delta = clampedTarget.clone()..sub(current);
     delta.scale(factor);
     final next = current.clone()..add(delta);
-    camera.viewfinder.position = next;
+
+    // Apply shake offset
+    final shakeOffset = screenShake.offset;
+    camera.viewfinder.position = next + shakeOffset;
   }
 
   @override
@@ -115,6 +125,11 @@ class FugaGame extends FlameGame {
       growthSpeed: 1500,
     );
     add(shockwave);
+
+    // Audio & Haptics
+    AudioManager.instance.playSfx('rupture_blast');
+    HapticService.heavyImpact();
+    screenShake.shake(15.0); // Strong shake
 
     // Destroy fragile walls within 5 meters (radius según GDD)
     const ruptureRadius =

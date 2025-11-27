@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:echo_world/game/game.dart';
-import 'package:echo_world/game/entities/player/player.dart';
+
 import 'package:echo_world/game/cubit/checkpoint/cubit.dart';
 import 'package:echo_world/gen/assets.gen.dart';
 import 'package:echo_world/game/level/data/level_models.dart';

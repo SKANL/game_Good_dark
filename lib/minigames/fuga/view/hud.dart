@@ -17,7 +17,6 @@ class Hud extends StatefulWidget {
 class _HudState extends State<Hud> {
   Offset? _joyCenter; // center point of joystick base in local coords
   Offset _knobOffset = Offset.zero; // current knob offset from center
-  final double _baseRadius = 60; // visual radius of joystick base
 
   @override
   void initState() {
@@ -35,18 +34,27 @@ class _HudState extends State<Hud> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isLandscape = size.width > size.height;
+    final shortSide = isLandscape ? size.height : size.width;
+
+    // Dynamic sizing
+    final baseRadius = (shortSide * 0.15).clamp(40.0, 100.0);
+    final buttonSize = (shortSide * 0.15).clamp(50.0, 90.0);
+    final padding = (shortSide * 0.05).clamp(16.0, 32.0);
+
     return SafeArea(
       child: Stack(
         children: [
           // Left joystick area
           Positioned(
-            left: 16,
-            bottom: 16,
+            left: padding,
+            bottom: padding,
             child: GestureDetector(
               onPanStart: (details) {
                 setState(() {
                   // center is fixed inside the control box
-                  _joyCenter = Offset(_baseRadius + 8, _baseRadius + 8);
+                  _joyCenter = Offset(baseRadius + 8, baseRadius + 8);
                   _knobOffset = Offset.zero;
                 });
                 widget.gameRef.setPlayerDirection(0, 0);
@@ -56,15 +64,15 @@ class _HudState extends State<Hud> {
                 final local = details.localPosition;
                 final offset = local - _joyCenter!;
                 final distance = offset.distance;
-                final capped = distance > _baseRadius
-                    ? offset / (distance / _baseRadius)
+                final capped = distance > baseRadius
+                    ? offset / (distance / baseRadius)
                     : offset;
                 setState(() {
                   _knobOffset = capped;
                 });
                 // Normalized direction
-                final ndx = capped.dx / _baseRadius;
-                final ndy = capped.dy / _baseRadius;
+                final ndx = capped.dx / baseRadius;
+                final ndy = capped.dy / baseRadius;
                 widget.gameRef.setPlayerDirection(ndx, ndy);
               },
               onPanEnd: (_) {
@@ -75,11 +83,11 @@ class _HudState extends State<Hud> {
                 widget.gameRef.setPlayerDirection(0, 0);
               },
               child: SizedBox(
-                width: _baseRadius * 2 + 16,
-                height: _baseRadius * 2 + 16,
+                width: baseRadius * 2 + 16,
+                height: baseRadius * 2 + 16,
                 child: CustomPaint(
                   painter: _JoystickPainter(
-                    baseRadius: _baseRadius,
+                    baseRadius: baseRadius,
                     knobOffset: _knobOffset,
                   ),
                 ),
@@ -89,8 +97,8 @@ class _HudState extends State<Hud> {
 
           // Right action buttons
           Positioned(
-            right: 16,
-            bottom: 16,
+            right: padding,
+            bottom: padding,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -123,7 +131,7 @@ class _HudState extends State<Hud> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: GameColors.white,
                     foregroundColor: GameColors.black,
-                    fixedSize: const Size(72, 72),
+                    fixedSize: Size(buttonSize, buttonSize),
                     shape: const CircleBorder(),
                   ),
                   child: const Icon(Icons.wifi),
@@ -137,7 +145,7 @@ class _HudState extends State<Hud> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: GameColors.red,
                     foregroundColor: GameColors.white,
-                    fixedSize: const Size(72, 72),
+                    fixedSize: Size(buttonSize, buttonSize),
                     shape: const CircleBorder(),
                   ),
                   child: const Icon(Icons.music_note),

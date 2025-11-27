@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../entities/game_constants.dart';
@@ -12,14 +13,25 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen>
-    with SingleTickerProviderStateMixin {
+class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late GameEngine _gameEngine;
   late Ticker _ticker;
+
+  // Shake animation
+  late AnimationController _shakeController;
+  late Animation<double> _shakeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _shakeAnimation = Tween<double>(begin: 0, end: 15).animate(
+      CurvedAnimation(parent: _shakeController, curve: Curves.elasticIn),
+    );
+
     _gameEngine = GameEngine(
       onLevelComplete: _handleLevelComplete,
       onPlayerDeath: _handlePlayerDeath,
@@ -34,9 +46,23 @@ class _GameScreenState extends State<GameScreen>
     });
   }
 
+  Duration? _lastElapsed;
+
   void _onTick(Duration elapsed) {
+    if (!mounted) return;
+
+    // Calculate delta time in seconds
+    double dt = 0.016; // Default to ~60fps
+    if (_lastElapsed != null) {
+      dt = (elapsed - _lastElapsed!).inMicroseconds / 1000000.0;
+    }
+    _lastElapsed = elapsed;
+
+    // Clamp dt to avoid huge jumps on lag
+    dt = dt.clamp(0.0, 0.1);
+
     setState(() {
-      _gameEngine.update();
+      _gameEngine.update(dt);
     });
   }
 
@@ -55,7 +81,12 @@ class _GameScreenState extends State<GameScreen>
     }
   }
 
+  void _triggerShake() {
+    _shakeController.forward(from: 0).then((_) => _shakeController.reverse());
+  }
+
   void _handlePlayerDeath(String message) {
+    _triggerShake();
     _showLevelMessage(
       message,
       Colors.red,
@@ -211,6 +242,7 @@ class _GameScreenState extends State<GameScreen>
 
   @override
   void dispose() {
+    _shakeController.dispose();
     _ticker.dispose();
     super.dispose();
   }
@@ -222,48 +254,60 @@ class _GameScreenState extends State<GameScreen>
 
     return Scaffold(
       backgroundColor: GameConstants.backgroundColor,
-      body: Stack(
-        children: [
-          // Game Canvas
-          CustomPaint(
-            painter: GamePainter(gameEngine: _gameEngine),
-            size: Size.infinite,
-          ),
-          // HUD
-          SafeArea(
-            child: Padding(
-              padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'NIVEL ${_gameEngine.currentLevelIndex + 1}',
-                    style: TextStyle(
-                      color: Colors.cyan,
-                      fontSize: isSmallScreen ? 16 : 20,
-                      fontWeight: FontWeight.bold,
+      body: AnimatedBuilder(
+        animation: _shakeAnimation,
+        builder: (context, child) {
+          final offset =
+              sin(_shakeController.value * 3.14159 * 10) *
+              _shakeAnimation.value;
+          return Transform.translate(
+            offset: Offset(offset, offset),
+            child: child,
+          );
+        },
+        child: Stack(
+          children: [
+            // Game Canvas
+            CustomPaint(
+              painter: GamePainter(gameEngine: _gameEngine),
+              size: Size.infinite,
+            ),
+            // HUD
+            SafeArea(
+              child: Padding(
+                padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'NIVEL ${_gameEngine.currentLevelIndex + 1}',
+                      style: TextStyle(
+                        color: Colors.cyan,
+                        fontSize: isSmallScreen ? 16 : 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'SUJETO 7',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: isSmallScreen ? 16 : 20,
-                      fontWeight: FontWeight.bold,
+                    Text(
+                      'SUJETO 7',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isSmallScreen ? 16 : 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          // Controls
-          GameControls(
-            onMoveLeft: () => _gameEngine.player.moveLeft(),
-            onMoveRight: () => _gameEngine.player.moveRight(),
-            onJump: () => _gameEngine.player.jump(),
-            onStopMoving: () => _gameEngine.player.stopMoving(),
-          ),
-        ],
+            // Controls
+            GameControls(
+              onMoveLeft: () => _gameEngine.player.moveLeft(),
+              onMoveRight: () => _gameEngine.player.moveRight(),
+              onJump: () => _gameEngine.player.jump(),
+              onStopMoving: () => _gameEngine.player.stopMoving(),
+            ),
+          ],
+        ),
       ),
     );
   }

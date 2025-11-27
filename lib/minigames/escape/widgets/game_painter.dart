@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import '../entities/game_constants.dart';
-import '../game/game_engine.dart';
-import '../entities/trap.dart';
-import '../entities/tile.dart';
-import 'dart:math' as math;
-import '../entities/player.dart';
+import 'package:echo_world/minigames/escape/game/game_engine.dart';
+import 'package:echo_world/minigames/escape/entities/tile.dart';
+import 'package:echo_world/minigames/escape/entities/trap.dart';
+import 'package:echo_world/minigames/escape/entities/player.dart';
+import 'package:echo_world/minigames/escape/entities/game_constants.dart';
 
 class GamePainter extends CustomPainter {
   final GameEngine gameEngine;

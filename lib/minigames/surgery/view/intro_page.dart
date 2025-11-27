@@ -17,49 +17,60 @@ class IntroPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'ECO NEGRO',
-                style: GoogleFonts.orbitron(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  shadows: [
-                    const Shadow(
-                      blurRadius: 10,
-                      color: Color(0xFF00FFFF),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'CIRUGÍA CASANDRA',
-                style: GoogleFonts.robotoMono(
-                  fontSize: 18,
-                  color: Colors.grey[300],
-                  letterSpacing: 4,
-                ),
-              ),
-              const SizedBox(height: 60),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
+              const Spacer(flex: 2),
+              FittedBox(
+                fit: BoxFit.scaleDown,
                 child: Text(
-                  '//: La interfaz neuronal del sujeto es inestable. Debes cortar las sinapsis corruptas sin dañar los nodos vitales. El tiempo es crítico.',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.robotoMono(
-                    fontSize: 14,
-                    color: Colors.grey[400],
-                    height: 1.5,
+                  'ECO NEGRO',
+                  style: GoogleFonts.orbitron(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    shadows: [
+                      const Shadow(
+                        blurRadius: 10,
+                        color: Color(0xFF00FFFF),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 80),
+              const SizedBox(height: 8),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'CIRUGÍA CASANDRA',
+                  style: GoogleFonts.robotoMono(
+                    fontSize: 18,
+                    color: Colors.grey[300],
+                    letterSpacing: 4,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Text(
+                    '//: La interfaz neuronal del sujeto es inestable. Debes cortar las sinapsis corruptas sin dañar los nodos vitales. El tiempo es crítico.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.robotoMono(
+                      fontSize: 14,
+                      color: Colors.grey[400],
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ),
+              const Spacer(),
               GlowingButton(
                 text: 'INICIAR PROCEDIMIENTO',
                 onPressed: () {
                   Navigator.pushReplacementNamed(context, '/surgery');
                 },
               ),
+              const Spacer(flex: 2),
             ],
           ),
         ),
