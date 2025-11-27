@@ -11,15 +11,24 @@ class TopDownMovementBehavior extends Behavior<PlayerComponent>
   final GameBloc gameBloc;
 
   double _stepAccum = 0;
+  Vector2 _currentVelocity = Vector2.zero();
+
+  Vector2 get velocity => _currentVelocity;
 
   @override
   void update(double dt) {
     final game = parent.gameRef;
     final dir = game.input.movement;
-    if (dir == Vector2.zero()) return;
+
+    // Reset velocity when no input
+    if (dir == Vector2.zero()) {
+      _currentVelocity = Vector2.zero();
+      return;
+    }
 
     final baseSpeed = gameBloc.state.estaAgachado ? 56.0 : 128.0;
-    final delta = dir.normalized() * baseSpeed * dt;
+    _currentVelocity = dir.normalized() * baseSpeed;
+    final delta = _currentVelocity * dt;
 
     // Comprobación de colisiones (usando CollisionHandler)
     moveWithCollision(delta);

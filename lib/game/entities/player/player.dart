@@ -15,6 +15,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/painting.dart';
+import 'dart:math' as math;
 
 class PlayerComponent extends PositionedEntity
     with CollisionCallbacks, HasGameRef<BlackEchoGame> {
@@ -39,6 +40,7 @@ class PlayerComponent extends PositionedEntity
   final GameBloc gameBloc;
   final Paint _paint;
   double _invulnerableTimer = 0;
+  String? _footstepLoopId; // Track footstep loop for instant stop
 
   @override
   Future<void> onLoad() async {
@@ -108,6 +110,105 @@ class PlayerComponent extends PositionedEntity
     }
   }
 
+  void jump() {
+    final jb = children.whereType<JumpBehavior>().firstOrNull;
+    jb?.triggerJump();
+  }
+
+  Future<void> rupture() async {
+    final rb = children.whereType<RuptureBehavior>().firstOrNull;
+    await rb?.triggerRupture();
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (_invulnerableTimer > 0) {
+      _invulnerableTimer -= dt;
+    }
+
+    // --- Footstep Logic ---
+    bool isMoving = false;
+
+    // Check TopDown
+    final td = children.whereType<TopDownMovementBehavior>().firstOrNull;
+    if (td != null && td.velocity.length2 > 0.5) isMoving = true;
+
+    // Check SideScroll
+    final ss = children.whereType<SideScrollMovementBehavior>().firstOrNull;
+    if (ss != null && ss.velocity.x.abs() > 0.5 && ss.isOnGround)
+      isMoving = true;
+
+    // Check FirstPerson
+    final fp = children.whereType<FirstPersonMovementBehavior>().firstOrNull;
+    if (fp != null && fp.velocity.length2 > 0.5) isMoving = true;
+
+    // Start or stop footstep loop based on movement
+    if (isMoving) {
+      if (_footstepLoopId == null) {
+        // Start footstep loop (fire-and-forget, no await in update)
+        final soundId = gameBloc.state.estaAgachado
+            ? 'footstep_stealth_01'
+            : 'footstep_normal_01';
+        final volume = gameBloc.state.estaAgachado ? 4.5 : 5.0;
+
+        // Determine playback rate based on current focus
+        // TopDown (enfoque 1) = 2x speed, others = normal speed
+        final playbackRate = (td != null) ? 2.0 : 1.0;
+
+        AudioManager.instance
+            .startFootstepLoop(
+              soundId: soundId,
+              volume: volume,
+              playbackRate: playbackRate,
+            )
+            .then((_) {
+              _footstepLoopId = 'footstep_active';
+            });
+      }
+    } else {
+      // Stop footstep loop immediately when not moving
+      if (_footstepLoopId != null) {
+        AudioManager.instance.stopFootstepLoop();
+        _footstepLoopId = null;
+      }
+    }
+
+    // --- Ambient Sound Logic ---
+    final noise = gameBloc.state.ruidoMental;
+    if (noise > 75) {
+      AudioManager.instance.playAmbient('amb_whispers_loop', volume: 0.4);
+    } else if (noise > 40) {
+      AudioManager.instance.playAmbient('amb_tinnitus_loop', volume: 0.2);
+    } else {
+      AudioManager.instance.stopAmbient();
+    }
+
+    // --- Dynamic Lighting Reaction ---
+    final light = children.whereType<LightSourceComponent>().firstOrNull;
+    if (light != null) {
+      final state = gameBloc.state;
+
+      // 1. Noise Reaction
+      final noise = state.ruidoMental;
+      light.pulseSpeed = 2.0 + (noise / 100.0) * 8.0;
+
+      // 2. Energy Reaction
+      final energy = state.energiaGrito;
+      final energyFactor = (energy / 100.0).clamp(0.2, 1.0);
+      light.intensity = 0.8 * energyFactor;
+      light.radius = 100.0 + (50.0 * energyFactor);
+
+      // 3. Health/Damage Reaction
+      if (_invulnerableTimer > 0) {
+        light.color = const Color(0xFFFF0000);
+        light.intensity = 1.0;
+      } else {
+        light.color = const Color(0xFF00FFFF);
+      }
+    }
+  }
+
   @override
   void render(Canvas canvas) {
     if (gameBloc.state.enfoqueActual == Enfoque.firstPerson) return;
@@ -140,51 +241,6 @@ class PlayerComponent extends PositionedEntity
     );
   }
 
-  void jump() {
-    final jb = findBehavior<JumpBehavior>();
-    jb.triggerJump();
-  }
-
-  Future<void> rupture() async {
-    final rb = findBehavior<RuptureBehavior>();
-    await rb.triggerRupture();
-  }
-
-  @override
-  void update(double dt) {
-    super.update(dt);
-    if (_invulnerableTimer > 0) {
-      _invulnerableTimer -= dt;
-    }
-
-    // --- Dynamic Lighting Reaction ---
-    final light = children.whereType<LightSourceComponent>().firstOrNull;
-    if (light != null) {
-      final state = gameBloc.state;
-
-      // 1. Noise Reaction (Ruido Mental) -> Pulse Speed & Instability
-      // Higher noise = faster, more erratic pulse
-      final noise = state.ruidoMental;
-      light.pulseSpeed = 2.0 + (noise / 100.0) * 8.0; // 2.0 to 10.0
-
-      // 2. Energy Reaction (Energía Grito) -> Intensity & Radius
-      // Low energy = dim light (dying battery feel)
-      final energy = state.energiaGrito;
-      final energyFactor = (energy / 100.0).clamp(0.2, 1.0);
-      light.intensity = 0.8 * energyFactor;
-      light.radius = 100.0 + (50.0 * energyFactor);
-
-      // 3. Health/Damage Reaction -> Color Tint?
-      // Maybe turn red if hit? For now, let's keep it Cyan but flicker if invulnerable
-      if (_invulnerableTimer > 0) {
-        light.color = const Color(0xFFFF0000); // Red alert
-        light.intensity = 1.0; // Bright flash
-      } else {
-        light.color = const Color(0xFF00FFFF); // Normal Cyan
-      }
-    }
-  }
-
   @override
   void onCollisionStart(
     Set<Vector2> intersectionPoints,
@@ -213,15 +269,12 @@ class PlayerComponent extends PositionedEntity
           // SFX: reproducir sonido de escudo sónico
           AudioManager.instance.playSfx('rejection_shield', volume: 0.9);
 
-          // Activar rechazo sónico (escudo)
-          gameBloc.add(const RechazoSonicoActivado(50));
-
           // Aturdir al enemigo (BUFF: 4.0s)
           hearing.stun(4);
 
           // KNOCKBACK: Push enemy away
           final dir = (enemy.position - position).normalized();
-          hearing.applyKnockback(dir, 500);
+          hearing.pushBack(dir, 500);
 
           // Invulnerabilidad post-escudo
           _invulnerableTimer = 2.0;
@@ -244,7 +297,7 @@ class PlayerComponent extends PositionedEntity
 
           // KNOCKBACK: Push enemy away (weaker)
           final dir = (enemy.position - position).normalized();
-          hearing.applyKnockback(dir, 300);
+          hearing.pushBack(dir, 300);
 
           // Invulnerabilidad breve
           _invulnerableTimer = 1.0;

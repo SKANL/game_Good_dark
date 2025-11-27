@@ -1,12 +1,13 @@
 import 'dart:async';
-
 import 'package:audioplayers/audioplayers.dart';
 import 'package:echo_world/game/audio/audio_manager.dart';
-import 'package:echo_world/game/cubit/checkpoint/cubit.dart';
 import 'package:echo_world/game/game.dart';
+import 'package:echo_world/game/entities/player/player.dart';
+import 'package:echo_world/game/cubit/checkpoint/cubit.dart';
 import 'package:echo_world/gen/assets.gen.dart';
-import 'package:echo_world/loading/cubit/cubit.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:echo_world/lore/lore.dart';
+import 'package:echo_world/loading/cubit/cubit.dart';
 import 'package:flame/game.dart' hide Route;
 import 'package:flame_audio/bgm.dart';
 import 'package:flutter/material.dart';
@@ -62,7 +63,8 @@ class _GameViewState extends State<GameView> {
   void initState() {
     super.initState();
     bgm = context.read<AudioCubit>().bgm;
-    unawaited(bgm.play(Assets.audio.background));
+    // Lower BGM volume significantly as requested
+    unawaited(bgm.play(Assets.audio.background, volume: 0.1));
   }
 
   @override
@@ -202,8 +204,8 @@ class _GameViewState extends State<GameView> {
 
 class HexImgButton extends StatefulWidget {
   const HexImgButton({
-    required this.assetPath,
     super.key,
+    required this.assetPath,
     this.onPressed,
     this.onTapDown,
     this.onTapUp,
@@ -239,6 +241,7 @@ class _HexImgButtonState extends State<HexImgButton> {
         clipper: const HexagonClipper(),
         child: GestureDetector(
           onTapDown: (details) {
+            AudioManager.instance.playSfx('select_main.mp3');
             setState(() => _isPressed = true);
             widget.onTapDown?.call(details);
           },
@@ -260,7 +263,7 @@ class _HexImgButtonState extends State<HexImgButton> {
                 maxWidth: double.infinity,
                 child: FractionalTranslation(
                   // Si está presionado, desplazar -50% del ancho de la imagen para mostrar la mitad derecha
-                  translation: Offset(_isPressed ? -0.5 : 0.0, 0),
+                  translation: Offset(_isPressed ? -0.5 : 0.0, 0.0),
                   child: Image.asset(
                     widget.assetPath,
                     width:
@@ -352,7 +355,8 @@ class _HudTopDown extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 20),
                       child: HexImgButton(
                         assetPath: 'assets/img/Botton_Absorver.png',
-                        posY: 20,
+                        posX: 0.0,
+                        posY: 20.0,
                         width: 84,
                         height: 112,
                         onPressed: () {
@@ -378,7 +382,7 @@ class _HudTopDown extends StatelessWidget {
 
                             AudioManager.instance.playSfx(
                               'absorb_inhale',
-                              volume: 0.8,
+                              volume: 0.5,
                             );
 
                             closest.removeFromParent();
@@ -407,18 +411,22 @@ class _HudTopDown extends StatelessWidget {
                 children: [
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Enfoque.png',
-                    posX: 640,
+                    posX: 640.0,
+                    posY: 0.0,
                     width: 80,
                     height: 105,
                     onPressed: () => bloc.add(EnfoqueCambiado()),
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Eco.png',
-                    posX: 600,
-                    posY: 45,
+                    posX: 600.0,
+                    posY: 45.0,
                     width: 80,
                     height: 105,
                     onPressed: () {
+                      // SFX: Reproducir sonido de eco
+                      AudioManager.instance.playSfx('eco_ping', volume: 2);
+
                       game.world.add(
                         EcholocationVfxComponent(
                           origin: game.player.position.clone(),
@@ -445,8 +453,8 @@ class _HudTopDown extends StatelessWidget {
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Ruptura.png',
-                    posX: 562,
-                    posY: -4,
+                    posX: 562.0,
+                    posY: -4.0,
                     width: 84,
                     height: 112,
                     onPressed: () async {
@@ -462,8 +470,8 @@ class _HudTopDown extends StatelessWidget {
                     builder: (context, estaAgachado) {
                       return HexImgButton(
                         assetPath: 'assets/img/Botton_Sigilo.png',
-                        posX: 675,
-                        posY: 45,
+                        posX: 675.0,
+                        posY: 45.0,
                         width: 82,
                         height: 107,
                         onTapDown: (_) => bloc.add(ModoSigiloActivado()),
@@ -542,7 +550,10 @@ class _HudSideScroll extends StatelessWidget {
                           playerPosition: game.player.position.clone(),
                         );
                         game.world.add(absorptionVfx);
-                        AudioManager.instance.playSfx('absorb_inhale');
+                        AudioManager.instance.playSfx(
+                          'absorb_inhale',
+                          volume: 0.5,
+                        );
                         closest.removeFromParent();
                       }
                     },
@@ -572,18 +583,22 @@ class _HudSideScroll extends StatelessWidget {
                 children: [
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Enfoque.png',
-                    posX: 640,
+                    posX: 640.0,
+                    posY: 0.0,
                     width: 80,
                     height: 105,
                     onPressed: () => bloc.add(EnfoqueCambiado()),
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Eco.png',
-                    posX: 600,
-                    posY: 45,
+                    posX: 600.0,
+                    posY: 45.0,
                     width: 80,
                     height: 105,
                     onPressed: () {
+                      // SFX: Reproducir sonido de eco
+                      AudioManager.instance.playSfx('eco_ping', volume: 2);
+
                       game.world.add(
                         EcholocationVfxComponent(
                           origin: game.player.position.clone(),
@@ -610,8 +625,8 @@ class _HudSideScroll extends StatelessWidget {
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Ruptura.png',
-                    posX: 562,
-                    posY: -4,
+                    posX: 562.0,
+                    posY: -4.0,
                     width: 84,
                     height: 112,
                     onPressed: () async {
@@ -623,11 +638,15 @@ class _HudSideScroll extends StatelessWidget {
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Salto.png',
-                    posX: 524,
-                    posY: 35,
+                    posX: 524.0,
+                    posY: 35.0,
                     width: 84,
                     height: 124,
                     onPressed: () {
+                      AudioManager.instance.playSfx(
+                        'jump',
+                        volume: 1.5,
+                      ); // Ensure it's audible
                       game.player.jump();
                     },
                   ),
@@ -636,8 +655,8 @@ class _HudSideScroll extends StatelessWidget {
                     builder: (context, estaAgachado) {
                       return HexImgButton(
                         assetPath: 'assets/img/Botton_Sigilo.png',
-                        posX: 675,
-                        posY: 45,
+                        posX: 675.0,
+                        posY: 45.0,
                         width: 82,
                         height: 107,
                         onTapDown: (_) => bloc.add(ModoSigiloActivado()),
@@ -726,7 +745,10 @@ class _HudFirstPerson extends StatelessWidget {
                         playerPosition: game.player.position.clone(),
                       );
                       game.world.add(absorptionVfx);
-                      AudioManager.instance.playSfx('absorb_inhale');
+                      AudioManager.instance.playSfx(
+                        'absorb_inhale',
+                        volume: 0.5,
+                      );
                       closest.removeFromParent();
                     }
                   },
@@ -756,18 +778,22 @@ class _HudFirstPerson extends StatelessWidget {
                 children: [
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Enfoque.png',
-                    posX: 640,
+                    posX: 640.0,
+                    posY: 0.0,
                     width: 80,
                     height: 105,
                     onPressed: () => bloc.add(EnfoqueCambiado()),
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Eco.png',
-                    posX: 600,
-                    posY: 45,
+                    posX: 600.0,
+                    posY: 45.0,
                     width: 80,
                     height: 105,
                     onPressed: () {
+                      // SFX: Reproducir sonido de eco
+                      AudioManager.instance.playSfx('eco_ping', volume: 2);
+
                       final p = game.player.position.clone();
                       game.world.add(EcholocationVfxComponent(origin: p));
                       game.emitSound(p, NivelSonido.medio, ttl: 0.8);
@@ -787,8 +813,8 @@ class _HudFirstPerson extends StatelessWidget {
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Ruptura.png',
-                    posX: 562,
-                    posY: -4,
+                    posX: 562.0,
+                    posY: -4.0,
                     width: 84,
                     height: 112,
                     onPressed: () async {
@@ -803,8 +829,8 @@ class _HudFirstPerson extends StatelessWidget {
                     builder: (context, estaAgachado) {
                       return HexImgButton(
                         assetPath: 'assets/img/Botton_Sigilo.png',
-                        posX: 675,
-                        posY: 45,
+                        posX: 675.0,
+                        posY: 45.0,
                         width: 82,
                         height: 107,
                         onTapDown: (_) => bloc.add(ModoSigiloActivado()),
@@ -1082,34 +1108,35 @@ class _RuidoMentalPainter extends CustomPainter {
 // --- NUEVO COMPONENTE VISUAL: HUD CYBERPUNK ---
 
 class BlackEchoHUD extends StatelessWidget {
-  const BlackEchoHUD({
-    required this.energia,
-    required this.ruido,
-    super.key,
-  });
   final int energia;
   final int ruido;
+
+  const BlackEchoHUD({
+    super.key,
+    required this.energia,
+    required this.ruido,
+  });
 
   @override
   Widget build(BuildContext context) {
     // --- VARIABLES DE AJUSTE MANUAL DEL CONTENEDOR ---
     // Modifica estos valores para mover/escalar la imagen de fondo principal
-    const containerX = 0.0;
-    const containerY = -13.5;
-    const containerW = 600.0; // Ancho por defecto
-    const containerH = 85.0; // Alto por defecto
+    const double containerX = 0.0;
+    const double containerY = -13.5;
+    const double containerW = 600.0; // Ancho por defecto
+    const double containerH = 85.0; // Alto por defecto
 
     // --- VARIABLES DE AJUSTE BARRA CENTRAL (VIDA) ---
-    const centralX = 248.0;
-    const centralY = -13.5;
-    const centralW = 103.0; // Ancho por defecto
-    const centralH = 81.0; // Alto por defecto
+    const double centralX = 248.0;
+    const double centralY = -13.5;
+    const double centralW = 103.0; // Ancho por defecto
+    const double centralH = 81.0; // Alto por defecto
 
     // --- FÓRMULA DE VIDA ---
     // Convierte energía (0-100) a vida con un mínimo de 10%
     // Si energía = 0 -> vida = 10%
     // Si energía = 100 -> vida = 100%
-    final vidaPorcentaje = energia == 0 ? 10 : energia;
+    final int vidaPorcentaje = energia == 0 ? 10 : energia;
 
     return AspectRatio(
       aspectRatio: 21 / 5, // Proporción aproximada del contenedor
@@ -1135,7 +1162,7 @@ class BlackEchoHUD extends StatelessWidget {
           // Usamos FractionallySizedBox para márgenes porcentuales seguros
           Positioned.fill(
             child: FractionallySizedBox(
-              widthFactor: 1, // ~4% margen lateral
+              widthFactor: 1.0, // ~4% margen lateral
               heightFactor: 1.75, // ~12% margen vertical
               child: Row(
                 children: [
@@ -1144,8 +1171,8 @@ class BlackEchoHUD extends StatelessWidget {
                     child: Padding(
                       // Ajustamos márgenes para que no toque los bordes del contenedor
                       padding: const EdgeInsets.only(
-                        left: 12,
-                        right: 4,
+                        left: 12.0,
+                        right: 4.0,
                         top: 8,
                         bottom: 8,
                       ),
@@ -1158,19 +1185,19 @@ class BlackEchoHUD extends StatelessWidget {
                         // --- AJUSTES MANUALES BARRA IZQUIERDA ---
 
                         // MARCO (Frame)
-                        frameX: 21,
-                        frameY: 20,
+                        frameX: 21.0,
+                        frameY: 20.0,
                         frameWidth: 226, // null = automático
                         frameHeight: 100, // null = automático
                         // FONDO (Gris)
-                        bgX: 47,
-                        bgY: 64,
+                        bgX: 47.0,
+                        bgY: 64.0,
                         bgWidth: 175,
                         bgHeight: 17,
 
                         // RELLENO (Azul)
-                        fillX: 47,
-                        fillY: 64,
+                        fillX: 47.0,
+                        fillY: 64.0,
                         fillWidth: 175,
                         fillHeight: 16,
                       ),
@@ -1184,8 +1211,8 @@ class BlackEchoHUD extends StatelessWidget {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.only(
-                        left: 4,
-                        right: 12,
+                        left: 4.0,
+                        right: 12.0,
                         top: 8,
                         bottom: 8,
                       ),
@@ -1198,19 +1225,19 @@ class BlackEchoHUD extends StatelessWidget {
                         // --- AJUSTES MANUALES BARRA DERECHA ---
 
                         // MARCO (Frame)
-                        frameX: 15,
-                        frameY: 20,
+                        frameX: 15.0,
+                        frameY: 20.0,
                         frameWidth: 226, // null = automático
                         frameHeight: 100, // null = automático
                         // FONDO (Gris)
-                        bgX: 41,
-                        bgY: 64,
+                        bgX: 41.0,
+                        bgY: 64.0,
                         bgWidth: 175,
                         bgHeight: 17,
 
                         // RELLENO (Morado)
-                        fillX: 41,
-                        fillY: 64,
+                        fillX: 41.0,
+                        fillY: 64.0,
                         fillWidth: 175,
                         fillHeight: 16,
                       ),
@@ -1246,12 +1273,12 @@ class BlackEchoHUD extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '   $vidaPorcentaje%',
+                    "   $vidaPorcentaje%",
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      shadows: [Shadow(blurRadius: 2)],
+                      shadows: [Shadow(color: Colors.black, blurRadius: 2)],
                     ),
                   ),
                 ],
@@ -1266,29 +1293,6 @@ class BlackEchoHUD extends StatelessWidget {
 
 // Sub-widget corregido para usar el Marco como ancla de tamaño
 class HUDBar extends StatelessWidget {
-  const HUDBar({
-    required this.frameAsset,
-    required this.fillAsset,
-    required this.bgAsset,
-    required this.percentage,
-    super.key,
-
-    // Valores por defecto
-    this.frameX = 0.0,
-    this.frameY = 0.0,
-    this.frameWidth,
-    this.frameHeight,
-
-    this.bgX = 0.0,
-    this.bgY = 0.0,
-    this.bgWidth,
-    this.bgHeight,
-
-    this.fillX = 0.0,
-    this.fillY = 0.0,
-    this.fillWidth,
-    this.fillHeight,
-  });
   final String frameAsset;
   final String fillAsset;
   final String bgAsset;
@@ -1313,6 +1317,30 @@ class HUDBar extends StatelessWidget {
   final double fillY;
   final double? fillWidth;
   final double? fillHeight;
+
+  const HUDBar({
+    super.key,
+    required this.frameAsset,
+    required this.fillAsset,
+    required this.bgAsset,
+    required this.percentage,
+
+    // Valores por defecto
+    this.frameX = 0.0,
+    this.frameY = 0.0,
+    this.frameWidth,
+    this.frameHeight,
+
+    this.bgX = 0.0,
+    this.bgY = 0.0,
+    this.bgWidth,
+    this.bgHeight,
+
+    this.fillX = 0.0,
+    this.fillY = 0.0,
+    this.fillWidth,
+    this.fillHeight,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1359,7 +1387,7 @@ class HUDBar extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: FractionallySizedBox(
                 widthFactor: percentage.clamp(0.0, 1.0),
-                heightFactor: 1,
+                heightFactor: 1.0,
                 child: Image.asset(fillAsset, fit: BoxFit.fill),
               ),
             ),

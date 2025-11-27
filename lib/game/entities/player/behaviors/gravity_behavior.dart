@@ -8,6 +8,8 @@ import 'package:flame_behaviors/flame_behaviors.dart';
 
 class GravityBehavior extends Behavior<PlayerComponent> {
   double _velocityY = 0;
+  bool _isOnGround = false;
+  bool get isOnGround => _isOnGround;
   static const double gravity = 900; // px/s^2
 
   void impulse(double vy) {
@@ -16,6 +18,7 @@ class GravityBehavior extends Behavior<PlayerComponent> {
 
   @override
   void update(double dt) {
+    _isOnGround = false; // Reset frame
     _velocityY += gravity * dt;
     final deltaY = _velocityY * dt;
 
@@ -38,6 +41,7 @@ class GravityBehavior extends Behavior<PlayerComponent> {
       if (_velocityY > 0) {
         // Cayendo -> Suelo
         _velocityY = 0;
+        _isOnGround = true;
         // Ajustar posición al suelo (parte superior del tile)
         final tileY = (rectY.bottom / LevelManagerComponent.tileSize).floor();
         final groundY = tileY * LevelManagerComponent.tileSize;

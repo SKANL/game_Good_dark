@@ -46,7 +46,7 @@ class RuptureBehavior extends Behavior<PlayerComponent> {
     final game = parent.gameRef;
 
     // SFX: reproducir sonido de ruptura (no-posicional, global)
-    await AudioManager.instance.playSfx('rupture_blast');
+    await AudioManager.instance.playSfx('rupture_blast', volume: 0.5);
 
     // VFX simple: sacudir cámara y añadir partículas
     game.shakeCamera();
