@@ -3,6 +3,7 @@ import 'package:echo_world/game/entities/player/player.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
+import 'package:echo_world/game/entities/player/behaviors/gravity_behavior.dart';
 import 'dart:ui';
 
 class SideScrollMovementBehavior extends Behavior<PlayerComponent> {
@@ -10,13 +11,23 @@ class SideScrollMovementBehavior extends Behavior<PlayerComponent> {
   final GameBloc gameBloc;
 
   double _stepAccum = 0;
+  Vector2 _currentVelocity = Vector2.zero();
+
+  Vector2 get velocity => _currentVelocity;
+
+  // isOnGround is handled by GravityBehavior, but we can expose a helper if needed.
+  // For now, PlayerComponent checks GravityBehavior for isOnGround.
+  bool get isOnGround =>
+      parent.findBehavior<GravityBehavior>()?.isOnGround ?? false;
 
   @override
   void update(double dt) {
     final game = parent.gameRef;
     final dir = game.input.movement;
     final baseSpeed = gameBloc.state.estaAgachado ? 56.0 : 128.0;
-    final dx = dir.x.clamp(-1, 1) * baseSpeed * dt;
+    final vx = dir.x.clamp(-1, 1) * baseSpeed;
+    _currentVelocity = Vector2(vx, 0); // Y handled by gravity
+    final dx = vx * dt;
     // Comprobación de colisiones horizontal (side-scroll)
     final proposedX = parent.position + Vector2(dx, 0);
 

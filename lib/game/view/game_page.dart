@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:echo_world/game/game.dart';
+import 'package:echo_world/game/entities/player/player.dart';
 import 'package:echo_world/game/cubit/checkpoint/cubit.dart';
 import 'package:echo_world/gen/assets.gen.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
@@ -62,7 +63,8 @@ class _GameViewState extends State<GameView> {
   void initState() {
     super.initState();
     bgm = context.read<AudioCubit>().bgm;
-    unawaited(bgm.play(Assets.audio.background));
+    // Lower BGM volume significantly as requested
+    unawaited(bgm.play(Assets.audio.background, volume: 0.1));
   }
 
   @override
@@ -239,6 +241,7 @@ class _HexImgButtonState extends State<HexImgButton> {
         clipper: const HexagonClipper(),
         child: GestureDetector(
           onTapDown: (details) {
+            AudioManager.instance.playSfx('select_main.mp3');
             setState(() => _isPressed = true);
             widget.onTapDown?.call(details);
           },
@@ -379,7 +382,7 @@ class _HudTopDown extends StatelessWidget {
 
                             AudioManager.instance.playSfx(
                               'absorb_inhale',
-                              volume: 0.8,
+                              volume: 0.5,
                             );
 
                             closest.removeFromParent();
@@ -421,6 +424,9 @@ class _HudTopDown extends StatelessWidget {
                     width: 80,
                     height: 105,
                     onPressed: () {
+                      // SFX: Reproducir sonido de eco
+                      AudioManager.instance.playSfx('eco_ping', volume: 2);
+
                       game.world.add(
                         EcholocationVfxComponent(
                           origin: game.player.position.clone(),
@@ -544,7 +550,10 @@ class _HudSideScroll extends StatelessWidget {
                           playerPosition: game.player.position.clone(),
                         );
                         game.world.add(absorptionVfx);
-                        AudioManager.instance.playSfx('absorb_inhale');
+                        AudioManager.instance.playSfx(
+                          'absorb_inhale',
+                          volume: 0.5,
+                        );
                         closest.removeFromParent();
                       }
                     },
@@ -587,6 +596,9 @@ class _HudSideScroll extends StatelessWidget {
                     width: 80,
                     height: 105,
                     onPressed: () {
+                      // SFX: Reproducir sonido de eco
+                      AudioManager.instance.playSfx('eco_ping', volume: 2);
+
                       game.world.add(
                         EcholocationVfxComponent(
                           origin: game.player.position.clone(),
@@ -631,6 +643,10 @@ class _HudSideScroll extends StatelessWidget {
                     width: 84,
                     height: 124,
                     onPressed: () {
+                      AudioManager.instance.playSfx(
+                        'jump',
+                        volume: 1.5,
+                      ); // Ensure it's audible
                       game.player.jump();
                     },
                   ),
@@ -729,7 +745,10 @@ class _HudFirstPerson extends StatelessWidget {
                         playerPosition: game.player.position.clone(),
                       );
                       game.world.add(absorptionVfx);
-                      AudioManager.instance.playSfx('absorb_inhale');
+                      AudioManager.instance.playSfx(
+                        'absorb_inhale',
+                        volume: 0.5,
+                      );
                       closest.removeFromParent();
                     }
                   },
@@ -772,6 +791,9 @@ class _HudFirstPerson extends StatelessWidget {
                     width: 80,
                     height: 105,
                     onPressed: () {
+                      // SFX: Reproducir sonido de eco
+                      AudioManager.instance.playSfx('eco_ping', volume: 2);
+
                       final p = game.player.position.clone();
                       game.world.add(EcholocationVfxComponent(origin: p));
                       game.emitSound(p, NivelSonido.medio, ttl: 0.8);

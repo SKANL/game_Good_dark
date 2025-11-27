@@ -35,6 +35,8 @@ class FirstPersonMovementBehavior extends Behavior<PlayerComponent>
   static const double turnAcceleration = 6.0; // rad/s²
 
   double _stepAccum = 0;
+  Vector2 _currentVelocity = Vector2.zero();
+  Vector2 get velocity => _currentVelocity;
 
   @override
   void update(double dt) {
@@ -65,8 +67,15 @@ class FirstPersonMovementBehavior extends Behavior<PlayerComponent>
     // Movimiento: adelante/atrás en dirección del heading
     final isStealth = gameBloc.state.estaAgachado;
     final baseVelocity = isStealth ? stealthSpeed : maxSpeed;
-    final velocity = baseVelocity * moveSensitivity;
-    final speed = -move.y * velocity; // Invertir: joystick arriba = adelante
+    final speedMagnitude = baseVelocity * moveSensitivity;
+    final speed =
+        -move.y * speedMagnitude; // Invertir: joystick arriba = adelante
+
+    // Update velocity vector for external checks (approximate based on heading)
+    _currentVelocity = Vector2(
+      speed * math.cos(player.heading),
+      speed * math.sin(player.heading),
+    );
 
     // Calcular desplazamiento en dirección del heading
     final dx = speed * dt * math.cos(player.heading);

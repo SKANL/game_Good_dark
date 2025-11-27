@@ -11,7 +11,7 @@ class EcholocationBehavior extends Behavior<PlayerComponent> {
 
   void triggerEcho(Vector2 origin) {
     // SFX: reproducir ping de ecolocalización
-    AudioManager.instance.playSfx('eco_ping', volume: 0.8);
+    AudioManager.instance.playSfx('eco_ping', volume: 2);
 
     parent.parent?.add(EcholocationVfxComponent(origin: origin));
   }

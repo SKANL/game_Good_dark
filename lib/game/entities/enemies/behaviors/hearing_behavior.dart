@@ -182,7 +182,7 @@ class HearingBehavior extends Behavior<PositionedEntity>
   }
 
   /// Aplica un empuje físico al enemigo
-  void applyKnockback(Vector2 direction, double force) {
+  void pushBack(Vector2 direction, double force) {
     _knockbackVelocity = direction.normalized() * force;
     // También aturdir brevemente si el golpe es fuerte
     if (force > 200) {

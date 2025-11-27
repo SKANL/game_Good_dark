@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flame_audio/bgm.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +26,10 @@ class AudioCubit extends Cubit<AudioState> {
 
   Future<void> _changeVolume(double volume) async {
     await effectPlayer.setVolume(volume);
-    await bgm.audioPlayer.setVolume(volume);
+    await bgm.audioPlayer.setVolume(volume * 0.1); // Reduced BGM volume to 10%
+    AudioManager.instance.setMasterVolume(
+      volume,
+    ); // Sync with game audio manager
     if (!isClosed) {
       emit(state.copyWith(volume: volume));
     }

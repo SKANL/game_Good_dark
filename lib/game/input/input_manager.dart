@@ -30,7 +30,8 @@ class InputManager extends Component with HasGameRef<BlackEchoGame> {
 
     // Normalizar y aplicar curva de suavizado
     // Mapear de [deadzone, 1.0] a [0.0, 1.0]
-    final normalizedMagnitude = ((magnitude - _deadzone) / (1.0 - _deadzone)).clamp(0.0, 1.0);
+    final normalizedMagnitude = ((magnitude - _deadzone) / (1.0 - _deadzone))
+        .clamp(0.0, 1.0);
 
     // Aplicar curva cuadrática para mejor control (menos sensible cerca del centro)
     final smoothedMagnitude = math.pow(normalizedMagnitude, 1.5).toDouble();
@@ -53,6 +54,7 @@ class InputManager extends Component with HasGameRef<BlackEchoGame> {
       margin: const EdgeInsets.only(left: 20, bottom: 20),
       priority: 20000, // Máximo para renderizar sobre absolutamente todo
     );
+    // _joystick.positionType = PositionType.viewport; // Removed as it is not a valid setter
     // Agregar al game directamente, no al viewport
     // Esto evita que el joystick afecte el layout del viewport de renderizado
     await game.add(_joystick);
