@@ -1,5 +1,4 @@
 import 'package:echo_world/game/level/data/level_models.dart';
-import 'package:echo_world/game/level/modular/chunk_library.dart';
 import 'package:echo_world/game/level/modular/modular_level_builder.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -25,7 +24,7 @@ void main() {
         // without parsing IDs or adding metadata to ChunkInstance, we'll check the IDs.
         // Side-scroll chunks in library are 'side_scroll_gap' and 'side_scroll_tunnel'.
 
-        bool hasSideScroll = false;
+        var hasSideScroll = false;
         for (final chunk in level.chunks) {
           if (chunk.id.contains('side_scroll')) {
             hasSideScroll = true;

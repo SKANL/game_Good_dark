@@ -40,7 +40,7 @@ class ScreenTransitionComponent extends Component with HasGameRef<FlameGame> {
   @override
   void render(Canvas canvas) {
     // Calculate opacity: 0 -> 1 -> 0
-    double opacity = 0.0;
+    var opacity = 0.0;
     if (_time < _halfDuration) {
       opacity = _time / _halfDuration;
     } else {

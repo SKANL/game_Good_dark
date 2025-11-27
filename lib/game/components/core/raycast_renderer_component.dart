@@ -1,19 +1,18 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
+
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/components/core/components.dart';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
+import 'package:echo_world/game/components/vfx/particle_overlay_system.dart';
+import 'package:echo_world/game/entities/enemies/bruto.dart';
 import 'package:echo_world/game/entities/enemies/cazador.dart';
 import 'package:echo_world/game/entities/enemies/vigia.dart';
-import 'package:echo_world/game/entities/enemies/bruto.dart';
-import 'package:echo_world/game/level/manager/level_manager.dart';
+import 'package:echo_world/game/entities/player/player.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
+import 'package:echo_world/game/level/manager/level_manager.dart';
 import 'package:flame/cache.dart';
 import 'package:flame/components.dart';
-import 'package:echo_world/game/components/vfx/echolocation_vfx_component.dart';
-import 'package:echo_world/game/components/vfx/rupture_vfx_component.dart';
-import 'package:echo_world/game/components/lighting/light_source_component.dart';
-import 'package:echo_world/game/entities/player/player.dart';
-import 'package:echo_world/game/components/vfx/particle_overlay_system.dart';
 import 'package:flutter/material.dart';
 
 /// RaycastRendererComponent: Renderiza el mundo en falso 3D (raycasting).
@@ -175,7 +174,6 @@ class RaycastRendererComponent extends Component
     final player = game.player;
     final activeLights = game.lightingSystem.getNearestLights(
       player.position,
-      limit: 10,
     );
     final grid = game.levelManager.currentGrid;
 
@@ -214,7 +212,7 @@ class RaycastRendererComponent extends Component
     );
 
     final fogColor =
-        chunk?.fogColor?.withOpacity(1.0) ??
+        chunk?.fogColor?.withOpacity(1) ??
         const Color(0xFF000510); // Darker fog
 
     // Cielo y suelo (fondo)
@@ -277,7 +275,7 @@ class RaycastRendererComponent extends Component
     final globalFlicker = 1.0 + (random.nextDouble() - 0.5) * flickerIntensity;
 
     // Rupture effect (screen shake & flash)
-    double ruptureIntensity = 0.0;
+    var ruptureIntensity = 0.0;
     if (ruptures.isNotEmpty) {
       ruptureIntensity = ruptures.first.life / 0.5; // Aproximación
     }
@@ -305,7 +303,7 @@ class RaycastRendererComponent extends Component
       var hit = false;
       var side = false; // Para sombreado
       dynamic entidadDetectada;
-      double wallX =
+      var wallX =
           0.0; // Coordenada X exacta del impacto en la pared (0.0 - 1.0)
 
       // Marcha del rayo
@@ -412,9 +410,9 @@ class RaycastRendererComponent extends Component
 
       // Color según tipo de entidad
       Color color;
-      bool isWall = false;
-      double maxSweepHeight = 0.0;
-      double sweepIntensity = 0.0;
+      var isWall = false;
+      var maxSweepHeight = 0.0;
+      var sweepIntensity = 0.0;
 
       if (entidadDetectada is NucleoResonanteComponent) {
         // Pulse effect
@@ -575,7 +573,7 @@ class RaycastRendererComponent extends Component
             ..color = color.withOpacity(0.3 * fresnel * fogFactor)
             ..maskFilter = const MaskFilter.blur(
               BlurStyle.normal,
-              3.0,
+              3,
             ); // Blurrier reflection
 
           // Draw reflection
@@ -597,7 +595,9 @@ class RaycastRendererComponent extends Component
 
         // 2. Accumulate Colored Light
         var totalDiffuseR = 0.0, totalDiffuseG = 0.0, totalDiffuseB = 0.0;
-        var totalSpecularR = 0.0, totalSpecularG = 0.0, totalSpecularB = 0.0;
+        var totalSpecularR = 0.0;
+        var totalSpecularG = 0.0;
+        var totalSpecularB = 0.0;
 
         final hitPos = Vector2(hitX * tile, hitY * tile);
 
@@ -762,7 +762,7 @@ class RaycastRendererComponent extends Component
               Offset(x, drawYBottom - sweepHeightPixels),
               [
                 const Color(0xFF00FFFF).withOpacity(sweepIntensity * 0.6),
-                const Color(0xFF00FFFF).withOpacity(0.0),
+                const Color(0xFF00FFFF).withOpacity(0),
               ],
             )
             ..blendMode = BlendMode.plus;
@@ -805,7 +805,7 @@ class RaycastRendererComponent extends Component
           ..color = const Color(
             0xFF00FFFF,
           ).withOpacity(0.5 * (1.0 - normalizedRadius))
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
 
         canvas.drawCircle(Offset(centerX, centerY), screenRadius, pulsePaint);
       }
@@ -865,8 +865,8 @@ class RaycastRendererComponent extends Component
     final horizonY = renderSize.y / 2 + bobOffset + crouchOffset;
 
     // Grid parameters
-    const int gridRows = 20; // Depth resolution
-    const int gridCols = 10; // Horizontal resolution
+    const gridRows = 20; // Depth resolution
+    const gridCols = 10; // Horizontal resolution
 
     // We will build a mesh for the floor.
     // The mesh is a trapezoid in screen space (wide at bottom, narrow at horizon).
@@ -877,7 +877,7 @@ class RaycastRendererComponent extends Component
     final indices = <int>[];
 
     // Generate vertices
-    for (int row = 0; row <= gridRows; row++) {
+    for (var row = 0; row <= gridRows; row++) {
       // Depth factor (0.0 at horizon, 1.0 at bottom)
       // Use non-linear spacing for better quality near camera
       final t = row / gridRows;
@@ -900,7 +900,7 @@ class RaycastRendererComponent extends Component
       // width = z * tan(fov/2) * 2
       final worldWidth = worldDist * math.tan(fov / 2) * 2;
 
-      for (int col = 0; col <= gridCols; col++) {
+      for (var col = 0; col <= gridCols; col++) {
         final u = col / gridCols; // 0.0 to 1.0 (Left to Right)
 
         // Screen X
@@ -919,9 +919,9 @@ class RaycastRendererComponent extends Component
         final wY = player.position.y + (relY * sinH + relX * cosH);
 
         // Calculate Lighting at (wX, wY)
-        var r = (ambientColor.red / 255.0);
-        var g = (ambientColor.green / 255.0);
-        var b = (ambientColor.blue / 255.0);
+        var r = ambientColor.red / 255.0;
+        var g = ambientColor.green / 255.0;
+        var b = ambientColor.blue / 255.0;
 
         // Fog
         const fogDensity = 0.15;
@@ -986,9 +986,9 @@ class RaycastRendererComponent extends Component
 
     // Generate Indices (Triangle Strip)
     // For each row
-    for (int row = 0; row < gridRows - 1; row++) {
+    for (var row = 0; row < gridRows - 1; row++) {
       // -1 because we skip the very first row if pixelsFromHorizon is small
-      for (int col = 0; col < gridCols; col++) {
+      for (var col = 0; col < gridCols; col++) {
         final i = row * (gridCols + 1) + col;
         final nextRowI = (row + 1) * (gridCols + 1) + col;
 

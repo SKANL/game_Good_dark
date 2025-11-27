@@ -1,5 +1,5 @@
-import 'package:echo_world/game/game.dart';
 import 'package:echo_world/game/cubit/checkpoint/cubit.dart';
+import 'package:echo_world/game/game.dart';
 import 'package:echo_world/l10n/l10n.dart';
 import 'package:echo_world/loading/loading.dart';
 import 'package:echo_world/lore/lore.dart';

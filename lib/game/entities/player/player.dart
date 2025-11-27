@@ -1,19 +1,18 @@
+import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/components/core/components.dart';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:echo_world/game/cubit/game/game_bloc.dart';
-import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/cubit/game/game_event.dart';
-import 'package:echo_world/game/entities/player/behaviors/behaviors.dart';
-import 'package:echo_world/game/entities/player/behaviors/rupture_behavior.dart';
+import 'package:echo_world/game/cubit/game/game_state.dart';
+import 'package:echo_world/game/entities/enemies/behaviors/hearing_behavior.dart';
+import 'package:echo_world/game/entities/enemies/bruto.dart';
 import 'package:echo_world/game/entities/enemies/cazador.dart';
 import 'package:echo_world/game/entities/enemies/vigia.dart';
-import 'package:echo_world/game/entities/enemies/bruto.dart';
-import 'package:echo_world/game/entities/enemies/behaviors/hearing_behavior.dart';
-import 'package:echo_world/game/audio/audio_manager.dart';
+import 'package:echo_world/game/entities/player/behaviors/behaviors.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
-import 'package:echo_world/game/components/lighting/light_source_component.dart';
-import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/painting.dart';
 
@@ -60,9 +59,7 @@ class PlayerComponent extends PositionedEntity
         radius: 400, // Increased for 3D visibility
         softness: 0.6,
         isPulsing: true,
-        pulseSpeed: 2.0, // Heartbeat speed
-        pulseMinIntensity: 0.8,
-        pulseMaxIntensity: 1.2,
+        pulseSpeed: 2, // Heartbeat speed
       ),
     );
   }
@@ -125,7 +122,7 @@ class PlayerComponent extends PositionedEntity
           collisionRect.height,
         ),
         Paint()
-          ..color = const Color(0xFFFF0000).withOpacity(0.5)
+          ..color = const Color(0xFFFF0000).withValues(alpha: 0.5)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2,
       );
@@ -220,7 +217,7 @@ class PlayerComponent extends PositionedEntity
           gameBloc.add(const RechazoSonicoActivado(50));
 
           // Aturdir al enemigo (BUFF: 4.0s)
-          hearing.stun(4.0);
+          hearing.stun(4);
 
           // KNOCKBACK: Push enemy away
           final dir = (enemy.position - position).normalized();
@@ -243,7 +240,7 @@ class PlayerComponent extends PositionedEntity
           gameBloc.add(RechazoSonicoActivado(gameBloc.state.energiaGrito));
 
           // Aturdir brevemente (BUFF: 3.0s)
-          hearing.stun(3.0);
+          hearing.stun(3);
 
           // KNOCKBACK: Push enemy away (weaker)
           final dir = (enemy.position - position).normalized();

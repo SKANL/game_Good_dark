@@ -47,7 +47,7 @@ class LevelGenerator {
     // Generate a modular level with 5-10 chunks
     final length = 5 + _random.nextInt(6); // 5 to 10 chunks
 
-    return await _modularBuilder.buildLevel(
+    return _modularBuilder.buildLevel(
       length: length,
       dificultad: dynamicDifficulty,
       sector: sector,

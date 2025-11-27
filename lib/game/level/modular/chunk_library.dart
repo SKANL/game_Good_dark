@@ -1,4 +1,3 @@
-import 'package:echo_world/game/entities/enemies/bruto.dart';
 import 'package:echo_world/game/entities/enemies/cazador.dart';
 import 'package:echo_world/game/entities/enemies/vigia.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
@@ -75,7 +74,6 @@ class ChunkLibrary {
         Direccion.oeste: Vector2(0, 5),
         Direccion.este: Vector2(15, 5),
       },
-      difficultyWeight: 1,
     ),
 
     ChunkBlueprint(
@@ -125,7 +123,6 @@ class ChunkLibrary {
         Direccion.norte: Vector2(7, 0),
         Direccion.sur: Vector2(7, 11),
       },
-      difficultyWeight: 1,
     ),
 
     // --- SIDE-SCROLL MECHANIC CHUNKS (16x12) ---

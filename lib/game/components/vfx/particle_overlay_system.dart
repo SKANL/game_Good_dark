@@ -8,12 +8,6 @@ import 'package:flame/components.dart';
 
 /// Represents a single 3D particle in the world.
 class Particle3D {
-  Vector3 position; // X, Y (World), Z (Height)
-  Vector3 velocity;
-  Color color;
-  double size;
-  double life;
-  double maxLife;
 
   Particle3D({
     required this.position,
@@ -22,6 +16,12 @@ class Particle3D {
     required this.size,
     required this.maxLife,
   }) : life = 0;
+  Vector3 position; // X, Y (World), Z (Height)
+  Vector3 velocity;
+  Color color;
+  double size;
+  double life;
+  double maxLife;
 
   bool get isDead => life >= maxLife;
 }
@@ -48,7 +48,7 @@ class ParticleOverlaySystem extends Component with HasGameRef<BlackEchoGame> {
     }
 
     // Update particles
-    for (int i = _particles.length - 1; i >= 0; i--) {
+    for (var i = _particles.length - 1; i >= 0; i--) {
       final p = _particles[i];
       p.life += dt;
 
@@ -93,10 +93,10 @@ class ParticleOverlaySystem extends Component with HasGameRef<BlackEchoGame> {
 
   /// Adds a burst of particles at a specific location
   void addBurst(Vector2 position, Color color, int count) {
-    for (int i = 0; i < count; i++) {
+    for (var i = 0; i < count; i++) {
       _particles.add(
         Particle3D(
-          position: Vector3(position.x, position.y, 20.0), // Start low
+          position: Vector3(position.x, position.y, 20), // Start low
           velocity: Vector3(
             (_random.nextDouble() - 0.5) * 100,
             (_random.nextDouble() - 0.5) * 100,
@@ -118,7 +118,7 @@ class ParticleOverlaySystem extends Component with HasGameRef<BlackEchoGame> {
 
     final player = game.player;
     final renderSize = game.canvasSize;
-    final fov = RaycastRendererComponent.fov;
+    const fov = RaycastRendererComponent.fov;
     final halfHeight = renderSize.y / 2;
 
     // Sort by distance (far to near) for proper blending

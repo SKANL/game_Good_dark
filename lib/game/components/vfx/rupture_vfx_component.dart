@@ -25,11 +25,9 @@ class RuptureVfxComponent extends PositionComponent {
   Future<void> onLoad() async {
     // Shockwave ring
     _light = LightSourceComponent(
-      color: const Color(0xFFFFFFFF), // White flash
-      intensity: 2.0,
+      intensity: 2,
       radius: 200,
       softness: 0.8,
-      isPulsing: false,
     );
     add(_light);
 
@@ -79,7 +77,7 @@ class RuptureVfxComponent extends PositionComponent {
       TimerComponent(
         period: 0.6,
         removeOnFinish: true,
-        onTick: () => removeFromParent(),
+        onTick: removeFromParent,
       ),
     );
   }

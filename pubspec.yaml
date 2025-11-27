@@ -47,3 +47,6 @@ flutter:
     - assets/img/
     - assets/video/
     - assets/levels/walls/wall_1.png
+    - assets/levels/skybox/skybox1.jpg
+    - assets/minigames/surgery/imagenes/
+    - assets/minigames/surgery/descripciones.json

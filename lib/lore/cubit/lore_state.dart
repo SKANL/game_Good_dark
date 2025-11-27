@@ -3,6 +3,10 @@ import 'package:equatable/equatable.dart';
 /// Estado del lore desbloqueado por el jugador.
 /// Persiste via HydratedBloc para mantener progreso entre sesiones.
 class LoreState extends Equatable {
+  const LoreState({
+    required this.ecosDesbloqueados,
+    required this.primeraSesion,
+  });
 
   factory LoreState.initial() {
     return const LoreState(
@@ -18,10 +22,6 @@ class LoreState extends Equatable {
       primeraSesion: json['primeraSesion'] as bool,
     );
   }
-  const LoreState({
-    required this.ecosDesbloqueados,
-    required this.primeraSesion,
-  });
 
   /// IDs de Ecos Narrativos que el jugador ha descubierto
   final Set<String> ecosDesbloqueados;

@@ -238,7 +238,7 @@ class LevelManagerComponent extends Component with HasGameRef {
     final grid = _current?.grid;
     if (grid == null) return true; // si no hay grid, no bloqueamos
 
-    final ts = tileSize;
+    const ts = tileSize;
 
     // Calcular índices de tiles cubiertos por el rect
     final startX = (rect.left / ts).floor().clamp(0, grid[0].length - 1);
@@ -361,7 +361,7 @@ class LevelManagerComponent extends Component with HasGameRef {
     ];
 
     // Limit search radius
-    int checks = 0;
+    var checks = 0;
     const maxChecks = 200;
 
     while (queue.isNotEmpty && checks < maxChecks) {

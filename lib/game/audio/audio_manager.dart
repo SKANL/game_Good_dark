@@ -29,16 +29,13 @@ class AudioManager {
       // Configurar el contexto de audio para juegos (baja latencia, foco)
       await AudioPlayer.global.setAudioContext(
         AudioContext(
-          android: AudioContextAndroid(
-            isSpeakerphoneOn: false,
+          android: const AudioContextAndroid(
             stayAwake: true,
             contentType: AndroidContentType.sonification,
             usageType: AndroidUsageType.game,
-            audioFocus: AndroidAudioFocus.gain,
           ),
           iOS: AudioContextIOS(
-            category: AVAudioSessionCategory.playback,
-            options: {
+            options: const {
               AVAudioSessionOptions.mixWithOthers,
             },
           ),

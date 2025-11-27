@@ -1,8 +1,9 @@
 import 'dart:collection';
 import 'dart:math';
-import 'package:flame/components.dart';
-import 'package:echo_world/game/level/manager/level_manager.dart';
+
 import 'package:echo_world/game/level/data/level_models.dart';
+import 'package:echo_world/game/level/manager/level_manager.dart';
+import 'package:flame/components.dart';
 
 /// Nodo para el algoritmo A*
 class Node implements Comparable<Node> {
@@ -35,7 +36,7 @@ List<Vector2> findPath(
   Vector2 end,
   LevelManagerComponent levelManager,
 ) {
-  final tileSize = LevelManagerComponent.tileSize;
+  const tileSize = LevelManagerComponent.tileSize;
   final startTile = Point<int>(
     (start.x / tileSize).floor(),
     (start.y / tileSize).floor(),
@@ -51,7 +52,7 @@ List<Vector2> findPath(
   final openSet = SplayTreeSet<Node>();
   final closedSet = <Point<int>>{};
 
-  openSet.add(Node(startTile, g: 0, h: _heuristic(startTile, endTile)));
+  openSet.add(Node(startTile, h: _heuristic(startTile, endTile)));
 
   while (openSet.isNotEmpty) {
     final current = openSet.first;
@@ -106,7 +107,7 @@ List<Point<int>> _getNeighbors(
   LevelManagerComponent levelManager,
 ) {
   final neighbors = <Point<int>>[];
-  final directions = const [
+  const directions = [
     Point(0, 1),
     Point(0, -1),
     Point(1, 0),

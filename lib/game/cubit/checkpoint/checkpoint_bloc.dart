@@ -1,6 +1,6 @@
-import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:echo_world/game/cubit/checkpoint/checkpoint_event.dart';
 import 'package:echo_world/game/cubit/checkpoint/checkpoint_state.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 /// BLoC que gestiona el sistema de checkpoints y el tracking de muertes.
 /// Usa HydratedBloc para persistir el estado entre sesiones.

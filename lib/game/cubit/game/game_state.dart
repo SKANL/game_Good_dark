@@ -17,6 +17,17 @@ enum EstadoJugador { vivo, atrapado }
 enum EstadoJuego { jugando, pausado }
 
 class GameState extends Equatable {
+  const GameState({
+    required this.energiaGrito,
+    required this.ruidoMental,
+    required this.enfoqueActual,
+    required this.estadoJugador,
+    required this.estadoJuego,
+    required this.estaAgachado,
+    required this.puedeAbsorber,
+    required this.sobrecargaActiva,
+    required this.agoniaActiva,
+  });
   // ruidoMental > 75
 
   factory GameState.initial() {
@@ -32,17 +43,6 @@ class GameState extends Equatable {
       agoniaActiva: false,
     );
   }
-  const GameState({
-    required this.energiaGrito,
-    required this.ruidoMental,
-    required this.enfoqueActual,
-    required this.estadoJugador,
-    required this.estadoJuego,
-    required this.estaAgachado,
-    required this.puedeAbsorber,
-    required this.sobrecargaActiva,
-    required this.agoniaActiva,
-  });
 
   final int energiaGrito;
   final int ruidoMental;

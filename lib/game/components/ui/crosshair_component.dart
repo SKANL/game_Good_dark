@@ -9,8 +9,8 @@ import 'package:flutter/painting.dart';
 class CrosshairComponent extends Component with HasGameRef<BlackEchoGame> {
   CrosshairComponent();
 
-  double _pulseTime = 0.0;
-  static const double pulseSpeed = 2.0; // Hz
+  double _pulseTime = 0;
+  static const double pulseSpeed = 2; // Hz
 
   @override
   int get priority => 1000; // Renderizar por encima de todo

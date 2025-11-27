@@ -1,9 +1,4 @@
-class LoreEntry {
-  final String id;
-  final String title;
-  final String content;
-  final String? mediaPath; // Path to video or audio asset
-  final bool isVideo; // True if media is video, false if audio
+class LoreEntry { // True if media is video, false if audio
 
   const LoreEntry({
     required this.id,
@@ -12,4 +7,9 @@ class LoreEntry {
     this.mediaPath,
     this.isVideo = false,
   });
+  final String id;
+  final String title;
+  final String content;
+  final String? mediaPath; // Path to video or audio asset
+  final bool isVideo;
 }

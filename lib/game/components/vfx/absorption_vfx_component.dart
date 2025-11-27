@@ -46,7 +46,7 @@ class AbsorptionVfxComponent extends Component with HasGameRef<BlackEchoGame> {
                 final paint = Paint()
                   ..color = const Color(
                     0xFFFFD700,
-                  ).withOpacity(1 - particle.progress);
+                  ).withValues(alpha: 1 - particle.progress);
                 canvas.drawCircle(currentPos.toOffset(), 3, paint);
               },
             );
@@ -60,7 +60,7 @@ class AbsorptionVfxComponent extends Component with HasGameRef<BlackEchoGame> {
       TimerComponent(
         period: 0.8,
         removeOnFinish: true,
-        onTick: () => removeFromParent(),
+        onTick: removeFromParent,
       ),
     );
   }

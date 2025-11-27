@@ -1,5 +1,7 @@
 import 'dart:ui';
+
 import 'package:echo_world/game/black_echo_game.dart';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:echo_world/game/components/ui/echolocation_outline_component.dart';
 import 'package:echo_world/game/components/world/eco_narrativo_component.dart';
 import 'package:echo_world/game/components/world/wall_component.dart';
@@ -7,7 +9,6 @@ import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/entities/enemies/bruto.dart';
 import 'package:echo_world/game/entities/enemies/cazador.dart';
 import 'package:echo_world/game/entities/enemies/vigia.dart';
-import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 
@@ -34,10 +35,8 @@ class EcholocationVfxComponent extends PositionComponent
     await super.onLoad();
     _light = LightSourceComponent(
       color: const Color(0xFF00FFFF),
-      intensity: 1.0,
       radius: 0,
       softness: 0.2,
-      isPulsing: false,
     );
     add(_light);
   }

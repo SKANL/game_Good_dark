@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:echo_world/game/ui/screens/journey_page.dart';
+import 'package:echo_world/minigames/menu/view/minigames_menu_page.dart';
 
 class TitlePage extends StatelessWidget {
   const TitlePage({super.key});
@@ -242,6 +243,7 @@ class _MenuPrincipalState extends State<MenuPrincipal>
           break;
         case 2:
           print("Accediendo a Pruebas...");
+          Navigator.of(context).push(MinigamesMenu.route());
           break;
         case 3:
           print("Calibrando Sistema...");

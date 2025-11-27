@@ -48,12 +48,12 @@ class PatrolBehavior extends Behavior<PositionedEntity> {
     final game = parent.findParent<BlackEchoGame>();
     if (game == null) return;
 
-    final tileSize = LevelManagerComponent.tileSize;
+    const tileSize = LevelManagerComponent.tileSize;
     final currentTileX = (parent.position.x / tileSize).floor();
     final currentTileY = (parent.position.y / tileSize).floor();
 
     // Intentar encontrar un tile válido (hasta 10 intentos)
-    for (int i = 0; i < 10; i++) {
+    for (var i = 0; i < 10; i++) {
       final dx = _random.nextInt(patrolRadius * 2 + 1) - patrolRadius;
       final dy = _random.nextInt(patrolRadius * 2 + 1) - patrolRadius;
 

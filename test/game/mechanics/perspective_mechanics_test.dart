@@ -1,13 +1,11 @@
 import 'dart:ui';
 
-import 'package:echo_world/game/level/data/level_models.dart';
-import 'package:echo_world/game/level/manager/level_manager.dart';
-import 'package:flame/components.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-
 // Mock CheckpointBloc since LevelManager needs it
 import 'package:echo_world/game/cubit/checkpoint/checkpoint_bloc.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
+import 'package:echo_world/game/level/manager/level_manager.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 
 class MockCheckpointBloc extends Mock implements CheckpointBloc {}
 
@@ -29,11 +27,11 @@ void main() {
       final levelData = LevelDataMock(grid);
       levelManager.setChunkForTesting(levelData);
 
-      final rect = const Rect.fromLTWH(0, 0, 32, 32);
+      const rect = Rect.fromLTWH(0, 0, 32, 32);
 
       // Top-Down (checkAbyss: true) -> Should be blocked
       expect(
-        levelManager.isRectWalkable(rect, checkAbyss: true),
+        levelManager.isRectWalkable(rect),
         isFalse,
         reason: 'Abyss should block in Top-Down',
       );
@@ -54,11 +52,11 @@ void main() {
       final levelData = LevelDataMock(grid);
       levelManager.setChunkForTesting(levelData);
 
-      final rect = const Rect.fromLTWH(0, 0, 32, 32);
+      const rect = Rect.fromLTWH(0, 0, 32, 32);
 
       // Standing -> Should be blocked
       expect(
-        levelManager.isRectWalkable(rect, isCrouching: false),
+        levelManager.isRectWalkable(rect),
         isFalse,
         reason: 'Tunnel should block when standing',
       );

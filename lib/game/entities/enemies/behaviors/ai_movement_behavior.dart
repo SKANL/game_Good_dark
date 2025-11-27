@@ -28,7 +28,7 @@ class AIMovementBehavior extends Behavior<PositionedEntity> {
     _repathTimer += dt;
 
     // Determinar si necesitamos recalcular el camino
-    bool needRepath = false;
+    var needRepath = false;
 
     // 1. No tenemos camino
     if (_path.isEmpty && _lastTargetPos == null) {

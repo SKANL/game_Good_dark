@@ -62,23 +62,20 @@ class ModularLevelBuilder {
       switch (nextDir) {
         case Direccion.este:
           requiredEntry = Direccion.oeste;
-          break;
         case Direccion.norte:
           requiredEntry = Direccion.sur;
-          break;
         case Direccion.sur:
           requiredEntry = Direccion.norte;
-          break;
         case Direccion.oeste:
           requiredEntry = Direccion.este;
-          break;
       }
 
-      ChunkType type = _random.nextBool()
+      var type = _random.nextBool()
           ? ChunkType.connector
           : ChunkType.arena;
-      if (i == length - 1)
+      if (i == length - 1) {
         type = ChunkType.connector; // Last one before End should be simple
+      }
 
       // Filter library
       var validBlueprints = ChunkLibrary.allChunks.where((c) {
@@ -157,13 +154,10 @@ class ModularLevelBuilder {
       switch (nextDir) {
         case Direccion.este:
           currentPos = Point(currentPos.x + 1, currentPos.y);
-          break;
         case Direccion.norte:
           currentPos = Point(currentPos.x, currentPos.y - 1);
-          break;
         case Direccion.sur:
           currentPos = Point(currentPos.x, currentPos.y + 1);
-          break;
         default:
           break;
       }
@@ -184,10 +178,13 @@ class ModularLevelBuilder {
   ) async {
     // Calculate bounds
     final chunkWorldPositions = <_PlacedChunk, Point<int>>{};
-    var globalPos = const Point(0, 0); // Top-Left of Start Chunk
+    const globalPos = Point(0, 0); // Top-Left of Start Chunk
     chunkWorldPositions[placedChunks[0]] = globalPos;
 
-    int minTileX = 0, maxTileX = 0, minTileY = 0, maxTileY = 0;
+    var minTileX = 0;
+    var maxTileX = 0;
+    var minTileY = 0;
+    var maxTileY = 0;
 
     // Update bounds for Start
     final startLayout = placedChunks[0].blueprint.layout;
@@ -203,9 +200,9 @@ class ModularLevelBuilder {
       final dy = next.gridPos.y - current.gridPos.y;
 
       Direccion exitDir;
-      if (dx == 1)
+      if (dx == 1) {
         exitDir = Direccion.este;
-      else if (dx == -1)
+      } else if (dx == -1)
         exitDir = Direccion.oeste;
       else if (dy == 1)
         exitDir = Direccion.sur;
@@ -218,16 +215,12 @@ class ModularLevelBuilder {
       switch (exitDir) {
         case Direccion.este:
           entryDir = Direccion.oeste;
-          break;
         case Direccion.oeste:
           entryDir = Direccion.este;
-          break;
         case Direccion.sur:
           entryDir = Direccion.norte;
-          break;
         case Direccion.norte:
           entryDir = Direccion.sur;
-          break;
       }
 
       final entryPoint = next.blueprint.connectionPoints[entryDir]!;
@@ -354,9 +347,9 @@ class ModularLevelBuilder {
       final dy = next.gridPos.y - current.gridPos.y;
 
       Direccion exitDir;
-      if (dx == 1)
+      if (dx == 1) {
         exitDir = Direccion.este;
-      else if (dx == -1)
+      } else if (dx == -1)
         exitDir = Direccion.oeste;
       else if (dy == 1)
         exitDir = Direccion.sur;
@@ -393,7 +386,7 @@ class ModularLevelBuilder {
   ) {
     // Determine the boundary area in global coordinates
     int startX, endX, startY, endY;
-    const int corridorWidth = 3; // Ensure at least 3 tiles wide passage
+    const corridorWidth = 3; // Ensure at least 3 tiles wide passage
 
     switch (dir) {
       case Direccion.este:
@@ -419,7 +412,6 @@ class ModularLevelBuilder {
         endX = toLeft + 2;
         startY = centerY - (corridorWidth ~/ 2);
         endY = centerY + (corridorWidth ~/ 2);
-        break;
 
       case Direccion.oeste:
         // Connection is on the Left of 'from' and Right of 'to'
@@ -437,7 +429,6 @@ class ModularLevelBuilder {
         endX = fromLeft + 2;
         startY = centerY - (corridorWidth ~/ 2);
         endY = centerY + (corridorWidth ~/ 2);
-        break;
 
       case Direccion.sur:
         // Connection is on the Bottom of 'from' and Top of 'to'
@@ -458,7 +449,6 @@ class ModularLevelBuilder {
         endY = toTop + 2;
         startX = centerX - (corridorWidth ~/ 2);
         endX = centerX + (corridorWidth ~/ 2);
-        break;
 
       case Direccion.norte:
         // Connection is on the Top of 'from' and Bottom of 'to'
@@ -479,7 +469,6 @@ class ModularLevelBuilder {
         endY = fromTop + 2;
         startX = centerX - (corridorWidth ~/ 2);
         endX = centerX + (corridorWidth ~/ 2);
-        break;
     }
 
     // Apply the carving to the global grid
@@ -525,7 +514,7 @@ class ModularLevelBuilder {
     ];
 
     // Limit search radius to avoid infinite loops in bad maps
-    int checks = 0;
+    var checks = 0;
     const maxChecks = 100;
 
     while (queue.isNotEmpty && checks < maxChecks) {
@@ -559,7 +548,7 @@ class ModularLevelBuilder {
 }
 
 class _PlacedChunk {
+  _PlacedChunk(this.blueprint, this.gridPos);
   final ChunkBlueprint blueprint;
   final Point<int> gridPos;
-  _PlacedChunk(this.blueprint, this.gridPos);
 }

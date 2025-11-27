@@ -1,0 +1,51 @@
+{
+  "senses": {
+    "vision": [
+      "Señales ópticas directas desde la retina al procesador central.",
+      "Transmite mapas espaciales y luminosidad al córtex.",
+      "Codifica contraste, color y movimiento para interpretación.",
+      "Procesa información lumínica y patrones de reconocimiento.",
+      "Convierte estímulos fotónicos en impulsos neuronales interpretables.",
+      "Transporta datos desde el ojo hasta el cerebro central."
+    ],
+    "olfato": [
+      "Identifica moléculas volátiles presentes en el aire.",
+      "Discrimina patrones para reconocimiento ambiental.",
+      "Procesa trazas y memorias asociadas.",
+      "Analiza compuestos aromáticos y genera respuestas emocionales.",
+      "Detecta partículas químicas suspendidas en el ambiente.",
+      "Traduce señales químicas en percepciones sensoriales."
+    ],
+    "audicion": [
+      "Traduce ondas de presión en patrones temporales.",
+      "Separa frecuencias y localiza fuentes sonoras.",
+      "Detecta ritmo y timbre para reconocimiento.",
+      "Convierte vibraciones mecánicas en señales eléctricas.",
+      "Transmite información de frecuencia y amplitud.",
+      "Procesa patrones acústicos para interpretación del habla."
+    ],
+    "tacto": [
+      "Codifica presión, vibración y temperatura desde la piel.",
+      "Proporciona retroalimentación de contacto y textura.",
+      "Integra posición y fuerza para control motor fino.",
+      "Detecta estímulos mecánicos y térmicos en la superficie corporal.",
+      "Transmite sensaciones de presión, dolor y temperatura.",
+      "Analiza texturas y propiedades físicas de objetos."
+    ],
+    "gusto": [
+      "Discrimina sabores básicos y su intensidad.",
+      "Integra sabor con señales de textura y temperatura.",
+      "Ligada a memoria y respuestas hedonistas.",
+      "Identifica compuestos químicos en alimentos.",
+      "Transmite información de dulce, salado, amargo, ácido y umami.",
+      "Analiza propiedades químicas de sustancias ingeridas."
+    ]
+  },
+  "hotspots": [
+    {"id":"h1","titulo":"Nervio Óptico","sentido":"vision"},
+    {"id":"h2","titulo":"Bulbo Olfatorio","sentido":"olfato"},
+    {"id":"h3","titulo":"Tracto Auditivo","sentido":"audicion"},
+    {"id":"h4","titulo":"Red Somatosensorial","sentido":"tacto"},
+    {"id":"h5","titulo":"Núcleo Gustativo","sentido":"gusto"}
+  ]
+}

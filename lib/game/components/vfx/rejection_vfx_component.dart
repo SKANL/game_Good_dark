@@ -39,7 +39,6 @@ class RejectionVfxComponent extends Component with HasGameRef<BlackEchoGame> {
       
       // Viñeta inversa (más brillante en los bordes)
       final gradient = RadialGradient(
-        center: Alignment.center,
         radius: 1.5,
         colors: [
           const Color(0x00000000), // Transparent
@@ -83,7 +82,7 @@ class RejectionVfxComponent extends Component with HasGameRef<BlackEchoGame> {
     }
     
     // En top-down/side-scroll: renderizar como onda expansiva
-    final radius = (80.0 * progress).toDouble();
+    final radius = 80.0 * progress;
     final alpha = (1.0 - progress) * 0.7;
 
     final paint = Paint()
@@ -91,6 +90,6 @@ class RejectionVfxComponent extends Component with HasGameRef<BlackEchoGame> {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
 
-    canvas.drawCircle(Offset(origin.x.toDouble(), origin.y.toDouble()), radius, paint);
+    canvas.drawCircle(Offset(origin.x, origin.y), radius, paint);
   }
 }

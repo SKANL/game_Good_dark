@@ -2,11 +2,11 @@ import 'dart:math' as math;
 
 import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:echo_world/game/black_echo_game.dart';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/entities/enemies/behaviors/behaviors.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/collisions.dart';
-import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/painting.dart';
@@ -93,7 +93,7 @@ class BrutoComponent extends PositionedEntity
           isPulsing: true,
           pulseSpeed: 0.8, // Heavy breathing
           pulseMinIntensity: 0.6,
-          pulseMaxIntensity: 1.0,
+          pulseMaxIntensity: 1,
         ),
       );
     }
@@ -108,8 +108,7 @@ class BrutoComponent extends PositionedEntity
   }
 
   Future<void> _startAudioLoop() async {
-    if (_footstepLoopId == null) {
-      _footstepLoopId = await AudioManager.instance.startPositionalLoop(
+    _footstepLoopId ??= await AudioManager.instance.startPositionalLoop(
         soundId: 'bruto_footstep',
         sourcePosition: math.Point(position.x, position.y),
         listenerPosition: math.Point(
@@ -118,7 +117,6 @@ class BrutoComponent extends PositionedEntity
         ),
         volume: 0.6, // Volumen más bajo que otros enemigos
       );
-    }
   }
 
   @override

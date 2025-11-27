@@ -1,6 +1,11 @@
 import 'package:equatable/equatable.dart';
 
 class CheckpointState extends Equatable {
+  const CheckpointState({
+    required this.chunkActual,
+    required this.muertesPorChunk,
+    required this.totalMuertes,
+  });
 
   factory CheckpointState.initial() {
     return const CheckpointState(
@@ -21,11 +26,6 @@ class CheckpointState extends Equatable {
       totalMuertes: json['totalMuertes'] as int? ?? 0,
     );
   }
-  const CheckpointState({
-    required this.chunkActual,
-    required this.muertesPorChunk,
-    required this.totalMuertes,
-  });
 
   /// Identificador del chunk actual
   final int chunkActual;

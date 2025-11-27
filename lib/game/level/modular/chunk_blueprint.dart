@@ -12,13 +12,6 @@ enum ChunkType {
 
 /// Defines the blueprint for a level chunk.
 class ChunkBlueprint {
-  final String id;
-  final ChunkType type;
-  final List<String> layout;
-  final Map<Direccion, Vector2> connectionPoints;
-  final int difficultyWeight;
-  final List<EntidadSpawn> spawns;
-  final List<String> tags;
 
   const ChunkBlueprint({
     required this.id,
@@ -29,6 +22,13 @@ class ChunkBlueprint {
     this.spawns = const [],
     this.tags = const [],
   });
+  final String id;
+  final ChunkType type;
+  final List<String> layout;
+  final Map<Direccion, Vector2> connectionPoints;
+  final int difficultyWeight;
+  final List<EntidadSpawn> spawns;
+  final List<String> tags;
 
   /// Parses the layout strings into a Grid of CeldaData.
   Grid parseLayout() {

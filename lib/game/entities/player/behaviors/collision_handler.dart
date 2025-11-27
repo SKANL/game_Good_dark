@@ -1,7 +1,8 @@
 import 'dart:ui';
+
+import 'package:echo_world/game/entities/player/player.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
-import 'package:echo_world/game/entities/player/player.dart';
 
 /// Mixin that provides collision detection and sliding logic for player movement.
 mixin CollisionHandler on Behavior<PlayerComponent> {
@@ -52,7 +53,7 @@ mixin CollisionHandler on Behavior<PlayerComponent> {
       // AudioManager.instance.playSfx('wall_bump', volume: 0.5); // Need to ensure this sound exists or use a placeholder
 
       // Screen Shake (subtle)
-      game.shakeCamera(intensity: 2.0, duration: 0.15);
+      game.shakeCamera(intensity: 2, duration: 0.15);
     }
 
     return Vector2.zero();

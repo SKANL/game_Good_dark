@@ -1,12 +1,12 @@
 import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:echo_world/game/audio/audio_manager.dart';
-import 'package:echo_world/game/game.dart';
 import 'package:echo_world/game/cubit/checkpoint/cubit.dart';
+import 'package:echo_world/game/game.dart';
 import 'package:echo_world/gen/assets.gen.dart';
-import 'package:echo_world/game/level/data/level_models.dart';
-import 'package:echo_world/lore/lore.dart';
 import 'package:echo_world/loading/cubit/cubit.dart';
+import 'package:echo_world/lore/lore.dart';
 import 'package:flame/game.dart' hide Route;
 import 'package:flame_audio/bgm.dart';
 import 'package:flutter/material.dart';
@@ -202,8 +202,8 @@ class _GameViewState extends State<GameView> {
 
 class HexImgButton extends StatefulWidget {
   const HexImgButton({
-    super.key,
     required this.assetPath,
+    super.key,
     this.onPressed,
     this.onTapDown,
     this.onTapUp,
@@ -260,7 +260,7 @@ class _HexImgButtonState extends State<HexImgButton> {
                 maxWidth: double.infinity,
                 child: FractionalTranslation(
                   // Si está presionado, desplazar -50% del ancho de la imagen para mostrar la mitad derecha
-                  translation: Offset(_isPressed ? -0.5 : 0.0, 0.0),
+                  translation: Offset(_isPressed ? -0.5 : 0.0, 0),
                   child: Image.asset(
                     widget.assetPath,
                     width:
@@ -352,8 +352,7 @@ class _HudTopDown extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 20),
                       child: HexImgButton(
                         assetPath: 'assets/img/Botton_Absorver.png',
-                        posX: 0.0,
-                        posY: 20.0,
+                        posY: 20,
                         width: 84,
                         height: 112,
                         onPressed: () {
@@ -408,16 +407,15 @@ class _HudTopDown extends StatelessWidget {
                 children: [
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Enfoque.png',
-                    posX: 640.0,
-                    posY: 0.0,
+                    posX: 640,
                     width: 80,
                     height: 105,
                     onPressed: () => bloc.add(EnfoqueCambiado()),
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Eco.png',
-                    posX: 600.0,
-                    posY: 45.0,
+                    posX: 600,
+                    posY: 45,
                     width: 80,
                     height: 105,
                     onPressed: () {
@@ -447,8 +445,8 @@ class _HudTopDown extends StatelessWidget {
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Ruptura.png',
-                    posX: 562.0,
-                    posY: -4.0,
+                    posX: 562,
+                    posY: -4,
                     width: 84,
                     height: 112,
                     onPressed: () async {
@@ -464,8 +462,8 @@ class _HudTopDown extends StatelessWidget {
                     builder: (context, estaAgachado) {
                       return HexImgButton(
                         assetPath: 'assets/img/Botton_Sigilo.png',
-                        posX: 675.0,
-                        posY: 45.0,
+                        posX: 675,
+                        posY: 45,
                         width: 82,
                         height: 107,
                         onTapDown: (_) => bloc.add(ModoSigiloActivado()),
@@ -574,16 +572,15 @@ class _HudSideScroll extends StatelessWidget {
                 children: [
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Enfoque.png',
-                    posX: 640.0,
-                    posY: 0.0,
+                    posX: 640,
                     width: 80,
                     height: 105,
                     onPressed: () => bloc.add(EnfoqueCambiado()),
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Eco.png',
-                    posX: 600.0,
-                    posY: 45.0,
+                    posX: 600,
+                    posY: 45,
                     width: 80,
                     height: 105,
                     onPressed: () {
@@ -613,8 +610,8 @@ class _HudSideScroll extends StatelessWidget {
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Ruptura.png',
-                    posX: 562.0,
-                    posY: -4.0,
+                    posX: 562,
+                    posY: -4,
                     width: 84,
                     height: 112,
                     onPressed: () async {
@@ -626,8 +623,8 @@ class _HudSideScroll extends StatelessWidget {
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Salto.png',
-                    posX: 524.0,
-                    posY: 35.0,
+                    posX: 524,
+                    posY: 35,
                     width: 84,
                     height: 124,
                     onPressed: () {
@@ -639,8 +636,8 @@ class _HudSideScroll extends StatelessWidget {
                     builder: (context, estaAgachado) {
                       return HexImgButton(
                         assetPath: 'assets/img/Botton_Sigilo.png',
-                        posX: 675.0,
-                        posY: 45.0,
+                        posX: 675,
+                        posY: 45,
                         width: 82,
                         height: 107,
                         onTapDown: (_) => bloc.add(ModoSigiloActivado()),
@@ -759,16 +756,15 @@ class _HudFirstPerson extends StatelessWidget {
                 children: [
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Enfoque.png',
-                    posX: 640.0,
-                    posY: 0.0,
+                    posX: 640,
                     width: 80,
                     height: 105,
                     onPressed: () => bloc.add(EnfoqueCambiado()),
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Eco.png',
-                    posX: 600.0,
-                    posY: 45.0,
+                    posX: 600,
+                    posY: 45,
                     width: 80,
                     height: 105,
                     onPressed: () {
@@ -791,8 +787,8 @@ class _HudFirstPerson extends StatelessWidget {
                   ),
                   HexImgButton(
                     assetPath: 'assets/img/Botton_Ruptura.png',
-                    posX: 562.0,
-                    posY: -4.0,
+                    posX: 562,
+                    posY: -4,
                     width: 84,
                     height: 112,
                     onPressed: () async {
@@ -807,8 +803,8 @@ class _HudFirstPerson extends StatelessWidget {
                     builder: (context, estaAgachado) {
                       return HexImgButton(
                         assetPath: 'assets/img/Botton_Sigilo.png',
-                        posX: 675.0,
-                        posY: 45.0,
+                        posX: 675,
+                        posY: 45,
                         width: 82,
                         height: 107,
                         onTapDown: (_) => bloc.add(ModoSigiloActivado()),
@@ -1086,35 +1082,34 @@ class _RuidoMentalPainter extends CustomPainter {
 // --- NUEVO COMPONENTE VISUAL: HUD CYBERPUNK ---
 
 class BlackEchoHUD extends StatelessWidget {
-  final int energia;
-  final int ruido;
-
   const BlackEchoHUD({
-    super.key,
     required this.energia,
     required this.ruido,
+    super.key,
   });
+  final int energia;
+  final int ruido;
 
   @override
   Widget build(BuildContext context) {
     // --- VARIABLES DE AJUSTE MANUAL DEL CONTENEDOR ---
     // Modifica estos valores para mover/escalar la imagen de fondo principal
-    const double containerX = 0.0;
-    const double containerY = -13.5;
-    const double containerW = 600.0; // Ancho por defecto
-    const double containerH = 85.0; // Alto por defecto
+    const containerX = 0.0;
+    const containerY = -13.5;
+    const containerW = 600.0; // Ancho por defecto
+    const containerH = 85.0; // Alto por defecto
 
     // --- VARIABLES DE AJUSTE BARRA CENTRAL (VIDA) ---
-    const double centralX = 248.0;
-    const double centralY = -13.5;
-    const double centralW = 103.0; // Ancho por defecto
-    const double centralH = 81.0; // Alto por defecto
+    const centralX = 248.0;
+    const centralY = -13.5;
+    const centralW = 103.0; // Ancho por defecto
+    const centralH = 81.0; // Alto por defecto
 
     // --- FÓRMULA DE VIDA ---
     // Convierte energía (0-100) a vida con un mínimo de 10%
     // Si energía = 0 -> vida = 10%
     // Si energía = 100 -> vida = 100%
-    final int vidaPorcentaje = energia == 0 ? 10 : energia;
+    final vidaPorcentaje = energia == 0 ? 10 : energia;
 
     return AspectRatio(
       aspectRatio: 21 / 5, // Proporción aproximada del contenedor
@@ -1140,7 +1135,7 @@ class BlackEchoHUD extends StatelessWidget {
           // Usamos FractionallySizedBox para márgenes porcentuales seguros
           Positioned.fill(
             child: FractionallySizedBox(
-              widthFactor: 1.0, // ~4% margen lateral
+              widthFactor: 1, // ~4% margen lateral
               heightFactor: 1.75, // ~12% margen vertical
               child: Row(
                 children: [
@@ -1149,8 +1144,8 @@ class BlackEchoHUD extends StatelessWidget {
                     child: Padding(
                       // Ajustamos márgenes para que no toque los bordes del contenedor
                       padding: const EdgeInsets.only(
-                        left: 12.0,
-                        right: 4.0,
+                        left: 12,
+                        right: 4,
                         top: 8,
                         bottom: 8,
                       ),
@@ -1163,19 +1158,19 @@ class BlackEchoHUD extends StatelessWidget {
                         // --- AJUSTES MANUALES BARRA IZQUIERDA ---
 
                         // MARCO (Frame)
-                        frameX: 21.0,
-                        frameY: 20.0,
+                        frameX: 21,
+                        frameY: 20,
                         frameWidth: 226, // null = automático
                         frameHeight: 100, // null = automático
                         // FONDO (Gris)
-                        bgX: 47.0,
-                        bgY: 64.0,
+                        bgX: 47,
+                        bgY: 64,
                         bgWidth: 175,
                         bgHeight: 17,
 
                         // RELLENO (Azul)
-                        fillX: 47.0,
-                        fillY: 64.0,
+                        fillX: 47,
+                        fillY: 64,
                         fillWidth: 175,
                         fillHeight: 16,
                       ),
@@ -1189,8 +1184,8 @@ class BlackEchoHUD extends StatelessWidget {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.only(
-                        left: 4.0,
-                        right: 12.0,
+                        left: 4,
+                        right: 12,
                         top: 8,
                         bottom: 8,
                       ),
@@ -1203,19 +1198,19 @@ class BlackEchoHUD extends StatelessWidget {
                         // --- AJUSTES MANUALES BARRA DERECHA ---
 
                         // MARCO (Frame)
-                        frameX: 15.0,
-                        frameY: 20.0,
+                        frameX: 15,
+                        frameY: 20,
                         frameWidth: 226, // null = automático
                         frameHeight: 100, // null = automático
                         // FONDO (Gris)
-                        bgX: 41.0,
-                        bgY: 64.0,
+                        bgX: 41,
+                        bgY: 64,
                         bgWidth: 175,
                         bgHeight: 17,
 
                         // RELLENO (Morado)
-                        fillX: 41.0,
-                        fillY: 64.0,
+                        fillX: 41,
+                        fillY: 64,
                         fillWidth: 175,
                         fillHeight: 16,
                       ),
@@ -1251,12 +1246,12 @@ class BlackEchoHUD extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "   $vidaPorcentaje%",
+                    '   $vidaPorcentaje%',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+                      shadows: [Shadow(blurRadius: 2)],
                     ),
                   ),
                 ],
@@ -1271,6 +1266,29 @@ class BlackEchoHUD extends StatelessWidget {
 
 // Sub-widget corregido para usar el Marco como ancla de tamaño
 class HUDBar extends StatelessWidget {
+  const HUDBar({
+    required this.frameAsset,
+    required this.fillAsset,
+    required this.bgAsset,
+    required this.percentage,
+    super.key,
+
+    // Valores por defecto
+    this.frameX = 0.0,
+    this.frameY = 0.0,
+    this.frameWidth,
+    this.frameHeight,
+
+    this.bgX = 0.0,
+    this.bgY = 0.0,
+    this.bgWidth,
+    this.bgHeight,
+
+    this.fillX = 0.0,
+    this.fillY = 0.0,
+    this.fillWidth,
+    this.fillHeight,
+  });
   final String frameAsset;
   final String fillAsset;
   final String bgAsset;
@@ -1295,30 +1313,6 @@ class HUDBar extends StatelessWidget {
   final double fillY;
   final double? fillWidth;
   final double? fillHeight;
-
-  const HUDBar({
-    super.key,
-    required this.frameAsset,
-    required this.fillAsset,
-    required this.bgAsset,
-    required this.percentage,
-
-    // Valores por defecto
-    this.frameX = 0.0,
-    this.frameY = 0.0,
-    this.frameWidth,
-    this.frameHeight,
-
-    this.bgX = 0.0,
-    this.bgY = 0.0,
-    this.bgWidth,
-    this.bgHeight,
-
-    this.fillX = 0.0,
-    this.fillY = 0.0,
-    this.fillWidth,
-    this.fillHeight,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -1365,7 +1359,7 @@ class HUDBar extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: FractionallySizedBox(
                 widthFactor: percentage.clamp(0.0, 1.0),
-                heightFactor: 1.0,
+                heightFactor: 1,
                 child: Image.asset(fillAsset, fit: BoxFit.fill),
               ),
             ),

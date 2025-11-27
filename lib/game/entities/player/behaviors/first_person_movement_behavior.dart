@@ -1,11 +1,11 @@
-import 'package:flame/components.dart';
-import 'package:flame_behaviors/flame_behaviors.dart';
-import 'package:echo_world/game/cubit/game/game_bloc.dart';
-import 'package:echo_world/game/entities/player/player.dart';
-import 'package:echo_world/game/level/data/level_models.dart';
 import 'dart:math' as math;
 
+import 'package:echo_world/game/cubit/game/game_bloc.dart';
 import 'package:echo_world/game/entities/player/behaviors/collision_handler.dart';
+import 'package:echo_world/game/entities/player/player.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
+import 'package:flame/components.dart';
+import 'package:flame_behaviors/flame_behaviors.dart';
 
 /// Comportamiento de movimiento en primera persona.
 ///
@@ -31,8 +31,8 @@ class FirstPersonMovementBehavior extends Behavior<PlayerComponent>
   static const double turnSensitivity = 1.5; // reducir rotación global
 
   // Suavizado de rotación
-  double _currentTurnVelocity = 0.0;
-  static const double turnAcceleration = 6.0; // rad/s²
+  double _currentTurnVelocity = 0;
+  static const double turnAcceleration = 6; // rad/s²
 
   double _stepAccum = 0;
 
@@ -59,8 +59,12 @@ class FirstPersonMovementBehavior extends Behavior<PlayerComponent>
     player.heading += _currentTurnVelocity * dt;
 
     // Normalizar heading a [-π, π]
-    while (player.heading > math.pi) player.heading -= 2 * math.pi;
-    while (player.heading < -math.pi) player.heading += 2 * math.pi;
+    while (player.heading > math.pi) {
+      player.heading -= 2 * math.pi;
+    }
+    while (player.heading < -math.pi) {
+      player.heading += 2 * math.pi;
+    }
 
     // Movimiento: adelante/atrás en dirección del heading
     final isStealth = gameBloc.state.estaAgachado;

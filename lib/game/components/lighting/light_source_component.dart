@@ -35,7 +35,7 @@ class LightSourceComponent extends Component with HasGameRef<BlackEchoGame> {
   double pulseMaxIntensity;
 
   double _time = 0;
-  double _currentPulseFactor = 1.0;
+  double _currentPulseFactor = 1;
 
   /// Returns the effective intensity including pulse effects
   double get effectiveIntensity => intensity * _currentPulseFactor;
@@ -44,7 +44,7 @@ class LightSourceComponent extends Component with HasGameRef<BlackEchoGame> {
   /// If attached to a PositionComponent, uses its position.
   Vector2 get position {
     if (parent is PositionComponent) {
-      return (parent as PositionComponent).position;
+      return (parent! as PositionComponent).position;
     }
     return Vector2.zero();
   }

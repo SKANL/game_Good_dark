@@ -29,9 +29,7 @@ class CameraShakeComponent extends Component with HasGameRef<BlackEchoGame> {
       }
       removeFromParent();
     } else {
-      if (_originalPos == null) {
-        _originalPos = game.camera.viewfinder.position.clone();
-      }
+      _originalPos ??= game.camera.viewfinder.position.clone();
 
       final offset = Vector2(
         (_rng.nextDouble() - 0.5) * intensity,

@@ -1,7 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:bloc_test/bloc_test.dart';
-import 'package:echo_world/game/game.dart';
 import 'package:echo_world/game/cubit/checkpoint/cubit.dart';
+import 'package:echo_world/game/game.dart';
 import 'package:echo_world/loading/loading.dart';
 import 'package:echo_world/lore/lore.dart';
 import 'package:flame/cache.dart';

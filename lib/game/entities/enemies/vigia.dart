@@ -2,10 +2,10 @@ import 'dart:math' as math;
 
 import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:echo_world/game/black_echo_game.dart';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/entities/enemies/behaviors/behaviors.dart';
 import 'package:flame/collisions.dart';
-import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/painting.dart';
@@ -45,13 +45,10 @@ class VigiaComponent extends PositionedEntity
     add(
       LightSourceComponent(
         color: const Color(0xFF8A2BE2), // Purple/Blue Violet
-        intensity: 1.0,
-        radius: 100,
         softness: 0.4, // Harder edge for scanning feel
         isPulsing: true,
         pulseSpeed: 0.5, // Slow scan
-        pulseMinIntensity: 0.8,
-        pulseMaxIntensity: 1.0,
+        pulseMaxIntensity: 1,
       ),
     );
   }
@@ -84,13 +81,10 @@ class VigiaComponent extends PositionedEntity
       add(
         LightSourceComponent(
           color: const Color(0xFF8A2BE2), // Purple/Blue Violet
-          intensity: 1.0,
-          radius: 100,
           softness: 0.4, // Harder edge for scanning feel
           isPulsing: true,
           pulseSpeed: 0.5, // Slow scan
-          pulseMinIntensity: 0.8,
-          pulseMaxIntensity: 1.0,
+          pulseMaxIntensity: 1,
         ),
       );
     }
@@ -105,8 +99,7 @@ class VigiaComponent extends PositionedEntity
   }
 
   Future<void> _startAudioLoop() async {
-    if (_staticHumLoopId == null) {
-      _staticHumLoopId = await AudioManager.instance.startPositionalLoop(
+    _staticHumLoopId ??= await AudioManager.instance.startPositionalLoop(
         soundId: 'vigia_static_hum_loop',
         sourcePosition: math.Point(position.x, position.y),
         listenerPosition: math.Point(
@@ -114,7 +107,6 @@ class VigiaComponent extends PositionedEntity
           gameRef.player.position.y,
         ),
       );
-    }
   }
 
   @override

@@ -1,6 +1,6 @@
 import 'package:echo_world/game/cubit/game/game_bloc.dart';
-import 'package:echo_world/game/entities/player/player.dart';
 import 'package:echo_world/game/entities/player/behaviors/gravity_behavior.dart';
+import 'package:echo_world/game/entities/player/player.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 
 class JumpBehavior extends Behavior<PlayerComponent> {

@@ -1,9 +1,9 @@
-import 'dart:ui';
+import 'dart:math';
+
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 class TunnelComponent extends PositionComponent with HasGameRef<BlackEchoGame> {
   TunnelComponent({

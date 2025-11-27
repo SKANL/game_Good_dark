@@ -7,22 +7,19 @@ import 'dart:ui' as ui;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:bloc_test/bloc_test.dart';
+import 'package:echo_world/game/cubit/checkpoint/checkpoint_bloc.dart';
+import 'package:echo_world/game/cubit/checkpoint/checkpoint_state.dart';
 import 'package:echo_world/game/game.dart';
 import 'package:echo_world/loading/cubit/cubit.dart';
+import 'package:echo_world/lore/lore.dart';
 import 'package:flame/cache.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/helpers.dart';
-
-import 'package:echo_world/game/cubit/checkpoint/checkpoint_bloc.dart';
-import 'package:echo_world/game/cubit/checkpoint/checkpoint_state.dart';
-import 'package:echo_world/lore/lore.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 class _FakeAssetSource extends Fake implements AssetSource {}
 

@@ -199,8 +199,8 @@ class CellularAutomata {
     var current = start;
     while (current != end) {
       // Move towards end
-      var dx = end.x - current.x;
-      var dy = end.y - current.y;
+      final dx = end.x - current.x;
+      final dy = end.y - current.y;
 
       if (dx.abs() > dy.abs()) {
         current = Point(current.x + dx.sign, current.y);

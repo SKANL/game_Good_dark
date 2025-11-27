@@ -1,35 +1,23 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:ui';
-import 'dart:async';
 
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/components/core/batch_geometry_renderer.dart';
 import 'package:echo_world/game/components/core/component_pool.dart';
-import 'package:echo_world/game/components/world/wall_component.dart';
 import 'package:echo_world/game/components/world/abyss_component.dart';
 import 'package:echo_world/game/components/world/eco_narrativo_component.dart';
+import 'package:echo_world/game/components/world/lore_item_component.dart';
+import 'package:echo_world/game/components/world/tunnel_component.dart';
+import 'package:echo_world/game/components/world/wall_component.dart';
+import 'package:echo_world/game/entities/enemies/bruto.dart';
 import 'package:echo_world/game/entities/enemies/cazador.dart';
 import 'package:echo_world/game/entities/enemies/vigia.dart';
-import 'package:echo_world/game/entities/enemies/bruto.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/foundation.dart';
-import 'package:echo_world/game/components/world/lore_item_component.dart';
-import 'package:echo_world/game/components/world/tunnel_component.dart';
 
-class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
-  final LevelMapData levelData;
-  final BatchGeometryRenderer wallBatchRenderer;
-
-  final ComponentPool<CazadorComponent> cazadorPool;
-  final ComponentPool<VigiaComponent> vigiaPool;
-  final ComponentPool<BrutoComponent> brutoPool;
-
-  static const double tileSize = 32.0;
-
-  // Time-Slicing Queue
-  final Queue<Component> _loadQueue = Queue<Component>();
-  static const int _frameBudgetMs = 4; // 4ms loading budget per frame
+class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> { // 4ms loading budget per frame
 
   ChunkManagerComponent({
     required this.levelData,
@@ -38,6 +26,18 @@ class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
     required this.vigiaPool,
     required this.brutoPool,
   });
+  final LevelMapData levelData;
+  final BatchGeometryRenderer wallBatchRenderer;
+
+  final ComponentPool<CazadorComponent> cazadorPool;
+  final ComponentPool<VigiaComponent> vigiaPool;
+  final ComponentPool<BrutoComponent> brutoPool;
+
+  static const double tileSize = 32;
+
+  // Time-Slicing Queue
+  final Queue<Component> _loadQueue = Queue<Component>();
+  static const int _frameBudgetMs = 4;
 
   int _currentChunkIndex = -1;
   bool _hasProcessedItems = false;
@@ -81,7 +81,7 @@ class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
     final playerX = playerPos.x / tileSize;
     final playerY = playerPos.y / tileSize;
 
-    int newIndex = -1;
+    var newIndex = -1;
     for (var i = 0; i < levelData.chunks.length; i++) {
       final chunk = levelData.chunks[i];
       if (playerX >= chunk.bounds.left &&
@@ -103,8 +103,9 @@ class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
     final chunksToLoad = <int>{};
     if (_currentChunkIndex > 0) chunksToLoad.add(_currentChunkIndex - 1);
     chunksToLoad.add(_currentChunkIndex);
-    if (_currentChunkIndex < levelData.chunks.length - 1)
+    if (_currentChunkIndex < levelData.chunks.length - 1) {
       chunksToLoad.add(_currentChunkIndex + 1);
+    }
 
     for (var i = 0; i < levelData.chunks.length; i++) {
       if (chunksToLoad.contains(i)) {
@@ -177,21 +178,18 @@ class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
           );
           await gameRef.world.add(wall);
           chunk.loadedComponents.add(wall);
-          break;
 
         case EntityType.abyss:
           component = AbyssComponent(
             position: globalPos,
             size: entityData.size,
           );
-          break;
 
         case EntityType.echo:
           component = EcoNarrativoComponent(
             ecoId: entityData.properties['id'] as String,
             position: globalPos + Vector2.all(tileSize / 2),
           );
-          break;
 
         case EntityType.enemy:
           final enemyType = entityData.properties['enemyType'] as String;
@@ -211,7 +209,6 @@ class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
             e.reset();
             component = e;
           }
-          break;
 
         case EntityType.lore:
           final loreId = entityData.properties['loreId'] as String;
@@ -219,14 +216,12 @@ class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
             position: globalPos,
             loreId: loreId,
           );
-          break;
 
         case EntityType.tunnel:
           component = TunnelComponent(
             position: globalPos,
             size: entityData.size,
           );
-          break;
       }
 
       if (component != null) {
@@ -240,7 +235,6 @@ class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
         rects: wallRects,
         offset: chunkOffset,
         color: const Color(0xFF222222),
-        destructible: false,
       );
     }
     if (destructibleWallRects.isNotEmpty) {
@@ -297,12 +291,7 @@ class ChunkManagerComponent extends Component with HasGameRef<BlackEchoGame> {
 enum EntityType { wall, abyss, echo, enemy, lore, tunnel }
 
 // Data class to hold information about an entity generated in the isolate
-class EntityData {
-  final EntityType type;
-  final Vector2 position;
-  final Vector2 size;
-  final Map<String, dynamic>
-  properties; // For additional data like destructible, ecoId, enemyType
+class EntityData { // For additional data like destructible, ecoId, enemyType
 
   EntityData({
     required this.type,
@@ -310,24 +299,22 @@ class EntityData {
     required this.size,
     this.properties = const {},
   });
+  final EntityType type;
+  final Vector2 position;
+  final Vector2 size;
+  final Map<String, dynamic>
+  properties;
 }
 
 // Data class to hold the result of chunk generation
 class ChunkGenerationData {
-  final List<EntityData> entities;
 
   ChunkGenerationData({required this.entities});
+  final List<EntityData> entities;
 }
 
 // Arguments for the _generateChunkData function
 class _ChunkGenerationArgs {
-  final Grid grid;
-  final List<EntidadSpawn> entities;
-  final int startX;
-  final int levelWidth;
-  final double tileSize;
-  final int yOffset;
-  final String chunkId;
 
   _ChunkGenerationArgs({
     required this.grid,
@@ -338,6 +325,13 @@ class _ChunkGenerationArgs {
     required this.yOffset,
     required this.chunkId,
   });
+  final Grid grid;
+  final List<EntidadSpawn> entities;
+  final int startX;
+  final int levelWidth;
+  final double tileSize;
+  final int yOffset;
+  final String chunkId;
 }
 
 // Top-level function to be run in an isolate for chunk data generation
@@ -409,7 +403,7 @@ ChunkGenerationData _generateChunkData(_ChunkGenerationArgs args) {
     final pos = Vector2(localX * args.tileSize, localY * args.tileSize);
     final size = Vector2(args.tileSize, args.tileSize);
 
-    String enemyType = '';
+    var enemyType = '';
     if (spawn.tipoEnemigo == CazadorComponent) {
       enemyType = 'CazadorComponent';
     } else if (spawn.tipoEnemigo == VigiaComponent) {

@@ -1,8 +1,8 @@
 import 'package:echo_world/game/black_echo_game.dart';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/entities/enemies/behaviors/behaviors.dart';
 import 'package:flame/collisions.dart';
-import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:flutter/painting.dart';
@@ -45,13 +45,10 @@ class CazadorComponent extends PositionedEntity with CollisionCallbacks {
     add(
       LightSourceComponent(
         color: const Color(0xFFFF0000), // Red
-        intensity: 1.0,
         radius: 80,
-        softness: 0.5,
         isPulsing: true,
-        pulseSpeed: 1.0, // Slow breathing
         pulseMinIntensity: 0.5,
-        pulseMaxIntensity: 1.0,
+        pulseMaxIntensity: 1,
       ),
     );
   }
@@ -89,13 +86,10 @@ class CazadorComponent extends PositionedEntity with CollisionCallbacks {
       add(
         LightSourceComponent(
           color: const Color(0xFFFF0000), // Red
-          intensity: 1.0,
           radius: 80,
-          softness: 0.5,
           isPulsing: true,
-          pulseSpeed: 1.0, // Slow breathing
           pulseMinIntensity: 0.5,
-          pulseMaxIntensity: 1.0,
+          pulseMaxIntensity: 1,
         ),
       );
     }

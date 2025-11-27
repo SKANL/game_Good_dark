@@ -24,7 +24,7 @@ class JourneyPage extends StatelessWidget {
           style: GoogleFonts.courierPrime(
             color: Colors.cyanAccent,
             fontWeight: FontWeight.bold,
-            letterSpacing: 2.0,
+            letterSpacing: 2,
           ),
         ),
         leading: IconButton(
@@ -46,7 +46,6 @@ class JourneyPage extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   side: BorderSide(
                     color: isUnlocked ? Colors.cyan : Colors.grey.shade800,
-                    width: 1,
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -71,7 +70,7 @@ class JourneyPage extends StatelessWidget {
                     children: [
                       if (isUnlocked)
                         Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [

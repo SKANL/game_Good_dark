@@ -49,7 +49,7 @@ class RuptureBehavior extends Behavior<PlayerComponent> {
     await AudioManager.instance.playSfx('rupture_blast');
 
     // VFX simple: sacudir cámara y añadir partículas
-    game.shakeCamera(duration: 0.3);
+    game.shakeCamera();
     await game.world.add(
       RuptureVfxComponent(origin: parent.position.clone()),
     );

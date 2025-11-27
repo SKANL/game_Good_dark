@@ -37,7 +37,7 @@ class EventManager {
       case LevelEvent.blackout:
         return 1.2; // 20% more enemies
       case LevelEvent.none:
-        return 1.0;
+        return 1;
     }
   }
 

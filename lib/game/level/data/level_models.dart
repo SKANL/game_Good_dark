@@ -89,6 +89,14 @@ abstract class LevelData {
 
 /// Represents a single chunk instance within a larger level map.
 class ChunkInstance {
+
+  ChunkInstance({
+    required this.id,
+    required this.bounds,
+    required this.grid,
+    required this.entities,
+    this.yOffset = 0,
+  });
   final String id;
   final Rect bounds;
   final Grid grid;
@@ -98,48 +106,27 @@ class ChunkInstance {
   // Runtime state
   bool isLoaded = false;
   final List<Component> loadedComponents = [];
-
-  ChunkInstance({
-    required this.id,
-    required this.bounds,
-    required this.grid,
-    required this.entities,
-    this.yOffset = 0,
-  });
 }
 
 /// Represents a full level composed of multiple chunks.
 class LevelMapData extends LevelData {
-  final List<ChunkInstance> chunks;
 
   LevelMapData({
     required this.chunks,
-    required int ancho,
-    required int alto,
-    required Grid grid,
-    required List<EntidadSpawn> entidadesIniciales,
-    required String nombre,
-    required Dificultad dificultad,
-    required Sector sector,
-    Vector2? spawnPoint,
-    Vector2? exitPoint,
-    String? exitHint,
-    Color? ambientLight,
-    Color? fogColor,
-  }) : super(
-         ancho: ancho,
-         alto: alto,
-         grid: grid,
-         entidadesIniciales: entidadesIniciales,
-         nombre: nombre,
-         dificultad: dificultad,
-         sector: sector,
-         spawnPoint: spawnPoint,
-         exitPoint: exitPoint,
-         exitHint: exitHint,
-         ambientLight: ambientLight,
-         fogColor: fogColor,
-       );
+    required super.ancho,
+    required super.alto,
+    required super.grid,
+    required super.entidadesIniciales,
+    required super.nombre,
+    required super.dificultad,
+    required super.sector,
+    super.spawnPoint,
+    super.exitPoint,
+    super.exitHint,
+    super.ambientLight,
+    super.fogColor,
+  });
+  final List<ChunkInstance> chunks;
 }
 
 // --- DTOs for Isolate Generation ---
@@ -147,10 +134,6 @@ class LevelMapData extends LevelData {
 enum EntityType { wall, abyss, enemy, echo }
 
 class EntityData {
-  final EntityType type;
-  final Vector2 position; // Global position
-  final Vector2 size;
-  final Map<String, dynamic> properties;
 
   EntityData({
     required this.type,
@@ -158,10 +141,14 @@ class EntityData {
     required this.size,
     this.properties = const {},
   });
+  final EntityType type;
+  final Vector2 position; // Global position
+  final Vector2 size;
+  final Map<String, dynamic> properties;
 }
 
 class ChunkGenerationData {
-  final List<EntityData> entities;
 
   ChunkGenerationData({required this.entities});
+  final List<EntityData> entities;
 }

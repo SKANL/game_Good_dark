@@ -14,7 +14,6 @@ class LandingDustComponent extends Component {
     await add(
       ParticleSystemComponent(
         particle: Particle.generate(
-          count: 10,
           lifespan: 0.4,
           generator: (i) {
             final random = Random();
@@ -43,7 +42,7 @@ class LandingDustComponent extends Component {
       TimerComponent(
         period: 0.5,
         removeOnFinish: true,
-        onTick: () => removeFromParent(),
+        onTick: removeFromParent,
       ),
     );
   }

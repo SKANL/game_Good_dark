@@ -72,8 +72,9 @@ class LightingLayerComponent extends Component with HasGameRef<BlackEchoGame> {
       if (!drawRect.contains(pos.toOffset())) {
         // Simple check, could be better (circle intersection)
         if ((drawRect.center - pos.toOffset()).distance >
-            radius + drawRect.width)
+            radius + drawRect.width) {
           continue;
+        }
       }
 
       // 1. Reveal the world (Punch hole in darkness)
@@ -92,7 +93,7 @@ class LightingLayerComponent extends Component with HasGameRef<BlackEchoGame> {
       // Modulate opacity by intensity
       revealPaint.color = const Color(
         0xFFFFFFFF,
-      ).withOpacity((intensity).clamp(0.0, 1.0));
+      ).withOpacity(intensity.clamp(0.0, 1.0));
 
       canvas.drawCircle(pos.toOffset(), radius, revealPaint);
 
@@ -104,7 +105,7 @@ class LightingLayerComponent extends Component with HasGameRef<BlackEchoGame> {
             radius,
             [
               light.color.withOpacity(0.6 * intensity),
-              light.color.withOpacity(0.0),
+              light.color.withOpacity(0),
             ],
             [0.0, 1.0],
           )

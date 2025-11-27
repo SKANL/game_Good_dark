@@ -1,10 +1,10 @@
 import 'dart:ui';
-import 'package:flame/collisions.dart';
-import 'package:flame/components.dart';
 
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
+import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
 
 class WallComponent extends PositionComponent
     with CollisionCallbacks, HasGameRef<BlackEchoGame> {

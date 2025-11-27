@@ -1,9 +1,10 @@
 import 'dart:ui';
+
 import 'package:echo_world/game/black_echo_game.dart';
+import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/collisions.dart';
-import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 
@@ -51,8 +52,7 @@ class NucleoResonanteComponent extends PositionComponent
         radius: 120,
         softness: 0.6,
         isPulsing: true,
-        pulseSpeed: 3.0,
-        pulseMinIntensity: 0.8,
+        pulseSpeed: 3,
         pulseMaxIntensity: 1.5,
       ),
     );
