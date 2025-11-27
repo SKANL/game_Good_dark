@@ -12,6 +12,12 @@ import 'package:flame/game.dart' hide Route;
 import 'package:flame_audio/bgm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:echo_world/game/cubit/audio/audio_cubit.dart';
+import 'package:echo_world/game/cubit/checkpoint/checkpoint_bloc.dart';
+import 'package:echo_world/game/cubit/game/game_bloc.dart';
+import 'package:echo_world/game/cubit/game/game_state.dart';
+import 'package:echo_world/game/widgets/virtual_joystick.dart';
+import 'package:echo_world/l10n/l10n.dart';
 
 class GamePage extends StatelessWidget {
   const GamePage({super.key});
@@ -129,6 +135,23 @@ class _GameViewState extends State<GameView> {
                 ),
               );
             },
+          ),
+          // Virtual Joystick Overlay
+          Positioned(
+            left: 20,
+            bottom: 20,
+            child: VirtualJoystick(
+              onChange: (offset) {
+                // Update game input directly
+                // Convert offset (dx, dy) to Vector2
+                if (_game != null) {
+                  (_game! as BlackEchoGame).virtualJoystickInput.setValues(
+                    offset.dx,
+                    offset.dy,
+                  );
+                }
+              },
+            ),
           ),
           Align(
             alignment: Alignment.topRight,

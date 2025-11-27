@@ -46,6 +46,9 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
   late final LightingSystem lightingSystem;
   bool _cameraReady = false;
 
+  /// Input virtual desde Flutter (Joystick Overlay)
+  Vector2 virtualJoystickInput = Vector2.zero();
+
   /// Renderizador de raycasting para el modo First-Person.
   ///
   /// Se añade al mundo solo cuando `enfoqueActual == Enfoque.firstPerson`.
