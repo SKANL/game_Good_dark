@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppBlocObserver extends BlocObserver {
   @override
@@ -56,6 +57,13 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
   await SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.immersiveSticky,
     overlays: [], // No overlays visible
+  );
+
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: 'https://xcvrjpyuhqqsqlltuuai.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdnJqcHl1aHFxc3FsbHR1dWFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MDg2NDUsImV4cCI6MjA3OTQ4NDY0NX0.chupqonmwwKw63utwJ703SCXLahdRopUvgzrxoLRiYk',
   );
 
   runApp(await builder());

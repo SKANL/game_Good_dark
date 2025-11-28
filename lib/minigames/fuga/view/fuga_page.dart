@@ -1,20 +1,22 @@
-import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import '../game/fuga_game.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/fuga_cubit.dart';
+import 'fuga_view.dart';
 
-class FugaMinigame extends StatelessWidget {
-  const FugaMinigame({super.key});
+class FugaPage extends StatelessWidget {
+  const FugaPage({super.key});
+
+  static Route<void> route() {
+    return MaterialPageRoute<void>(
+      builder: (_) => const FugaPage(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GameWidget(
-      game: FugaGame(),
-      overlayBuilderMap: {
-        'Hud': (BuildContext context, FugaGame game) {
-          return game.buildHud(context);
-        },
-      },
-      initialActiveOverlays: const ['Hud'],
+    return BlocProvider(
+      create: (_) => FugaCubit(),
+      child: const FugaView(),
     );
   }
 }

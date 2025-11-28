@@ -1,3 +1,9 @@
+import 'dart:ui';
+import 'package:flame/components.dart';
+import 'package:flame/collisions.dart';
+import 'package:flame_behaviors/flame_behaviors.dart';
+import 'package:echo_world/game/entities/player/behaviors/behaviors.dart';
+import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/components/core/components.dart';
@@ -9,13 +15,6 @@ import 'package:echo_world/game/entities/enemies/behaviors/hearing_behavior.dart
 import 'package:echo_world/game/entities/enemies/bruto.dart';
 import 'package:echo_world/game/entities/enemies/cazador.dart';
 import 'package:echo_world/game/entities/enemies/vigia.dart';
-import 'package:echo_world/game/entities/player/behaviors/behaviors.dart';
-import 'package:echo_world/game/level/data/level_models.dart';
-import 'package:flame/collisions.dart';
-import 'package:flame/components.dart';
-import 'package:flame_behaviors/flame_behaviors.dart';
-import 'package:flutter/painting.dart';
-import 'dart:math' as math;
 
 class PlayerComponent extends PositionedEntity
     with CollisionCallbacks, HasGameRef<BlackEchoGame> {

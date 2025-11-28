@@ -29,13 +29,17 @@ class GameEngine {
     );
   }
 
-  void update() {
+  void update(double dt) {
     // Don't update if level is complete or player is dead
     if (isLevelComplete || isDead) return;
 
+    // Update timers
+    player.updateTimers(dt);
+
     // ORDEN ESTRICTO DE EJECUCIÓN (según especificación):
 
-    // 1. Input de Salto ya se maneja en el método jump() del player
+    // 1. Intentar ejecutar salto (usa buffer y coyote time)
+    player.tryExecuteJump();
 
     // 2. Aplicar Gravedad
     player.applyGravity();
@@ -44,7 +48,10 @@ class GameEngine {
     player.update();
 
     // 4. Estado por defecto: Asumir que está en el aire
-    player.isJumping = true;
+    // Solo si no acabamos de saltar (para no cancelar el salto inmediatamente)
+    if (player.velocityY != 0) {
+      player.isJumping = true;
+    }
 
     // 5. Resolución de Colisiones (CRÍTICO)
     _handleTileCollisions();
@@ -102,6 +109,8 @@ class GameEngine {
             player.velocityY = 0;
             // Establecer isJumping = false (permite volver a saltar)
             player.isJumping = false;
+            player.coyoteTimer =
+                EscapePlayer.coyoteDuration; // Reset coyote time
           } else if (minOverlap == overlapBottom && player.velocityY < 0) {
             // Hitting ceiling
             player.y = tile.y + tile.height;

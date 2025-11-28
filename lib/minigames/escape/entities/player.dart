@@ -39,12 +39,34 @@ class EscapePlayer {
     velocityX = direction * GameConstants.playerSpeed * speedMultiplier;
   }
 
+  // Timers for game feel
+  double coyoteTimer = 0;
+  double jumpBufferTimer = 0;
+  static const double coyoteDuration = 0.1; // 100ms
+  static const double jumpBufferDuration = 0.1; // 100ms
+
   // 1. INPUT DE SALTO (según especificación)
   void jump() {
-    if (!isJumping) {
+    // Instead of jumping immediately, we buffer the input
+    jumpBufferTimer = jumpBufferDuration;
+  }
+
+  void updateTimers(double dt) {
+    if (coyoteTimer > 0) coyoteTimer -= dt;
+    if (jumpBufferTimer > 0) jumpBufferTimer -= dt;
+  }
+
+  /// Attempt to execute a jump if conditions are met
+  bool tryExecuteJump() {
+    // Jump if we have a buffered jump AND (we are on ground OR we have coyote time)
+    if (jumpBufferTimer > 0 && (!isJumping || coyoteTimer > 0)) {
       velocityY = -GameConstants.jumpForce * gravityDirection;
       isJumping = true;
+      coyoteTimer = 0; // Consume coyote time
+      jumpBufferTimer = 0; // Consume jump buffer
+      return true;
     }
+    return false;
   }
 
   void stopMoving() {
@@ -71,6 +93,8 @@ class EscapePlayer {
     gravityDirection = 1;
     controlsInverted = false;
     speedMultiplier = 1.0;
+    coyoteTimer = 0;
+    jumpBufferTimer = 0;
   }
 
   // Método para invertir gravedad

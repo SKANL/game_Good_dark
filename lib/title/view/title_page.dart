@@ -7,6 +7,8 @@ import 'package:video_player/video_player.dart';
 import 'package:echo_world/game/ui/screens/journey_page.dart';
 import 'package:echo_world/minigames/menu/view/minigames_menu_page.dart';
 
+import 'package:echo_world/multiplayer/ui/multiplayer_login_page.dart';
+
 class TitlePage extends StatelessWidget {
   const TitlePage({super.key});
 
@@ -236,10 +238,8 @@ class _MenuPrincipalState extends State<MenuPrincipal>
           Navigator.of(context).pushReplacement(GamePage.route());
           break;
         case 1:
-          debugPrint(
-            "Buscando Resonancias... (Deshabilitado por Journey Button)",
-          );
-          // Navigator.of(context).push(JourneyPage.route()); // MOVIDO A JOURNEY BUTTON
+          debugPrint("Accediendo a Protocolos Multijugador...");
+          Navigator.of(context).push(MultiplayerLoginPage.route());
           break;
         case 2:
           print("Accediendo a Pruebas...");
