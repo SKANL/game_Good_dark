@@ -87,7 +87,7 @@ import 'package:flutter/material.dart';
 /// - Priority -1000 para renderizar como fondo.
 class RaycastRendererComponent extends Component
     with HasGameRef<BlackEchoGame> {
-  RaycastRendererComponent();
+  RaycastRendererComponent() : super(priority: -1000);
 
   // Configuración del raycasting
   static const double fov = math.pi / 3; // 60° field of view
@@ -169,6 +169,7 @@ class RaycastRendererComponent extends Component
 
   @override
   void render(Canvas canvas) {
+    canvas.save(); // Save canvas state
     super.render(canvas);
 
     final player = game.player;
@@ -799,6 +800,15 @@ class RaycastRendererComponent extends Component
         final screenRadiusMax = math.min(renderSize.x, renderSize.y) * 0.7;
         final screenRadius = normalizedRadius * screenRadiusMax;
 
+        final echoPaint = Paint()
+          ..color = const Color(0xFF00FFFF).withOpacity(
+            (1.0 - normalizedRadius).clamp(0.0, 1.0),
+          )
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+
+        canvas.drawCircle(Offset(centerX, centerY), screenRadius, echoPaint);
+
         final pulsePaint = Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.0 * (1.0 - normalizedRadius)
@@ -810,6 +820,7 @@ class RaycastRendererComponent extends Component
         canvas.drawCircle(Offset(centerX, centerY), screenRadius, pulsePaint);
       }
     }
+    canvas.restore(); // Restore canvas state
   }
 
   /// Checks if there is a direct line of sight between two points in the grid.
