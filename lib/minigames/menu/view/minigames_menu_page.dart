@@ -56,7 +56,7 @@ class MinigamesMenu extends StatelessWidget {
               color: Colors.red,
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const FugaMinigame()),
+                  MaterialPageRoute<void>(builder: (_) => const FugaPage()),
                 );
               },
             ),
