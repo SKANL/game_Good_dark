@@ -465,43 +465,48 @@ class _SurgeryPageState extends State<SurgeryPage>
 
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            GlowingButton(
-              text: 'ANALIZAR',
-              isDisabled: nerve == null,
-              onPressed: () {
-                if (nerve != null) {
-                  HapticService.selectionClick();
-                  setState(() {
-                    _analyzedId = nerve.id;
-                  });
-                }
-              },
-            ),
-            GlowingButton(
-              text: 'CARGAR LÁSER',
-              isDisabled:
-                  !(nerve != null && _analyzedId == nerve.id) ||
-                  state.isLaserCharged,
-              onPressed: () {
-                HapticService.mediumImpact();
-                cubit.chargeLaser();
-              },
-            ),
-            GlowingButton(
-              text: 'CORTAR',
-              color: Colors.red,
-              isDisabled: !state.isLaserCharged,
-              onPressed: () {
-                HapticService.heavyImpact();
-                _triggerShake();
-                _triggerFlash();
-                cubit.cutNerve();
-              },
-            ),
-          ],
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              GlowingButton(
+                text: 'ANALIZAR',
+                isDisabled: nerve == null,
+                onPressed: () {
+                  if (nerve != null) {
+                    HapticService.selectionClick();
+                    setState(() {
+                      _analyzedId = nerve.id;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(width: 10), // Add spacing for FittedBox
+              GlowingButton(
+                text: 'CARGAR LÁSER',
+                isDisabled:
+                    !(nerve != null && _analyzedId == nerve.id) ||
+                    state.isLaserCharged,
+                onPressed: () {
+                  HapticService.mediumImpact();
+                  cubit.chargeLaser();
+                },
+              ),
+              const SizedBox(width: 10), // Add spacing for FittedBox
+              GlowingButton(
+                text: 'CORTAR',
+                color: Colors.red,
+                isDisabled: !state.isLaserCharged,
+                onPressed: () {
+                  HapticService.heavyImpact();
+                  _triggerShake();
+                  _triggerFlash();
+                  cubit.cutNerve();
+                },
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 10),
         Text(

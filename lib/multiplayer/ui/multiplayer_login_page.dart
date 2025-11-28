@@ -82,77 +82,41 @@ class _MultiplayerLoginPageState extends State<MultiplayerLoginPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
-        child: Container(
-          padding: const EdgeInsets.all(30),
-          constraints: const BoxConstraints(maxWidth: 400),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.cyanAccent, width: 2),
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.black.withOpacity(0.8),
-            boxShadow: const [
-              BoxShadow(color: Colors.cyan, blurRadius: 20, spreadRadius: 2),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _isRegistering ? "NEW OPERATIVE" : "IDENTITY PROTOCOL",
-                style: const TextStyle(
-                  color: Colors.cyanAccent,
-                  fontFamily: 'Courier',
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2.0,
-                ),
-              ),
-              const SizedBox(height: 30),
-              TextField(
-                controller: _emailController,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'Courier',
-                ),
-                decoration: const InputDecoration(
-                  labelText: "EMAIL",
-                  labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.cyanAccent),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Container(
+            padding: const EdgeInsets.all(30),
+            constraints: const BoxConstraints(maxWidth: 400),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.cyanAccent, width: 2),
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.black.withOpacity(0.8),
+              boxShadow: const [
+                BoxShadow(color: Colors.cyan, blurRadius: 20, spreadRadius: 2),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _isRegistering ? "NEW OPERATIVE" : "IDENTITY PROTOCOL",
+                  style: const TextStyle(
+                    color: Colors.cyanAccent,
+                    fontFamily: 'Courier',
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2.0,
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'Courier',
-                ),
-                decoration: const InputDecoration(
-                  labelText: "PASSWORD",
-                  labelStyle: TextStyle(color: Colors.grey),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.cyanAccent),
-                  ),
-                ),
-              ),
-              if (_isRegistering) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
                 TextField(
-                  controller: _usernameController,
+                  controller: _emailController,
                   style: const TextStyle(
                     color: Colors.white,
                     fontFamily: 'Courier',
                   ),
                   decoration: const InputDecoration(
-                    labelText: "OPERATIVE ID",
+                    labelText: "EMAIL",
                     labelStyle: TextStyle(color: Colors.grey),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.grey),
@@ -162,50 +126,89 @@ class _MultiplayerLoginPageState extends State<MultiplayerLoginPage> {
                     ),
                   ),
                 ),
-              ],
-              const SizedBox(height: 30),
-              if (_isLoading)
-                const CircularProgressIndicator(color: Colors.cyanAccent)
-              else
-                Column(
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.cyanAccent,
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 15,
-                        ),
-                      ),
-                      onPressed: _submit,
-                      child: Text(
-                        _isRegistering ? "REGISTER" : "ESTABLISH UPLINK",
-                        style: const TextStyle(
-                          fontFamily: 'Courier',
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Courier',
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: "PASSWORD",
+                    labelStyle: TextStyle(color: Colors.grey),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
                     ),
-                    const SizedBox(height: 10),
-                    TextButton(
-                      onPressed: () =>
-                          setState(() => _isRegistering = !_isRegistering),
-                      child: Text(
-                        _isRegistering
-                            ? "ALREADY HAVE AN ID? LOGIN"
-                            : "NEED ACCESS? REGISTER",
-                        style: const TextStyle(
-                          color: Colors.cyanAccent,
-                          fontFamily: 'Courier',
-                          fontSize: 12,
-                        ),
-                      ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.cyanAccent),
                     ),
-                  ],
+                  ),
                 ),
-            ],
+                if (_isRegistering) ...[
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: _usernameController,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'Courier',
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: "OPERATIVE ID",
+                      labelStyle: TextStyle(color: Colors.grey),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.cyanAccent),
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 30),
+                if (_isLoading)
+                  const CircularProgressIndicator(color: Colors.cyanAccent)
+                else
+                  Column(
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.cyanAccent,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
+                            vertical: 15,
+                          ),
+                        ),
+                        onPressed: _submit,
+                        child: Text(
+                          _isRegistering ? "REGISTER" : "ESTABLISH UPLINK",
+                          style: const TextStyle(
+                            fontFamily: 'Courier',
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: () =>
+                            setState(() => _isRegistering = !_isRegistering),
+                        child: Text(
+                          _isRegistering
+                              ? "ALREADY HAVE AN ID? LOGIN"
+                              : "NEED ACCESS? REGISTER",
+                          style: const TextStyle(
+                            color: Colors.cyanAccent,
+                            fontFamily: 'Courier',
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
           ),
         ),
       ),

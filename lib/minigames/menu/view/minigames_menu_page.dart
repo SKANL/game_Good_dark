@@ -18,60 +18,65 @@ class MinigamesMenu extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'PRUEBAS DE ACCESO',
-              style: GoogleFonts.orbitron(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.cyan,
-                letterSpacing: 4,
-              ),
-            ),
-            const SizedBox(height: 60),
-            _MenuButton(
-              label: 'PRUEBA 1: CIRUGÍA',
-              color: Colors.green,
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const SurgeryGame()),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            _MenuButton(
-              label: 'PRUEBA 2: ESCAPE',
-              color: Colors.orange,
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const EscapeGame()),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            _MenuButton(
-              label: 'PRUEBA 3: FUGA',
-              color: Colors.red,
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const FugaPage()),
-                );
-              },
-            ),
-            const SizedBox(height: 60),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'VOLVER AL SISTEMA',
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'PRUEBAS DE ACCESO',
                 style: GoogleFonts.orbitron(
-                  color: Colors.white54,
-                  letterSpacing: 2,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.cyan,
+                  letterSpacing: 4,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 60),
+              _MenuButton(
+                label: 'PRUEBA 1: CIRUGÍA',
+                color: Colors.green,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SurgeryGame(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              _MenuButton(
+                label: 'PRUEBA 2: ESCAPE',
+                color: Colors.orange,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const EscapeGame()),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              _MenuButton(
+                label: 'PRUEBA 3: FUGA',
+                color: Colors.red,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const FugaPage()),
+                  );
+                },
+              ),
+              const SizedBox(height: 60),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'VOLVER AL SISTEMA',
+                  style: GoogleFonts.orbitron(
+                    color: Colors.white54,
+                    letterSpacing: 2,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -41,7 +41,8 @@ class _MenuScreenState extends State<MenuScreen>
       backgroundColor: GameConstants.backgroundColor,
       body: SafeArea(
         child: Center(
-          child: SingleChildScrollView(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
             child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: isSmallScreen ? 20 : 40,

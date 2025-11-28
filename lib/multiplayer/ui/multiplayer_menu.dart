@@ -233,118 +233,122 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
           ),
 
           Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  "MULTIPLAYER PROTOCOLS",
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.cyanAccent,
-                    fontFamily: 'Courier',
-                    letterSpacing: 4.0,
-                    shadows: [
-                      BoxShadow(color: Colors.cyan, blurRadius: 10),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // User Info
-                FutureBuilder<Map<String, dynamic>?>(
-                  future: MultiplayerRepository().getPlayerProfile(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) return const SizedBox();
-                    final data = snapshot.data!;
-                    return Column(
-                      children: [
-                        Text(
-                          "OPERATIVE: ${data['username']}",
-                          style: const TextStyle(
-                            color: Colors.greenAccent,
-                            fontFamily: 'Courier',
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          "COINS: ${data['coins']}",
-                          style: const TextStyle(
-                            color: Colors.yellowAccent,
-                            fontFamily: 'Courier',
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueGrey,
-                          ),
-                          onPressed: () => _showInventory(context),
-                          child: const Text(
-                            "VIEW INVENTORY",
-                            style: TextStyle(fontFamily: 'Courier'),
-                          ),
-                        ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "MULTIPLAYER PROTOCOLS",
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.cyanAccent,
+                      fontFamily: 'Courier',
+                      letterSpacing: 4.0,
+                      shadows: [
+                        BoxShadow(color: Colors.cyan, blurRadius: 10),
                       ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 30),
-                ...List.generate(_games.length, (index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10.0),
-                    child: MouseRegion(
-                      onEnter: (_) => setState(() => _focusedIndex = index),
-                      onExit: (_) => setState(() => _focusedIndex = null),
-                      child: GestureDetector(
-                        onTap: () => _handleTap(index),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 40,
-                            vertical: 15,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: _focusedIndex == index
-                                  ? Colors.cyanAccent
-                                  : Colors.grey.withOpacity(0.5),
-                              width: 2,
-                            ),
-                            color: _focusedIndex == index
-                                ? Colors.cyan.withOpacity(0.1)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            _games[index],
-                            style: TextStyle(
-                              color: _focusedIndex == index
-                                  ? Colors.white
-                                  : Colors.grey,
-                              fontSize: 24,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // User Info
+                  FutureBuilder<Map<String, dynamic>?>(
+                    future: MultiplayerRepository().getPlayerProfile(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) return const SizedBox();
+                      final data = snapshot.data!;
+                      return Column(
+                        children: [
+                          Text(
+                            "OPERATIVE: ${data['username']}",
+                            style: const TextStyle(
+                              color: Colors.greenAccent,
                               fontFamily: 'Courier',
-                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            "COINS: ${data['coins']}",
+                            style: const TextStyle(
+                              color: Colors.yellowAccent,
+                              fontFamily: 'Courier',
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueGrey,
+                            ),
+                            onPressed: () => _showInventory(context),
+                            child: const Text(
+                              "VIEW INVENTORY",
+                              style: TextStyle(fontFamily: 'Courier'),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 30),
+                  ...List.generate(_games.length, (index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                      child: MouseRegion(
+                        onEnter: (_) => setState(() => _focusedIndex = index),
+                        onExit: (_) => setState(() => _focusedIndex = null),
+                        child: GestureDetector(
+                          onTap: () => _handleTap(index),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 40,
+                              vertical: 15,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: _focusedIndex == index
+                                    ? Colors.cyanAccent
+                                    : Colors.grey.withOpacity(0.5),
+                                width: 2,
+                              ),
+                              color: _focusedIndex == index
+                                  ? Colors.cyan.withOpacity(0.1)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              _games[index],
+                              style: TextStyle(
+                                color: _focusedIndex == index
+                                    ? Colors.white
+                                    : Colors.grey,
+                                fontSize: 24,
+                                fontFamily: 'Courier',
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }),
-                const SizedBox(height: 50),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    "< RETURN TO MAIN SYSTEM",
-                    style: TextStyle(
-                      color: Colors.redAccent,
-                      fontSize: 18,
-                      fontFamily: 'Courier',
+                    );
+                  }),
+                  const SizedBox(height: 50),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text(
+                      "< RETURN TO MAIN SYSTEM",
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 18,
+                        fontFamily: 'Courier',
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

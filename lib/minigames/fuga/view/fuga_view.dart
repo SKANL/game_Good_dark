@@ -312,176 +312,189 @@ class _FugaViewState extends State<FugaView>
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           color: Colors.grey[900],
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Dice
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[850],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Center(
-                      child: Text(
-                        state.diceResult == 0
-                            ? '-'
-                            : state.diceResult.toString(),
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Dice
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[850],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: Text(
+                          state.diceResult == 0
+                              ? '-'
+                              : state.diceResult.toString(),
+                          style: const TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
-                  // Buttons
-                  Expanded(
-                    child: Padding(
+                    // Buttons
+                    Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: SizedBox(
+                        width:
+                            120, // Give it a fixed width inside FittedBox/Row
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                textStyle: const TextStyle(fontSize: 14),
+                                backgroundColor: Colors.grey[800],
+                                foregroundColor: Colors.white,
+                              ),
+                              onPressed:
+                                  state.currentTurn == GameTurn.player &&
+                                      state.turnPhase == TurnPhase.rolling
+                                  ? () => context.read<FugaCubit>().rollDice()
+                                  : null,
+                              child: const Text(
+                                'Lanzar Dado',
+                                style: TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.tealAccent.shade700,
+                                foregroundColor: Colors.black,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                textStyle: const TextStyle(fontSize: 12),
+                              ),
+                              onPressed:
+                                  state.currentTurn == GameTurn.player &&
+                                      state.echoCharges >= 6
+                                  ? () =>
+                                        context.read<FugaCubit>().activateEcho()
+                                  : null,
+                              child: Text(
+                                'Echo (${state.echoCharges}/6)',
+                                style: const TextStyle(fontFamily: 'monospace'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Turn/pass info
+                    SizedBox(
+                      width: 85,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              textStyle: const TextStyle(fontSize: 14),
-                              backgroundColor: Colors.grey[800],
-                              foregroundColor: Colors.white,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 4,
+                              horizontal: 4,
                             ),
-                            onPressed:
-                                state.currentTurn == GameTurn.player &&
-                                    state.turnPhase == TurnPhase.rolling
-                                ? () => context.read<FugaCubit>().rollDice()
-                                : null,
-                            child: const Text(
-                              'Lanzar Dado',
-                              style: TextStyle(
+                            decoration: BoxDecoration(
+                              color: state.currentTurn == GameTurn.player
+                                  ? Colors.tealAccent.shade700
+                                  : Colors.redAccent.shade700,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              state.currentTurn == GameTurn.player
+                                  ? 'Sujeto 7'
+                                  : 'Resonancia',
+                              style: const TextStyle(
                                 fontFamily: 'monospace',
+                                fontSize: 10,
+                                color: Colors.black,
                                 fontWeight: FontWeight.bold,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                           const SizedBox(height: 6),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.tealAccent.shade700,
-                              foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              textStyle: const TextStyle(fontSize: 12),
-                            ),
-                            onPressed:
-                                state.currentTurn == GameTurn.player &&
-                                    state.echoCharges >= 6
-                                ? () => context.read<FugaCubit>().activateEcho()
-                                : null,
-                            child: Text(
-                              'Echo (${state.echoCharges}/6)',
-                              style: const TextStyle(fontFamily: 'monospace'),
-                            ),
-                          ),
+                          if (state.turnPhase == TurnPhase.moving &&
+                              state.currentTurn == GameTurn.player)
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[800],
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 4,
+                                ),
+                                textStyle: const TextStyle(fontSize: 10),
+                              ),
+                              onPressed: () =>
+                                  context.read<FugaCubit>().passTurn(),
+                              child: const Text(
+                                'Pasar',
+                                style: TextStyle(fontFamily: 'monospace'),
+                              ),
+                            )
+                          else
+                            const SizedBox(height: 32),
                         ],
                       ),
                     ),
-                  ),
-
-                  // Turn/pass info
-                  SizedBox(
-                    width: 85,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 4,
-                            horizontal: 4,
+                  ],
+                ),
+                const SizedBox(height: 6),
+                // Status / hints
+                SizedBox(
+                  width: 300, // Constrain width for the status row
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Echo: ${state.echoActive ? 'ACTIVA' : 'INACTIVA'}',
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 10,
+                            color: state.echoActive
+                                ? Colors.tealAccent
+                                : Colors.white70,
                           ),
-                          decoration: BoxDecoration(
-                            color: state.currentTurn == GameTurn.player
-                                ? Colors.tealAccent.shade700
-                                : Colors.redAccent.shade700,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            state.currentTurn == GameTurn.player
-                                ? 'Sujeto 7'
-                                : 'Resonancia',
-                            style: const TextStyle(
-                              fontFamily: 'monospace',
-                              fontSize: 10,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 6),
-                        if (state.turnPhase == TurnPhase.moving &&
-                            state.currentTurn == GameTurn.player)
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[800],
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 4,
-                              ),
-                              textStyle: const TextStyle(fontSize: 10),
-                            ),
-                            onPressed: () =>
-                                context.read<FugaCubit>().passTurn(),
-                            child: const Text(
-                              'Pasar',
-                              style: TextStyle(fontFamily: 'monospace'),
-                            ),
-                          )
-                        else
-                          const SizedBox(height: 32),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              // Status / hints
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Text(
-                      'Echo: ${state.echoActive ? 'ACTIVA' : 'INACTIVA'}',
-                      style: TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 10,
-                        color: state.echoActive
-                            ? Colors.tealAccent
-                            : Colors.white70,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Flexible(
-                    child: Text(
-                      'Fichas: Enemigo & Salida',
-                      style: TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 10,
-                        color: Colors.white70,
+                      const SizedBox(width: 8),
+                      const Flexible(
+                        child: Text(
+                          'Fichas: Enemigo & Salida',
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 10,
+                            color: Colors.white70,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         );
       },
