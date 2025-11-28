@@ -31,7 +31,6 @@ class LobbyPage extends StatefulWidget {
 
 class _LobbyPageState extends State<LobbyPage> {
   List<Map<String, dynamic>> _players = [];
-  RealtimeChannel? _channel;
   bool _isStarting = false;
 
   @override
@@ -41,68 +40,19 @@ class _LobbyPageState extends State<LobbyPage> {
   }
 
   Future<void> _joinLobby() async {
-    final client = Supabase.instance.client;
-    final user = client.auth.currentUser;
-
-    if (user == null) {
-      // Should not happen if we force login, but safe fallback
-      await client.auth.signInAnonymously();
-    }
-
-    // Subscribe to specific Room ID
-    _channel = client.channel('lobby_${widget.roomId}');
-
-    _channel!
-        .onPresenceSync((payload) {
-          if (!mounted) return;
-          final dynamic presenceState = _channel!.presenceState();
-          final newPlayers = <Map<String, dynamic>>[];
-
-          if (presenceState is List) {
-            for (final presence in presenceState) {
-              final dynamic p = presence;
-              if (p.payloads != null) {
-                for (final payload in (p.payloads as List<dynamic>)) {
-                  if (payload is Map<String, dynamic>) {
-                    newPlayers.add(payload);
-                  }
-                }
-              }
-            }
-          } else if (presenceState is Map) {
-            for (final presences in presenceState.values) {
-              for (final presence in (presences as List<dynamic>)) {
-                if (presence is Map<String, dynamic>) {
-                  newPlayers.add(presence);
-                }
-              }
-            }
-          }
-
+    await widget.repository.joinLobby(
+      widget.roomId,
+      (players) {
+        if (mounted) {
           setState(() {
-            _players = newPlayers;
+            _players = players;
           });
-        })
-        .onBroadcast(
-          event: 'match_start',
-          callback: (payload) {
-            final matchId = payload['match_id'] as String;
-            _handleMatchStart(matchId);
-          },
-        )
-        .subscribe((status, error) async {
-          if (status == RealtimeSubscribeStatus.subscribed) {
-            final currentUser = client.auth.currentUser;
-            await _channel!.track({
-              'user_id': currentUser?.id,
-              'username':
-                  currentUser?.userMetadata?['username'] ??
-                  'Player ${currentUser?.id.substring(0, 4)}',
-              'status': 'ready',
-              'joined_at': DateTime.now().toIso8601String(),
-            });
-          }
-        });
+        }
+      },
+      onMatchStart: (matchId) {
+        _handleMatchStart(matchId);
+      },
+    );
   }
 
   void _handleMatchStart(String matchId) {
@@ -129,21 +79,12 @@ class _LobbyPageState extends State<LobbyPage> {
   }
 
   Future<void> _startMatch() async {
-    if (_channel == null) return;
-
-    // Generate a unique match ID for this session
-    final matchId =
-        "MATCH_${widget.roomId}_${DateTime.now().millisecondsSinceEpoch}";
-
-    await _channel!.sendBroadcastMessage(
-      event: 'match_start',
-      payload: {'match_id': matchId},
-    );
+    await widget.repository.broadcastMatchStart(widget.roomId);
   }
 
   @override
   void dispose() {
-    _channel?.unsubscribe();
+    widget.repository.leaveLobby();
     super.dispose();
   }
 

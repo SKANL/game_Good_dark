@@ -99,57 +99,85 @@ class MultiplayerRepository {
   RealtimeChannel? _matchmakingChannel;
 
   Future<void> joinLobby(
-    String gameType,
-    void Function(List<User>) onPlayersUpdated,
-  ) async {
+    String roomId,
+    void Function(List<Map<String, dynamic>>) onPlayersUpdated, {
+    void Function(String matchId)? onMatchStart,
+  }) async {
     final user = currentUser;
     if (user == null) return;
 
-    _matchmakingChannel = _client.channel('lobby_$gameType');
+    // Clean up previous channel if any
+    if (_matchmakingChannel != null) {
+      await leaveLobby();
+    }
+
+    _matchmakingChannel = _client.channel('lobby_$roomId');
 
     _matchmakingChannel!
         .onPresenceSync((payload) {
           final dynamic presenceState = _matchmakingChannel!.presenceState();
-          final users = <User>[];
+          final players = <Map<String, dynamic>>[];
+
+          // Helper to process a single presence object
+          void processPresence(dynamic presence) {
+            if (presence is Map && presence['payloads'] is List) {
+              for (final payload in (presence['payloads'] as List)) {
+                if (payload is Map<String, dynamic>) {
+                  players.add(payload);
+                }
+              }
+            } else if (presence is Map<String, dynamic>) {
+              // Fallback or direct map structure
+              players.add(presence);
+            }
+          }
 
           if (presenceState is List) {
             for (final presence in presenceState) {
-              final dynamic p = presence;
-              if (p.payloads != null) {
-                for (final payload in (p.payloads as List<dynamic>)) {
-                  if (payload is Map<String, dynamic> &&
-                      payload.containsKey('user')) {
-                    // users.add(User.fromJson(payload['user']));
-                  }
-                }
-              }
+              processPresence(presence);
             }
           } else if (presenceState is Map) {
             for (final presences in presenceState.values) {
-              for (final presence in (presences as List<dynamic>)) {
-                if (presence is Map<String, dynamic> &&
-                    presence.containsKey('user')) {
-                  // users.add(User.fromJson(presence['user']));
+              if (presences is List) {
+                for (final presence in presences) {
+                  processPresence(presence);
                 }
               }
             }
           }
 
-          onPlayersUpdated(users);
+          onPlayersUpdated(players);
         })
+        .onBroadcast(
+          event: 'match_start',
+          callback: (payload) {
+            if (onMatchStart != null) {
+              final matchId = payload['match_id'] as String;
+              onMatchStart(matchId);
+            }
+          },
+        )
         .subscribe((status, error) async {
           if (status == RealtimeSubscribeStatus.subscribed) {
             await _matchmakingChannel!.track({
               'user_id': user.id,
               'username': user.userMetadata?['username'] ?? 'Unknown',
-              'status': 'searching',
+              'status': 'ready',
+              'joined_at': DateTime.now().toIso8601String(),
             });
           }
         });
   }
 
-  Stream<List<Map<String, dynamic>>> get lobbyStream {
-    return const Stream.empty();
+  Future<void> broadcastMatchStart(String roomId) async {
+    if (_matchmakingChannel == null) return;
+
+    final matchId = "MATCH_${roomId}_${DateTime.now().millisecondsSinceEpoch}";
+
+    await _matchmakingChannel!.sendBroadcastMessage(
+      event: 'match_start',
+      payload: {'match_id': matchId},
+    );
   }
 
   Future<void> leaveLobby() async {
