@@ -40,16 +40,30 @@ class _LobbyPageState extends State<LobbyPage> {
   }
 
   Future<void> _joinLobby() async {
+    print(
+      '[MULTIPLAYER_DEBUG] LobbyPage: _joinLobby called for room ${widget.roomId}',
+    );
     await widget.repository.joinLobby(
       widget.roomId,
       (players) {
+        print(
+          '[MULTIPLAYER_DEBUG] LobbyPage: Received players update. Count: ${players.length}',
+        );
         if (mounted) {
           setState(() {
             _players = players;
           });
+          print('[MULTIPLAYER_DEBUG] LobbyPage: UI State updated');
+        } else {
+          print(
+            '[MULTIPLAYER_DEBUG] LobbyPage: Widget not mounted, skipping update',
+          );
         }
       },
       onMatchStart: (matchId) {
+        print(
+          '[MULTIPLAYER_DEBUG] LobbyPage: Match start event received: $matchId',
+        );
         _handleMatchStart(matchId);
       },
     );
