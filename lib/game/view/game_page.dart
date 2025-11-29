@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:echo_world/game/game.dart';
@@ -15,9 +16,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:echo_world/game/cubit/audio/audio_cubit.dart';
 import 'package:echo_world/game/cubit/checkpoint/checkpoint_bloc.dart';
 import 'package:echo_world/game/cubit/game/game_bloc.dart';
+import 'package:echo_world/game/cubit/game/game_event.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/widgets/virtual_joystick.dart';
 import 'package:echo_world/l10n/l10n.dart';
+import 'package:echo_world/title/title.dart';
 
 class GamePage extends StatelessWidget {
   const GamePage({super.key});
@@ -46,7 +49,10 @@ class GamePage extends StatelessWidget {
           ),
         ),
       ],
-      child: const Scaffold(body: GameView()),
+      child: const Scaffold(
+        backgroundColor: Colors.black,
+        body: GameView(),
+      ),
     );
   }
 }
@@ -84,6 +90,7 @@ class _GameViewState extends State<GameView> {
     _game ??=
         widget.game ??
         BlackEchoGame(
+          audioCubit: context.read<AudioCubit>(),
           gameBloc: context.read<GameBloc>(),
           checkpointBloc: context.read<CheckpointBloc>(),
           loreBloc: context.read<LoreBloc>(),
@@ -126,6 +133,9 @@ class _GameViewState extends State<GameView> {
           // Overlay de ruido mental (se muestra sobre el juego cuando ruidoMental > 25)
           BlocBuilder<GameBloc, GameState>(
             builder: (context, state) {
+              if (state.estadoJugador == EstadoJugador.atrapado) {
+                return const SizedBox.shrink();
+              }
               if (state.ruidoMental <= 25) return const SizedBox.shrink();
               return Positioned.fill(
                 child: IgnorePointer(
@@ -140,58 +150,117 @@ class _GameViewState extends State<GameView> {
           Positioned(
             left: 20,
             bottom: 20,
-            child: VirtualJoystick(
-              onChange: (offset) {
-                // Update game input directly
-                // Convert offset (dx, dy) to Vector2
-                if (_game != null) {
-                  (_game! as BlackEchoGame).virtualJoystickInput.setValues(
-                    offset.dx,
-                    offset.dy,
-                  );
+            child: BlocBuilder<GameBloc, GameState>(
+              buildWhen: (prev, curr) =>
+                  prev.estadoJugador != curr.estadoJugador,
+              builder: (context, state) {
+                if (state.estadoJugador == EstadoJugador.atrapado) {
+                  return const SizedBox.shrink();
                 }
+                return VirtualJoystick(
+                  onChange: (offset) {
+                    // Update game input directly
+                    // Convert offset (dx, dy) to Vector2
+                    if (_game != null) {
+                      (_game! as BlackEchoGame).virtualJoystickInput.setValues(
+                        offset.dx,
+                        offset.dy,
+                      );
+                    }
+                  },
+                );
               },
             ),
           ),
-          Align(
-            alignment: Alignment.topRight,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                BlocBuilder<AudioCubit, AudioState>(
-                  builder: (context, state) {
-                    return IconButton(
-                      icon: Icon(
-                        state.volume == 0 ? Icons.volume_off : Icons.volume_up,
-                      ),
-                      onPressed: () =>
-                          context.read<AudioCubit>().toggleVolume(),
-                    );
-                  },
-                ),
-                // Botón de DEBUG para avanzar chunks
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00FF00),
-                    foregroundColor: const Color(0xFF000000),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+          BlocBuilder<GameBloc, GameState>(
+            buildWhen: (prev, curr) => prev.estadoJugador != curr.estadoJugador,
+            builder: (context, state) {
+              if (state.estadoJugador == EstadoJugador.atrapado) {
+                return const SizedBox.shrink();
+              }
+              return Align(
+                alignment: Alignment.topRight,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    BlocBuilder<AudioCubit, AudioState>(
+                      builder: (context, state) {
+                        return IconButton(
+                          icon: Icon(
+                            state.volume == 0
+                                ? Icons.volume_off
+                                : Icons.volume_up,
+                          ),
+                          onPressed: () =>
+                              context.read<AudioCubit>().toggleVolume(),
+                        );
+                      },
                     ),
-                    elevation: 8,
-                  ),
-                  onPressed: () async {
-                    final game = _game! as BlackEchoGame;
-                    await game.levelManager.siguienteChunk();
-                  },
-                  child: const Text(
-                    'NEXT\nCHUNK',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
+                    // Botón de DEBUG para avanzar chunks
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00FF00),
+                        foregroundColor: const Color(0xFF000000),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        elevation: 8,
+                      ),
+                      onPressed: () async {
+                        final game = _game! as BlackEchoGame;
+                        await game.levelManager.siguienteChunk();
+                      },
+                      child: const Text(
+                        'NEXT\nCHUNK',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        elevation: 8,
+                      ),
+                      onPressed: () {
+                        context.read<GameBloc>().add(
+                          EcoNarrativoAbsorbido('debug_death', 100),
+                        );
+                        context.read<GameBloc>().add(JugadorAtrapado());
+                      },
+                      child: const Text(
+                        'DEBUG\nDEATH',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
+          ),
+          // DEATH SCREEN - Rendered directly in Flutter Stack (not Flame overlay)
+          BlocBuilder<GameBloc, GameState>(
+            buildWhen: (prev, curr) => prev.estadoJugador != curr.estadoJugador,
+            builder: (context, state) {
+              if (state.estadoJugador != EstadoJugador.atrapado) {
+                return const SizedBox.shrink();
+              }
+              print('🔴 RENDERING DEATH SCREEN IN FLUTTER STACK');
+              return _OverlayFracaso();
+            },
           ),
         ],
       ),
@@ -199,29 +268,48 @@ class _GameViewState extends State<GameView> {
   }
 
   void _updateOverlays(BlackEchoGame game, GameState state) {
-    game.overlays.clear();
+    print('_updateOverlays called: estadoJugador=${state.estadoJugador}');
+
     // Reanudar el motor si está pausado y no estamos en pausa explícita.
     if (game.paused && state.estadoJuego != EstadoJuego.pausado) {
       game.resumeEngine();
     }
-    if (state.estadoJuego == EstadoJuego.pausado) {
-      game.overlays.add('PauseMenu');
-      return;
-    }
+
+    // DEATH SCREEN is now managed by Flutter Stack BlocBuilder, not Flame overlays
+    // Skip overlay management if player is dead
     if (state.estadoJugador == EstadoJugador.atrapado) {
-      game.overlays.add('OverlayFracaso');
+      print('Player is dead, death screen managed by Flutter Stack');
+      // Clear Flame overlays to avoid conflicts
+      game.overlays.clear();
       return;
     }
-    switch (state.enfoqueActual) {
-      case Enfoque.topDown:
-        game.overlays.add('HudTopDown');
-      case Enfoque.sideScroll:
-        game.overlays.add('HudSideScroll');
-      case Enfoque.firstPerson:
-        game.overlays.add('HudFirstPerson');
-      default:
-        break;
+
+    // Manejar pausa
+    if (state.estadoJuego == EstadoJuego.pausado) {
+      if (!game.overlays.isActive('PauseMenu')) {
+        game.overlays.clear();
+        game.overlays.add('PauseMenu');
+      }
+      return;
     }
+
+    // Gestionar HUDs según enfoque
+    final hudName = switch (state.enfoqueActual) {
+      Enfoque.topDown => 'HudTopDown',
+      Enfoque.sideScroll => 'HudSideScroll',
+      Enfoque.firstPerson => 'HudFirstPerson',
+      _ => 'HudTopDown',
+    };
+
+    // Si el HUD correcto ya está activo y es el único, no hacer nada
+    if (game.overlays.isActive(hudName) &&
+        game.overlays.activeOverlays.length == 1) {
+      return;
+    }
+
+    // Si hay que cambiar de HUD
+    game.overlays.clear();
+    game.overlays.add(hudName);
   }
 }
 
@@ -264,7 +352,7 @@ class _HexImgButtonState extends State<HexImgButton> {
         clipper: const HexagonClipper(),
         child: GestureDetector(
           onTapDown: (details) {
-            AudioManager.instance.playSfx('select_main.mp3');
+            // AudioManager.instance.playSfx('select_main'); // Removed as per user request
             setState(() => _isPressed = true);
             widget.onTapDown?.call(details);
           },
@@ -482,8 +570,10 @@ class _HudTopDown extends StatelessWidget {
                     height: 112,
                     onPressed: () async {
                       if (bloc.state.energiaGrito >= 40) {
-                        await game.player.rupture();
-                        bloc.add(GritoActivado());
+                        final success = await game.player.rupture();
+                        if (success) {
+                          bloc.add(GritoActivado());
+                        }
                       }
                     },
                   ),
@@ -906,100 +996,166 @@ class _PauseMenu extends StatelessWidget {
   }
 }
 
-class _OverlayFracaso extends StatelessWidget {
+class _OverlayFracaso extends StatefulWidget {
+  @override
+  State<_OverlayFracaso> createState() => _OverlayFracasoState();
+}
+
+class _OverlayFracasoState extends State<_OverlayFracaso>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _opacityAnim;
+  late final Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _opacityAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.8, curve: Curves.easeOut),
+      ),
+    );
+
+    _scaleAnim = Tween<double>(begin: 0.9, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 1.0, curve: Curves.easeOutBack),
+      ),
+    );
+
+    AudioManager.instance.playSfx('muerte_horror');
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    print('🔴 Building OverlayFracaso (System Failure HUD)');
     final gameBloc = context.read<GameBloc>();
+    final screenSize = MediaQuery.of(context).size;
 
     return BlocBuilder<CheckpointBloc, CheckpointState>(
       builder: (context, checkpointState) {
-        final muertes = checkpointState.muertesEnChunkActual;
+        final muertes = checkpointState.totalMuertes;
         final activarMisericordia = checkpointState.debeActivarMisericordia;
 
-        return ColoredBox(
-          color: Colors.black.withOpacity(0.8),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Título
-                const Text(
-                  'ATRAPADO',
-                  style: TextStyle(
-                    color: Color(0xFF00FFFF),
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(
-                        color: Color(0xFF00FFFF),
-                        blurRadius: 10,
-                      ),
-                    ],
+        return Stack(
+          children: [
+            // Layer 1: Background Blur & Scanlines
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  color: Colors.black.withOpacity(0.8),
+                  child: CustomPaint(
+                    painter: _ScanlinePainter(),
                   ),
                 ),
-                const SizedBox(height: 24),
-
-                // Información de muertes
-                Text(
-                  'Muertes en este sector: $muertes',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 18,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Mensaje de Misericordia
-                if (activarMisericordia) ...[
-                  const Text(
-                    '⚡ SISTEMA DE MISERICORDIA ACTIVADO ⚡',
-                    style: TextStyle(
-                      color: Color(0xFFFFD700),
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      shadows: [
-                        Shadow(
-                          color: Color(0xFFFFD700),
-                          blurRadius: 15,
-                        ),
-                      ],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Reiniciarás con Escudo Sónico completo',
-                    style: TextStyle(
-                      color: Color(0xFFFFD700),
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                ],
-
-                // Botón de reinicio
-                ElevatedButton(
-                  onPressed: () {
-                    gameBloc.add(
-                      ReinicioSolicitado(
-                        conMisericordia: activarMisericordia,
-                      ),
-                    );
-                  },
-                  child: const Text('REINTENTAR'),
-                ),
-              ],
+              ),
             ),
-          ),
+            // Layer 2: Main Content with Animation
+            Center(
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _opacityAnim.value,
+                    child: Transform.scale(
+                      scale: _scaleAnim.value,
+                      child: _SystemFailureFrame(
+                        width: 500,
+                        height: 400,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.redAccent,
+                              size: 64,
+                            ),
+                            const SizedBox(height: 20),
+                            const _GlitchTitle(
+                              text: 'HAS MUERTO',
+                              fontSize: 48,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              '[ MUERTES TOTALES: $muertes ]',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontFamily: 'Courier',
+                                fontSize: 18,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                            const Spacer(),
+                            if (gameBloc.state.ruidoMental >= 100) ...[
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _HoloButton(
+                                    text: 'MENÚ',
+                                    color: Colors.cyan,
+                                    onPressed: () {
+                                      Navigator.of(
+                                        context,
+                                      ).pushReplacement(TitlePage.route());
+                                    },
+                                  ),
+                                  _HoloButton(
+                                    text: 'REINTENTAR',
+                                    color: Colors.white,
+                                    onPressed: () {
+                                      gameBloc.add(
+                                        ReinicioSolicitado(
+                                          conMisericordia: false,
+                                          resetFull: true,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ] else ...[
+                              _HoloButton(
+                                text: 'REESTABLECER',
+                                color: Colors.greenAccent,
+                                onPressed: () {
+                                  gameBloc.add(
+                                    ReinicioSolicitado(
+                                      conMisericordia: activarMisericordia,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
     );
   }
 }
 
-/// CustomPainter para renderizar el VFX de ruido mental.
-/// Dibuja estática, viñeta y efectos de glitch según la intensidad (0.0 - 1.0).
 class _RuidoMentalOverlay extends StatefulWidget {
   const _RuidoMentalOverlay({required this.intensity});
   final double intensity;
@@ -1428,6 +1584,213 @@ class HUDBar extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SystemFailureFrame extends StatelessWidget {
+  final Widget child;
+  final double width;
+  final double height;
+
+  const _SystemFailureFrame({
+    required this.child,
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _ChamferedBorderPainter(),
+      child: Container(
+        width: width,
+        height: height,
+        padding: const EdgeInsets.all(24),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _ChamferedBorderPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.redAccent
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0
+      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 4);
+
+    final path = Path();
+    final cut = 20.0;
+
+    path.moveTo(cut, 0);
+    path.lineTo(size.width - cut, 0);
+    path.lineTo(size.width, cut);
+    path.lineTo(size.width, size.height - cut);
+    path.lineTo(size.width - cut, size.height);
+    path.lineTo(cut, size.height);
+    path.lineTo(0, size.height - cut);
+    path.lineTo(0, cut);
+    path.close();
+
+    // Draw glow
+    canvas.drawPath(
+      path,
+      paint
+        ..strokeWidth = 4
+        ..color = Colors.redAccent.withOpacity(0.5),
+    );
+    // Draw core
+    canvas.drawPath(
+      path,
+      paint
+        ..strokeWidth = 2
+        ..color = Colors.redAccent
+        ..maskFilter = null,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _ScanlinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black.withOpacity(0.3)
+      ..style = PaintingStyle.fill;
+
+    for (double i = 0; i < size.height; i += 4) {
+      canvas.drawRect(Rect.fromLTWH(0, i, size.width, 1), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _GlitchTitle extends StatelessWidget {
+  final String text;
+  final double fontSize;
+
+  const _GlitchTitle({required this.text, required this.fontSize});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Transform.translate(
+          offset: const Offset(-3, 0),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Courier',
+              color: Colors.cyan.withOpacity(0.7),
+            ),
+          ),
+        ),
+        Transform.translate(
+          offset: const Offset(3, 0),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Courier',
+              color: Colors.red.withOpacity(0.7),
+            ),
+          ),
+        ),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: fontSize,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Courier',
+            color: Colors.white,
+            shadows: [
+              BoxShadow(
+                color: Colors.white.withOpacity(0.8),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HoloButton extends StatefulWidget {
+  final String text;
+  final VoidCallback onPressed;
+  final Color color;
+
+  const _HoloButton({
+    required this.text,
+    required this.onPressed,
+    this.color = Colors.cyan,
+  });
+
+  @override
+  State<_HoloButton> createState() => _HoloButtonState();
+}
+
+class _HoloButtonState extends State<_HoloButton> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        widget.onPressed();
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          decoration: BoxDecoration(
+            color: _isPressed
+                ? widget.color.withOpacity(0.3)
+                : Colors.transparent,
+            border: Border.all(
+              color: _isHovered || _isPressed
+                  ? widget.color
+                  : widget.color.withOpacity(0.5),
+              width: 1.5,
+            ),
+            boxShadow: [
+              if (_isHovered || _isPressed)
+                BoxShadow(
+                  color: widget.color.withOpacity(0.4),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
+            ],
+          ),
+          child: Text(
+            widget.text,
+            style: TextStyle(
+              color: widget.color,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Courier',
+              letterSpacing: 2,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

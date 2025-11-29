@@ -11,6 +11,7 @@ class AudioManager {
   // Pools de audio para reproducción simultánea
   final Map<String, List<AudioPlayer>> _pools = {};
   final Map<String, bool> _isLoaded = {};
+  final Map<String, int> _rrIndices = {}; // Round-Robin indices
 
   // Referencias a sonidos activos para control posicional
   final Map<String, AudioPlayer> _positionalLoops = {};
@@ -64,14 +65,21 @@ class AudioManager {
       await _preloadSound('footstep_stealth_01', poolSize: 4);
       await _preloadSound('select_main', poolSize: 3);
       await _preloadSound('jump', poolSize: 3); // Jump audio
+      await _preloadSound('muerte_horror', poolSize: 1); // Death audio
 
-      // SFX enemigos
+      // Ambient Loops
+      await _preloadSound('amb_tinnitus_loop', poolSize: 2);
+      await _preloadSound('amb_whispers_loop', poolSize: 2);
+
+      // SFX enemigos (DISABLED FOR PERFORMANCE)
+      /*
       await _preloadSound('cazador_groan_loop', poolSize: 5);
       await _preloadSound('cazador_alert', poolSize: 3);
       await _preloadSound('cazador_hunt_scream', poolSize: 3);
       await _preloadSound('vigia_static_hum_loop', poolSize: 2);
       await _preloadSound('vigia_alarm_scream', poolSize: 2);
       await _preloadSound('bruto_footstep', poolSize: 3);
+      */
 
       _isInitialized = true;
       debugPrint('[AudioManager] Preload completo');
@@ -110,10 +118,16 @@ class AudioManager {
   /// Reproduce un SFX no-posicional
   Future<void> playSfx(String soundId, {double volume = 1.0}) async {
     if (!(_isLoaded[soundId] ?? false)) {
+      debugPrint(
+        '[AudioManager] Sound $soundId NOT LOADED. Attempting on-demand load.',
+      );
       if (!_pools.containsKey(soundId)) {
         await _preloadSound(soundId, poolSize: 2);
       }
-      if (!(_isLoaded[soundId] ?? false)) return;
+      if (!(_isLoaded[soundId] ?? false)) {
+        debugPrint('[AudioManager] FAILED to load $soundId on-demand.');
+        return;
+      }
     }
 
     final pool = _pools[soundId]!;
@@ -125,20 +139,61 @@ class AudioManager {
       }
     }
 
-    available ??= pool.first;
+    // Round-Robin Fallback (evita saturar siempre al primer player)
+    if (available == null) {
+      var index = _rrIndices[soundId] ?? 0;
+      index = (index + 1) % pool.length;
+      _rrIndices[soundId] = index;
+      available = pool[index];
+    }
 
+    debugPrint(
+      '[AudioManager] playSfx $soundId | Vol: $volume | Master: $_masterVolume | SFX: $_sfxVolume',
+    );
+
+    // FIRE-AND-FORGET: Intentar reproducir sin esperar a stop().
+    // Usamos seek(0) + resume() que funciona en cualquier estado (Playing/Paused/Stopped).
     try {
-      await available.stop();
       final clampedVolume = (_masterVolume * _sfxVolume * volume).clamp(
         0.0,
         1.0,
       );
-      await available.setVolume(clampedVolume);
-      await available.setReleaseMode(ReleaseMode.stop);
-      await available.seek(Duration.zero);
-      await available.resume();
+
+      // No usamos await para no bloquear, pero encadenamos las promesas
+      // para mantener el orden de operaciones.
+      available
+          .setVolume(clampedVolume)
+          .then((_) {
+            return available!.setReleaseMode(ReleaseMode.stop);
+          })
+          .then((_) {
+            return available!.seek(Duration.zero);
+          })
+          .then((_) {
+            return available!.resume();
+          })
+          .then((_) {
+            debugPrint('[AudioManager] SUCCESS playing $soundId');
+          })
+          .catchError((e) {
+            debugPrint(
+              '[AudioManager] ERROR playing $soundId: $e. Trying fallback player.',
+            );
+            // Fallback: Create a temporary player to ensure sound plays
+            final tempPlayer = AudioPlayer();
+            tempPlayer.setSource(AssetSource('audio/$soundId.wav')).then((_) {
+              tempPlayer.setVolume(clampedVolume);
+              tempPlayer.resume();
+              // Dispose on complete OR after timeout (safety net)
+              tempPlayer.onPlayerComplete.listen((_) => tempPlayer.dispose());
+              Future.delayed(
+                const Duration(seconds: 5),
+                () => tempPlayer.dispose(),
+              );
+            });
+          });
     } catch (e) {
-      debugPrint('[AudioManager] Error reproduciendo $soundId: $e');
+      debugPrint('[AudioManager] CRITICAL ERROR starting $soundId: $e');
     }
   }
 
@@ -220,27 +275,38 @@ class AudioManager {
   }
 
   /// Reproduce un SFX con audio posicional
-  Future<void> playPositional({
+  /// Reproduce un SFX con audio posicional (Fire-and-Forget + Fallback)
+  void playPositional({
     required String soundId,
     required math.Point<double> sourcePosition,
     required math.Point<double> listenerPosition,
     double maxDistance = 640.0,
     double volume = 1.0,
     bool loop = false,
-  }) async {
-    if (!(_isLoaded[soundId] ?? false)) return;
+  }) {
+    if (!(_isLoaded[soundId] ?? false)) {
+      debugPrint(
+        '[AudioManager] WARNING: $soundId not loaded for positional play',
+      );
+      return;
+    }
 
     final pool = _pools[soundId]!;
     AudioPlayer? available;
-    for (final player in pool) {
+
+    // 1. Round-Robin Selection
+    final startIndex = _rrIndices[soundId] ?? 0;
+    for (var i = 0; i < pool.length; i++) {
+      final index = (startIndex + i) % pool.length;
+      final player = pool[index];
       if (player.state != PlayerState.playing) {
         available = player;
+        _rrIndices[soundId] = (index + 1) % pool.length;
         break;
       }
     }
 
-    if (available == null) return;
-
+    // Calculate 3D Audio Params
     final dx = sourcePosition.x - listenerPosition.x;
     final dy = sourcePosition.y - listenerPosition.y;
     final distance = math.sqrt(dx * dx + dy * dy);
@@ -249,23 +315,72 @@ class AudioManager {
         ? 1.0 - (distance / maxDistance).clamp(0.0, 1.0)
         : 0.0;
 
-    if (distanceFactor == 0.0) return;
+    if (distanceFactor <= 0.0) return; // Too far to hear
 
     final balance = (dx / maxDistance).clamp(-1.0, 1.0);
+    final finalVolume = (_masterVolume * _sfxVolume * volume * distanceFactor)
+        .clamp(0.0, 1.0);
 
-    try {
-      await available.setVolume(
-        _masterVolume * _sfxVolume * volume * distanceFactor,
-      );
-      await available.setBalance(balance);
-      await available.setReleaseMode(
-        loop ? ReleaseMode.loop : ReleaseMode.stop,
-      );
-      await available.seek(Duration.zero);
-      await available.resume();
-    } catch (e) {
-      // Silenciar errores de threading
+    // 2. Play or Fallback
+    if (available != null) {
+      available
+          .setVolume(finalVolume)
+          .then((_) => available!.setBalance(balance))
+          .then(
+            (_) => available!.setReleaseMode(
+              loop ? ReleaseMode.loop : ReleaseMode.stop,
+            ),
+          )
+          .then((_) => available!.seek(Duration.zero))
+          .then((_) => available!.resume())
+          .catchError((e) {
+            debugPrint(
+              '[AudioManager] ERROR positional $soundId: $e. Using fallback.',
+            );
+            _playPositionalFallback(soundId, finalVolume, balance, loop);
+          });
+    } else {
+      // Pool exhausted, force fallback
+      debugPrint('[AudioManager] POOL EXHAUSTED for $soundId. Using fallback.');
+      _playPositionalFallback(soundId, finalVolume, balance, loop);
     }
+  }
+
+  void _playPositionalFallback(
+    String soundId,
+    double volume,
+    double balance,
+    bool loop,
+  ) {
+    final tempPlayer = AudioPlayer();
+    tempPlayer
+        .setSource(AssetSource('audio/$soundId.wav'))
+        .then((_) {
+          tempPlayer.setVolume(volume);
+          tempPlayer.setBalance(balance);
+          tempPlayer.setReleaseMode(loop ? ReleaseMode.loop : ReleaseMode.stop);
+          tempPlayer.resume();
+
+          // Safety disposal
+          if (!loop) {
+            tempPlayer.onPlayerComplete.listen((_) => tempPlayer.dispose());
+            Future.delayed(
+              const Duration(seconds: 5),
+              () => tempPlayer.dispose(),
+            );
+          } else {
+            // If it's a loop fallback, we can't easily track it to stop it later without an ID.
+            // Ideally, positional loops shouldn't hit fallback often.
+            // For now, we'll let it run but warn.
+            debugPrint(
+              '[AudioManager] WARNING: Fallback loop started for $soundId. Might leak if not tracked.',
+            );
+          }
+        })
+        .catchError((e) {
+          debugPrint('[AudioManager] CRITICAL FALLBACK ERROR $soundId: $e');
+          tempPlayer.dispose();
+        });
   }
 
   /// Inicia un loop posicional (para enemigos)
@@ -287,7 +402,13 @@ class AudioManager {
       }
     }
 
-    if (available == null) return null;
+    // Round-Robin Fallback for Positional Loops
+    if (available == null) {
+      var index = _rrIndices[soundId] ?? 0;
+      index = (index + 1) % pool.length;
+      _rrIndices[soundId] = index;
+      available = pool[index];
+    }
 
     final dx = sourcePosition.x - listenerPosition.x;
     final dy = sourcePosition.y - listenerPosition.y;
@@ -341,11 +462,14 @@ class AudioManager {
     }
   }
 
-  /// Detiene un loop posicional específico
+  /// Detiene un loop posicional específico (Fire-and-Forget)
   Future<void> stopPositionalLoop(String loopId) async {
     final player = _positionalLoops.remove(loopId);
     if (player != null) {
-      await player.stop();
+      // No await para evitar bloqueos si el engine falla
+      player.stop().then((_) => player.seek(Duration.zero)).catchError((e) {
+        debugPrint('[AudioManager] Error stopping loop $loopId: $e');
+      });
     }
   }
 
@@ -450,8 +574,6 @@ class AudioManager {
       }
     }
   }
-
-  // -------------------------------
 
   /// Actualiza el volumen maestro
   void setMasterVolume(double volume) {

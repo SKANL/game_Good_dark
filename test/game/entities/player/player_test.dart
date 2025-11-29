@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:echo_world/game/black_echo_game.dart';
+import 'package:echo_world/game/cubit/audio/audio_cubit.dart';
 import 'package:echo_world/game/cubit/game/game_bloc.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/entities/player/behaviors/behaviors.dart';
@@ -23,7 +24,8 @@ class TestBlackEchoGame extends BlackEchoGame {
     required super.checkpointBloc,
     required super.loreBloc,
     required this.mockLevelManager,
-  });
+    AudioCubit? audioCubit,
+  }) : super(audioCubit: audioCubit ?? MockAudioCubit());
 
   final LevelManagerComponent mockLevelManager;
 
@@ -33,6 +35,11 @@ class TestBlackEchoGame extends BlackEchoGame {
     // Manually set up what we need
     levelManager = mockLevelManager;
     await world.add(levelManager);
+  }
+
+  @override
+  void update(double dt) {
+    // Skip update to avoid audio checks
   }
 }
 

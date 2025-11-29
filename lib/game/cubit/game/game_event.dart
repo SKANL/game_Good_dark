@@ -22,13 +22,19 @@ class JuegoReanudado extends GameEvent {}
 
 /// Evento para reiniciar el juego después de una muerte
 class ReinicioSolicitado extends GameEvent {
-  const ReinicioSolicitado({this.conMisericordia = false});
+  const ReinicioSolicitado({
+    this.conMisericordia = false,
+    this.resetFull = false,
+  });
 
   /// Si es true, el jugador reinicia con energiaGrito: 50 (escudo gratis)
   final bool conMisericordia;
 
+  /// Si es true, reinicia TODO (incluyendo ruidoMental a 0)
+  final bool resetFull;
+
   @override
-  List<Object?> get props => [conMisericordia];
+  List<Object?> get props => [conMisericordia, resetFull];
 }
 
 // Eventos desde el motor (Flame)

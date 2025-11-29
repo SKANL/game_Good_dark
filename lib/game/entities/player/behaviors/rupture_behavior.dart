@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:echo_world/game/components/vfx/enemy_death_vfx_component.dart';
+import 'package:echo_world/game/components/vfx/rejection_vfx_component.dart';
 import 'package:echo_world/game/components/vfx/rupture_vfx_component.dart';
 import 'package:echo_world/game/components/world/wall_component.dart';
 import 'package:echo_world/game/cubit/game/game_bloc.dart';
@@ -30,14 +31,14 @@ class RuptureBehavior extends Behavior<PlayerComponent> {
     super.update(dt);
   }
 
-  Future<void> triggerRupture() async {
+  Future<bool> triggerRupture() async {
     // COOLDOWN & STATE CHECK
-    if (_isRupturing || _cooldownTimer > 0) return;
+    if (_isRupturing || _cooldownTimer > 0) return false;
 
     // FORCE SYNC: Read latest state directly
     if (gameBloc.state.energiaGrito < 40) {
       // Optional: Play "failed" sound
-      return;
+      return false;
     }
 
     _isRupturing = true;
@@ -46,45 +47,27 @@ class RuptureBehavior extends Behavior<PlayerComponent> {
     final game = parent.gameRef;
 
     // SFX: reproducir sonido de ruptura (no-posicional, global)
-    await AudioManager.instance.playSfx('rupture_blast', volume: 0.5);
+    // FIX: No esperar (await) al audio para evitar lag
+    AudioManager.instance.playSfx('rupture_blast', volume: 0.5);
 
     // VFX simple: sacudir cámara y añadir partículas
     game.shakeCamera();
-    await game.world.add(
+    game.world.add(
       RuptureVfxComponent(origin: parent.position.clone()),
     );
 
     // Interacción: destruir paredes destructibles en radio
-    // FIX: Query walls from world.children instead of levelManager.children
-    // because ChunkManagerComponent adds walls directly to world
     final walls = game.world.children.query<WallComponent>();
-
-    // DEBUG: Log wall query results
-    print('[RUPTURE DEBUG] Total walls in world: ${walls.length}');
-    print('[RUPTURE DEBUG] Player position: ${parent.position}');
-
-    var wallsDestroyed = 0;
     for (final w in walls) {
       final center = w.position + w.size / 2;
       final distance = center.distanceTo(parent.position);
 
-      // DEBUG: Log wall info
-      if (distance <= radius + 50) {
-        // Log walls slightly outside radius too
-        print(
-          '[RUPTURE DEBUG] Wall at ${w.position}, distance: $distance, destructible: ${w.destructible}',
-        );
-      }
-
       if (distance <= radius) {
         if (w.destructible) {
           w.destroy();
-          wallsDestroyed++;
         }
       }
     }
-
-    print('[RUPTURE DEBUG] Walls destroyed: $wallsDestroyed');
 
     // NUEVO: Derrotar enemigos en radio (con soporte para ResilienceBehavior)
     final enemies = game.world.children.query<PositionedEntity>();
@@ -119,7 +102,7 @@ class RuptureBehavior extends Behavior<PlayerComponent> {
           }
 
           // Spawnear VFX de muerte (que a su vez spawneará el núcleo con delay)
-          await game.world.add(
+          game.world.add(
             EnemyDeathVfxComponent(
               enemyPosition: enemy.position.clone(),
               enemySize: enemy.size.clone(),
@@ -129,8 +112,16 @@ class RuptureBehavior extends Behavior<PlayerComponent> {
 
           // Destruir enemigo inmediatamente (el VFX maneja el resto)
           enemy.removeFromParent();
+        } else {
+          // Si no fue derrotado (Bruto con 1 hit restante), dar feedback de golpe
+          // SFX: Sonido de impacto metálico/resistente
+          AudioManager.instance.playSfx('rejection_shield', volume: 0.8);
+
+          // VFX: Pequeña explosión o chispas
+          game.world.add(
+            RejectionVfxComponent(origin: enemy.position.clone()),
+          );
         }
-        // Si no fue derrotado (Bruto con 1 hit restante), sobrevive
       }
     }
 
@@ -138,5 +129,6 @@ class RuptureBehavior extends Behavior<PlayerComponent> {
     game.emitSound(parent.position.clone(), NivelSonido.alto, ttl: 1.2);
 
     _isRupturing = false;
+    return true;
   }
 }

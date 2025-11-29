@@ -32,7 +32,7 @@ class ScreamBehavior extends Behavior<PositionedEntity>
     _isScreaming = true;
     _currentScreamTime = screamDuration;
 
-    AudioManager.instance.playSfx('vigia_alarm_scream');
+    // AudioManager.instance.playSfx('vigia_alarm_scream'); // DISABLED FOR PERFORMANCE
 
     // Emitir estímulo de sonido ALTO para atraer a todos los enemigos
     gameRef.emitSound(

@@ -114,9 +114,10 @@ class PlayerComponent extends PositionedEntity
     jb?.triggerJump();
   }
 
-  Future<void> rupture() async {
+  Future<bool> rupture() async {
     final rb = children.whereType<RuptureBehavior>().firstOrNull;
-    await rb?.triggerRupture();
+    if (rb == null) return false;
+    return await rb.triggerRupture();
   }
 
   @override
@@ -174,14 +175,7 @@ class PlayerComponent extends PositionedEntity
     }
 
     // --- Ambient Sound Logic ---
-    final noise = gameBloc.state.ruidoMental;
-    if (noise > 75) {
-      AudioManager.instance.playAmbient('amb_whispers_loop', volume: 0.4);
-    } else if (noise > 40) {
-      AudioManager.instance.playAmbient('amb_tinnitus_loop', volume: 0.2);
-    } else {
-      AudioManager.instance.stopAmbient();
-    }
+    // Moved to BlackEchoGame for centralized atmosphere management
 
     // --- Dynamic Lighting Reaction ---
     final light = children.whereType<LightSourceComponent>().firstOrNull;
@@ -267,6 +261,9 @@ class PlayerComponent extends PositionedEntity
         if (gameBloc.state.energiaGrito >= 50) {
           // SFX: reproducir sonido de escudo sónico
           AudioManager.instance.playSfx('rejection_shield', volume: 0.9);
+
+          // FIX: Consumir energía al usar el escudo (evita invencibilidad infinita)
+          gameBloc.add(RechazoSonicoActivado(50));
 
           // Aturdir al enemigo (BUFF: 4.0s)
           hearing.stun(4);

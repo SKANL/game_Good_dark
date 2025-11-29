@@ -99,14 +99,25 @@ class VigiaComponent extends PositionedEntity
   }
 
   Future<void> _startAudioLoop() async {
-    _staticHumLoopId ??= await AudioManager.instance.startPositionalLoop(
-        soundId: 'vigia_static_hum_loop',
-        sourcePosition: math.Point(position.x, position.y),
-        listenerPosition: math.Point(
-          gameRef.player.position.x,
-          gameRef.player.position.y,
-        ),
-      );
+    // AUDIO DISABLED FOR PERFORMANCE
+    /*
+    final loopId = await AudioManager.instance.startPositionalLoop(
+      soundId: 'vigia_static_hum_loop',
+      sourcePosition: math.Point(position.x, position.y),
+      listenerPosition: math.Point(
+        gameRef.player.position.x,
+        gameRef.player.position.y,
+      ),
+    );
+
+    if (!isMounted) {
+      if (loopId != null) {
+        AudioManager.instance.stopPositionalLoop(loopId);
+      }
+      return;
+    }
+    _staticHumLoopId = loopId;
+    */
   }
 
   @override

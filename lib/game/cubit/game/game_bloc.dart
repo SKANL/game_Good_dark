@@ -82,16 +82,22 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     // Determinar energía inicial basada en Misericordia
     final energiaInicial = event.conMisericordia ? 50 : 40;
 
-    // Reiniciar el juego manteniendo el ruidoMental (es permanente)
+    // Si resetFull es true, reiniciamos el ruidoMental a 0.
+    // Si no, mantenemos el ruidoMental actual (comportamiento estándar).
+    final ruidoInicial = event.resetFull ? 0 : state.ruidoMental;
+
     emit(
       GameState.initial().copyWith(
-        ruidoMental: state.ruidoMental,
+        ruidoMental: ruidoInicial,
         energiaGrito: energiaInicial,
       ),
     );
   }
 
   void _onJugadorAtrapado(JugadorAtrapado event, Emitter<GameState> emit) {
+    // Si ya estamos atrapados, ignorar eventos duplicados (evita contador infinito)
+    if (state.estadoJugador == EstadoJugador.atrapado) return;
+
     // Registrar la muerte en el CheckpointBloc
     checkpointBloc.add(const MuerteRegistrada());
 
