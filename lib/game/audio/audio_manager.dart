@@ -587,6 +587,7 @@ class AudioManager {
 
   /// Limpia recursos al cerrar el juego
   Future<void> dispose() async {
+    debugPrint('[AudioManager] Disposing all resources...');
     await stopAllPositionalLoops();
     await stopAmbient();
 
@@ -599,7 +600,12 @@ class AudioManager {
     }
     _pools.clear();
     _isLoaded.clear();
+    _rrIndices.clear();
+    _positionalLoops.clear();
+
+    // Reset initialization state to allow re-loading
     _isInitialized = false;
+    debugPrint('[AudioManager] Disposed successfully.');
   }
 
   final List<AudioPlayer> _pausedByApp = [];

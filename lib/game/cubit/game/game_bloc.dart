@@ -96,8 +96,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   void _onJugadorAtrapado(JugadorAtrapado event, Emitter<GameState> emit) {
     // Si ya estamos atrapados, ignorar eventos duplicados (evita contador infinito)
-    if (state.estadoJugador == EstadoJugador.atrapado) return;
+    if (state.estadoJugador == EstadoJugador.atrapado) {
+      print('⚠️ GameBloc: JugadorAtrapado ignored (already trapped)');
+      return;
+    }
 
+    print('💀 GameBloc: JugadorAtrapado -> Dispatching MuerteRegistrada');
     // Registrar la muerte en el CheckpointBloc
     checkpointBloc.add(const MuerteRegistrada());
 

@@ -20,11 +20,15 @@ class CheckpointBloc extends HydratedBloc<CheckpointEvent, CheckpointState> {
     MuerteRegistrada event,
     Emitter<CheckpointState> emit,
   ) {
+    print('💀 CheckpointBloc: Processing MuerteRegistrada');
     // Incrementar contador de muertes en el chunk actual
     final chunkId = state.chunkActual;
     final muertesActuales = state.muertesPorChunk[chunkId] ?? 0;
     final nuevoMapa = Map<int, int>.from(state.muertesPorChunk);
     nuevoMapa[chunkId] = muertesActuales + 1;
+
+    print('💀 CheckpointBloc: Chunk $chunkId deaths: ${muertesActuales + 1}');
+    print('💀 CheckpointBloc: Total deaths: ${state.totalMuertes + 1}');
 
     emit(
       state.copyWith(

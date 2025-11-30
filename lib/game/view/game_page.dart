@@ -1,26 +1,27 @@
 import 'dart:async';
 import 'dart:ui';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:echo_world/game/audio/audio_manager.dart';
+import 'package:echo_world/game/cubit/audio/audio_cubit.dart';
+import 'package:echo_world/game/cubit/checkpoint/checkpoint_bloc.dart';
+import 'package:echo_world/game/cubit/checkpoint/checkpoint_event.dart';
+import 'package:echo_world/game/cubit/game/game_bloc.dart';
+import 'package:echo_world/game/cubit/game/game_event.dart';
+import 'package:echo_world/game/cubit/game/game_state.dart';
+import 'package:echo_world/game/cubit/checkpoint/checkpoint_state.dart';
 import 'package:echo_world/game/game.dart';
-
-import 'package:echo_world/game/cubit/checkpoint/cubit.dart';
-import 'package:echo_world/gen/assets.gen.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
-import 'package:echo_world/lore/lore.dart';
+import 'package:echo_world/game/widgets/virtual_joystick.dart';
+import 'package:echo_world/gen/assets.gen.dart';
 import 'package:echo_world/loading/cubit/cubit.dart';
+import 'package:echo_world/loading/view/cleaning_loading_page.dart';
+import 'package:echo_world/lore/lore.dart';
+import 'package:echo_world/title/title.dart';
 import 'package:flame/game.dart' hide Route;
 import 'package:flame_audio/bgm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:echo_world/game/cubit/audio/audio_cubit.dart';
-import 'package:echo_world/game/cubit/checkpoint/checkpoint_bloc.dart';
-import 'package:echo_world/game/cubit/game/game_bloc.dart';
-import 'package:echo_world/game/cubit/game/game_event.dart';
-import 'package:echo_world/game/cubit/game/game_state.dart';
-import 'package:echo_world/game/widgets/virtual_joystick.dart';
-import 'package:echo_world/l10n/l10n.dart';
-import 'package:echo_world/title/title.dart';
 
 class GamePage extends StatelessWidget {
   const GamePage({super.key});
@@ -1043,7 +1044,7 @@ class _OverlayFracasoState extends State<_OverlayFracaso>
   Widget build(BuildContext context) {
     print('🔴 Building OverlayFracaso (System Failure HUD)');
     final gameBloc = context.read<GameBloc>();
-    final screenSize = MediaQuery.of(context).size;
+    // final screenSize = MediaQuery.of(context).size;
 
     return BlocBuilder<CheckpointBloc, CheckpointState>(
       builder: (context, checkpointState) {
@@ -1111,17 +1112,26 @@ class _OverlayFracasoState extends State<_OverlayFracaso>
                                     onPressed: () {
                                       Navigator.of(
                                         context,
-                                      ).pushReplacement(TitlePage.route());
+                                      ).pushReplacement(
+                                        CleaningLoadingPage.route(
+                                          builder: (_) => const TitlePage(),
+                                        ),
+                                      );
                                     },
                                   ),
                                   _HoloButton(
                                     text: 'REINTENTAR',
                                     color: Colors.white,
                                     onPressed: () {
-                                      gameBloc.add(
-                                        ReinicioSolicitado(
-                                          conMisericordia: false,
-                                          resetFull: true,
+                                      // 1. Resetear el checkpoint para iniciar desde cero (Nivel 1)
+                                      context.read<CheckpointBloc>().add(
+                                        CheckpointReseteado(),
+                                      );
+
+                                      // 2. Navegar a través de la pantalla de limpieza para recargar todo
+                                      Navigator.of(context).pushReplacement(
+                                        CleaningLoadingPage.route(
+                                          builder: (_) => const GamePage(),
                                         ),
                                       );
                                     },

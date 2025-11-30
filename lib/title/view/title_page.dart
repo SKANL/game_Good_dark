@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:echo_world/game/ui/screens/journey_page.dart';
+import 'package:echo_world/loading/view/cleaning_loading_page.dart';
 import 'package:echo_world/minigames/menu/view/minigames_menu_page.dart';
 
 import 'package:echo_world/multiplayer/ui/multiplayer_login_page.dart';
@@ -235,7 +236,9 @@ class _MenuPrincipalState extends State<MenuPrincipal>
         case 0:
           debugPrint("Navigating to GamePage");
           FlameAudio.bgm.stop();
-          Navigator.of(context).pushReplacement(GamePage.route());
+          Navigator.of(context).pushReplacement(
+            CleaningLoadingPage.route(builder: (_) => const GamePage()),
+          );
           break;
         case 1:
           debugPrint("Accediendo a Protocolos Multijugador...");
