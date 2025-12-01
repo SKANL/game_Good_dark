@@ -93,7 +93,11 @@ class _LobbyPageState extends State<LobbyPage> {
   }
 
   Future<void> _startMatch() async {
-    await widget.repository.broadcastMatchStart(widget.roomId);
+    final matchId = await widget.repository.broadcastMatchStart(widget.roomId);
+    if (matchId != null) {
+      // Host must manually handle the start event as they don't receive their own broadcast
+      _handleMatchStart(matchId);
+    }
   }
 
   @override

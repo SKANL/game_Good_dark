@@ -211,8 +211,8 @@ class MultiplayerRepository {
         });
   }
 
-  Future<void> broadcastMatchStart(String roomId) async {
-    if (_matchmakingChannel == null) return;
+  Future<String?> broadcastMatchStart(String roomId) async {
+    if (_matchmakingChannel == null) return null;
 
     final matchId = "MATCH_${roomId}_${DateTime.now().millisecondsSinceEpoch}";
 
@@ -220,6 +220,8 @@ class MultiplayerRepository {
       event: 'match_start',
       payload: {'match_id': matchId},
     );
+
+    return matchId;
   }
 
   Future<void> leaveLobby() async {
