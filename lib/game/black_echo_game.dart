@@ -29,7 +29,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-class BlackEchoGame extends FlameGame with HasCollisionDetection {
+import 'package:echo_world/game/components/lighting/has_lighting.dart';
+
+class BlackEchoGame extends FlameGame with HasCollisionDetection, HasLighting {
   BlackEchoGame({
     required this.audioCubit,
     required this.gameBloc,
@@ -61,6 +63,7 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection {
   late final InputManager input;
   late final SoundBusComponent soundBus;
   late final RuidoMentalSystemComponent ruidoMentalSystem;
+  @override
   late final LightingSystem lightingSystem;
   bool _cameraReady = false;
 

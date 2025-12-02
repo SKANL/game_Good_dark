@@ -1,13 +1,13 @@
 import 'dart:math' as math;
 import 'dart:ui';
-import 'package:echo_world/game/black_echo_game.dart';
+import 'package:echo_world/game/components/lighting/has_lighting.dart';
 import 'package:flame/components.dart';
 
 enum LightType { omni, spot }
 
 /// A component that represents a dynamic light source in the game world.
 /// Can be attached to any PositionComponent (Player, Enemy, Item).
-class LightSourceComponent extends Component with HasGameRef<BlackEchoGame> {
+class LightSourceComponent extends Component with HasGameRef<HasLighting> {
   LightSourceComponent({
     this.color = const Color(0xFFFFFFFF),
     this.intensity = 1.0,
