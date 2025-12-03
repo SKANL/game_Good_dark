@@ -116,7 +116,7 @@ class BatchGeometryRenderer extends Component with HasGameRef<BlackEchoGame> {
       // Si es destructible, dibujar un borde punteado
       if (geo.destructible) {
         final borderPaint = Paint()
-          ..color = geo.color.withOpacity(0.5)
+          ..color = geo.color.withAlpha((0.5 * 255).round())
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2;
 

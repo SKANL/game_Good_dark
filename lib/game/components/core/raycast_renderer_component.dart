@@ -213,11 +213,11 @@ class RaycastRendererComponent extends Component
     );
 
     final fogColor =
-        chunk?.fogColor?.withOpacity(1) ??
+        chunk?.fogColor?.withAlpha(255) ??
         const Color(0xFF000510); // Darker fog
 
     // Cielo y suelo (fondo)
-    final skyPaint = Paint()..color = ambientColor.withOpacity(0.8);
+    final skyPaint = Paint()..color = ambientColor.withAlpha((0.8 * 255).round());
     final floorPaint = Paint()..color = ambientColor;
 
     // NO aplicar transformación: renderizar en espacio de canvas directamente
@@ -571,7 +571,7 @@ class RaycastRendererComponent extends Component
           final fresnel = (perp / maxDepth).clamp(0.2, 0.8);
 
           final reflectionPaint = Paint()
-            ..color = color.withOpacity(0.3 * fresnel * fogFactor)
+            ..color = color.withAlpha(((0.3 * fresnel * fogFactor) * 255).round())
             ..maskFilter = const MaskFilter.blur(
               BlurStyle.normal,
               3,
@@ -762,8 +762,8 @@ class RaycastRendererComponent extends Component
               Offset(x, drawYBottom),
               Offset(x, drawYBottom - sweepHeightPixels),
               [
-                const Color(0xFF00FFFF).withOpacity(sweepIntensity * 0.6),
-                const Color(0xFF00FFFF).withOpacity(0),
+                const Color(0xFF00FFFF).withAlpha(((sweepIntensity * 0.6) * 255).round()),
+                const Color(0xFF00FFFF).withAlpha(0),
               ],
             )
             ..blendMode = BlendMode.plus;
@@ -801,8 +801,8 @@ class RaycastRendererComponent extends Component
         final screenRadius = normalizedRadius * screenRadiusMax;
 
         final echoPaint = Paint()
-          ..color = const Color(0xFF00FFFF).withOpacity(
-            (1.0 - normalizedRadius).clamp(0.0, 1.0),
+          ..color = const Color(0xFF00FFFF).withAlpha(
+            ((1.0 - normalizedRadius).clamp(0.0, 1.0) * 255).round(),
           )
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.0;
@@ -814,7 +814,7 @@ class RaycastRendererComponent extends Component
           ..strokeWidth = 2.0 * (1.0 - normalizedRadius)
           ..color = const Color(
             0xFF00FFFF,
-          ).withOpacity(0.5 * (1.0 - normalizedRadius))
+          ).withAlpha((0.5 * (1.0 - normalizedRadius) * 255).round())
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
 
         canvas.drawCircle(Offset(centerX, centerY), screenRadius, pulsePaint);

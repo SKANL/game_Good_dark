@@ -1,4 +1,4 @@
-import 'game_constants.dart';
+import 'package:echo_world/minigames/escape/entities/game_constants.dart';
 
 class EscapePlayer {
   double x;
@@ -30,12 +30,12 @@ class EscapePlayer {
   });
 
   void moveLeft() {
-    double direction = controlsInverted ? 1 : -1;
+    final direction = controlsInverted ? 1 : -1;
     velocityX = direction * GameConstants.playerSpeed * speedMultiplier;
   }
 
   void moveRight() {
-    double direction = controlsInverted ? -1 : 1;
+    final direction = controlsInverted ? -1 : 1;
     velocityX = direction * GameConstants.playerSpeed * speedMultiplier;
   }
 

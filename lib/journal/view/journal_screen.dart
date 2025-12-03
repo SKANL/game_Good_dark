@@ -160,7 +160,7 @@ class _EcoCard extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8A2BE2).withOpacity(0.3),
+                    color: const Color(0xFF8A2BE2).withAlpha((0.3 * 255).round()),
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(
                     color: const Color(0xFF8A2BE2),

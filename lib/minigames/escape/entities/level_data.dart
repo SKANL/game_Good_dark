@@ -1,4 +1,4 @@
-import 'game_constants.dart';
+import 'package:echo_world/minigames/escape/entities/game_constants.dart';
 import 'package:echo_world/minigames/escape/entities/tile.dart';
 import 'package:echo_world/minigames/escape/entities/trap.dart';
 

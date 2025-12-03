@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:echo_world/utils/unawaited.dart';
 
 /// Singleton para gestionar audio posicional y SFX del juego
 class AudioManager {
@@ -186,9 +187,11 @@ class AudioManager {
               tempPlayer.resume();
               // Dispose on complete OR after timeout (safety net)
               tempPlayer.onPlayerComplete.listen((_) => tempPlayer.dispose());
-              Future.delayed(
-                const Duration(seconds: 5),
-                () => tempPlayer.dispose(),
+              unawaited(
+                Future.delayed(
+                  const Duration(seconds: 5),
+                  () => tempPlayer.dispose(),
+                ),
               );
             });
           });
@@ -364,9 +367,11 @@ class AudioManager {
           // Safety disposal
           if (!loop) {
             tempPlayer.onPlayerComplete.listen((_) => tempPlayer.dispose());
-            Future.delayed(
-              const Duration(seconds: 5),
-              () => tempPlayer.dispose(),
+            unawaited(
+              Future.delayed(
+                const Duration(seconds: 5),
+                () => tempPlayer.dispose(),
+              ),
             );
           } else {
             // If it's a loop fallback, we can't easily track it to stop it later without an ID.

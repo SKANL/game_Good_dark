@@ -1,6 +1,7 @@
 import 'package:echo_world/minigames/escape/entities/game_constants.dart';
 import 'package:echo_world/minigames/escape/view/game_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:echo_world/utils/unawaited.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -85,9 +86,11 @@ class _MenuScreenState extends State<MenuScreen>
                   // Start button
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const GameScreen(),
+                      unawaited(
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const GameScreen(),
+                          ),
                         ),
                       );
                     },

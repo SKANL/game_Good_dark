@@ -78,7 +78,7 @@ class WallComponent extends PositionComponent
 
     if (destructible) {
       final glowPaint = Paint()
-        ..color = const Color(0xFFFF8800).withOpacity(0.4)
+        ..color = const Color(0xFFFF8800).withAlpha((0.4 * 255).round())
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
       canvas.drawRect(
         Rect.fromLTWH(-4, -4, size.x + 8, size.y + 8),

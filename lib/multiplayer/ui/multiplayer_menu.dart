@@ -1,8 +1,8 @@
-import 'package:echo_world/multiplayer/repository/multiplayer_repository.dart';
-import 'package:echo_world/multiplayer/ui/lobby_page.dart';
-
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:echo_world/multiplayer/repository/multiplayer_repository.dart';
+import 'package:echo_world/utils/unawaited.dart';
+import 'package:echo_world/multiplayer/ui/lobby_page.dart';
 
 class MultiplayerMenu extends StatefulWidget {
   const MultiplayerMenu({super.key});
@@ -25,17 +25,17 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
     'Asalto al Núcleo (3v3)',
   ];
 
-  void _handleTap(int index) {
-    _showRoomSelectionDialog(context, _games[index]);
+  Future<void> _handleTap(int index) async {
+    await _showRoomSelectionDialog(context, _games[index]);
   }
 
-  void _showRoomSelectionDialog(BuildContext context, String gameType) {
-    showDialog<void>(
+  Future<void> _showRoomSelectionDialog(BuildContext context, String gameType) async {
+    await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.black,
         title: Text(
-          "DEPLOYMENT: $gameType",
+          'DEPLOYMENT: $gameType',
           style: const TextStyle(
             color: Colors.cyanAccent,
             fontFamily: 'Courier',
@@ -50,12 +50,12 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
                 foregroundColor: Colors.black,
                 minimumSize: const Size(double.infinity, 50),
               ),
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
-                _createRoom(gameType);
+                await _createRoom(gameType);
               },
               child: const Text(
-                "CREATE ROOM",
+                'CREATE ROOM',
                 style: TextStyle(
                   fontFamily: 'Courier',
                   fontWeight: FontWeight.bold,
@@ -69,12 +69,12 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 50),
               ),
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
-                _showJoinRoomDialog(context, gameType);
+                await _showJoinRoomDialog(context, gameType);
               },
               child: const Text(
-                "JOIN ROOM",
+                'JOIN ROOM',
                 style: TextStyle(
                   fontFamily: 'Courier',
                   fontWeight: FontWeight.bold,
@@ -87,7 +87,7 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
     );
   }
 
-  void _createRoom(String gameType) {
+  Future<void> _createRoom(String gameType) async {
     // Generate 4-char code
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     final random = Random();
@@ -96,17 +96,17 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
       (index) => chars[random.nextInt(chars.length)],
     ).join();
 
-    Navigator.of(context).push(LobbyPage.route(gameType, roomId));
+    await Navigator.of(context).push(LobbyPage.route(gameType, roomId));
   }
 
-  void _showJoinRoomDialog(BuildContext context, String gameType) {
+  Future<void> _showJoinRoomDialog(BuildContext context, String gameType) async {
     final controller = TextEditingController();
-    showDialog<void>(
+    await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.black,
         title: const Text(
-          "ENTER ROOM CODE",
+          'ENTER ROOM CODE',
           style: TextStyle(color: Colors.cyanAccent, fontFamily: 'Courier'),
         ),
         content: TextField(
@@ -120,8 +120,8 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
           textAlign: TextAlign.center,
           textCapitalization: TextCapitalization.characters,
           maxLength: 4,
-          decoration: const InputDecoration(
-            hintText: "ABCD",
+            decoration: const InputDecoration(
+            hintText: 'ABCD',
             hintStyle: TextStyle(color: Colors.grey),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.grey),
@@ -133,15 +133,15 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              final roomId = controller.text.trim().toUpperCase();
-              if (roomId.length == 4) {
-                Navigator.pop(context);
-                Navigator.of(context).push(LobbyPage.route(gameType, roomId));
-              }
-            },
+                onPressed: () {
+                  final roomId = controller.text.trim().toUpperCase();
+                  if (roomId.length == 4) {
+                    Navigator.pop(context);
+                    unawaited(Navigator.of(context).push(LobbyPage.route(gameType, roomId)));
+                  }
+                },
             child: const Text(
-              "JOIN",
+              'JOIN',
               style: TextStyle(color: Colors.greenAccent, fontSize: 18),
             ),
           ),
@@ -150,13 +150,13 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
     );
   }
 
-  void _showInventory(BuildContext context) {
-    showDialog<void>(
+  Future<void> _showInventory(BuildContext context) async {
+    await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.black,
         title: const Text(
-          "INVENTORY",
+          'INVENTORY',
           style: TextStyle(color: Colors.cyanAccent, fontFamily: 'Courier'),
         ),
         content: FutureBuilder<List<Map<String, dynamic>>>(
@@ -167,7 +167,7 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
             }
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return const Text(
-                "NO ITEMS FOUND",
+                'NO ITEMS FOUND',
                 style: TextStyle(color: Colors.white, fontFamily: 'Courier'),
               );
             }
@@ -187,7 +187,7 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
                       ),
                     ),
                     trailing: Text(
-                      "x${item['quantity']}",
+                      'x${item['quantity']}',
                       style: const TextStyle(
                         color: Colors.grey,
                         fontFamily: 'Courier',
@@ -203,7 +203,7 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text(
-              "CLOSE",
+              'CLOSE',
               style: TextStyle(color: Colors.redAccent),
             ),
           ),
@@ -240,7 +240,7 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    "MULTIPLAYER PROTOCOLS",
+                    'MULTIPLAYER PROTOCOLS',
                     style: TextStyle(
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
@@ -261,8 +261,8 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
                       final data = snapshot.data!;
                       return Column(
                         children: [
-                          Text(
-                            "OPERATIVE: ${data['username']}",
+                            Text(
+                            'OPERATIVE: ${data['username']}',
                             style: const TextStyle(
                               color: Colors.greenAccent,
                               fontFamily: 'Courier',
@@ -284,7 +284,7 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
                             ),
                             onPressed: () => _showInventory(context),
                             child: const Text(
-                              "VIEW INVENTORY",
+                              'VIEW INVENTORY',
                               style: TextStyle(fontFamily: 'Courier'),
                             ),
                           ),
@@ -311,11 +311,11 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
                               border: Border.all(
                                 color: _focusedIndex == index
                                     ? Colors.cyanAccent
-                                    : Colors.grey.withOpacity(0.5),
+                                    : Colors.grey.withAlpha(128),
                                 width: 2,
                               ),
                               color: _focusedIndex == index
-                                  ? Colors.cyan.withOpacity(0.1)
+                                  ? Colors.cyan.withAlpha(25)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -339,7 +339,7 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: const Text(
-                      "< RETURN TO MAIN SYSTEM",
+                      '< RETURN TO MAIN SYSTEM',
                       style: TextStyle(
                         color: Colors.redAccent,
                         fontSize: 18,

@@ -1,3 +1,8 @@
+// ignore_for_file: prefer_int_literals, prefer_single_quotes,
+//   avoid_redundant_argument_values, sort_constructors_first,
+//   always_put_required_named_parameters_first, lines_longer_than_80_chars,
+//   prefer_const_declarations, deprecated_member_use, cascade_invocations
+
 import 'dart:async';
 import 'dart:ui';
 
@@ -22,6 +27,7 @@ import 'package:echo_world/tutorial/tutorial.dart';
 import 'package:echo_world/tutorial/view/calibration_overlay.dart';
 import 'package:flame/game.dart' hide Route;
 import 'package:flame_audio/bgm.dart';
+import 'package:echo_world/utils/unawaited.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -766,9 +772,11 @@ class _HudTopDown extends StatelessWidget {
                 assetB: 'assets/img/Botton_Sigilo.png',
                 onB: () {
                   bloc.add(ModoSigiloActivado());
-                  Future.delayed(
-                    const Duration(milliseconds: 200),
-                    () => bloc.add(ModoSigiloDesactivado()),
+                  unawaited(
+                    Future.delayed(
+                      const Duration(milliseconds: 200),
+                      () => bloc.add(ModoSigiloDesactivado()),
+                    ),
                   );
                 },
                 // A: Eco
@@ -931,9 +939,11 @@ class _HudSideScroll extends StatelessWidget {
                 assetB: 'assets/img/Botton_Sigilo.png',
                 onB: () {
                   bloc.add(ModoSigiloActivado());
-                  Future.delayed(
-                    const Duration(milliseconds: 200),
-                    () => bloc.add(ModoSigiloDesactivado()),
+                  unawaited(
+                    Future.delayed(
+                      const Duration(milliseconds: 200),
+                      () => bloc.add(ModoSigiloDesactivado()),
+                    ),
                   );
                 },
                 // A: Eco
@@ -1099,9 +1109,11 @@ class _HudFirstPerson extends StatelessWidget {
                 assetB: 'assets/img/Botton_Sigilo.png',
                 onB: () {
                   bloc.add(ModoSigiloActivado());
-                  Future.delayed(
-                    const Duration(milliseconds: 200),
-                    () => bloc.add(ModoSigiloDesactivado()),
+                  unawaited(
+                    Future.delayed(
+                      const Duration(milliseconds: 200),
+                      () => bloc.add(ModoSigiloDesactivado()),
+                    ),
                   );
                 },
                 // A: Eco
@@ -1165,7 +1177,7 @@ class _PauseMenu extends StatelessWidget {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Container(
-              color: Colors.black.withOpacity(0.6),
+              color: Colors.black.withAlpha((0.6 * 255).round()),
             ),
           ),
         ),
@@ -1208,9 +1220,11 @@ class _PauseMenu extends StatelessWidget {
                         context.read<CheckpointBloc>().add(
                           CheckpointReseteado(),
                         );
-                        Navigator.of(context).pushReplacement(
-                          CleaningLoadingPage.route(
-                            builder: (_) => const GamePage(),
+                        unawaited(
+                          Navigator.of(context).pushReplacement(
+                            CleaningLoadingPage.route(
+                              builder: (_) => const GamePage(),
+                            ),
                           ),
                         );
                       },
@@ -1222,9 +1236,11 @@ class _PauseMenu extends StatelessWidget {
                   text: 'MENÚ PRINCIPAL',
                   color: Colors.blueGrey,
                   onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      CleaningLoadingPage.route(
-                        builder: (_) => const TitlePage(),
+                    unawaited(
+                      Navigator.of(context).pushReplacement(
+                        CleaningLoadingPage.route(
+                          builder: (_) => const TitlePage(),
+                        ),
                       ),
                     );
                   },
@@ -1291,7 +1307,7 @@ class _OverlayFracasoState extends State<_OverlayFracaso>
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
-                  color: Colors.black.withOpacity(0.8),
+                  color: Colors.black.withAlpha((0.8 * 255).round()),
                   child: CustomPaint(
                     painter: _ScanlinePainter(),
                   ),
@@ -1341,11 +1357,13 @@ class _OverlayFracasoState extends State<_OverlayFracaso>
                                   text: 'MENÚ',
                                   color: Colors.cyan,
                                   onPressed: () {
-                                    Navigator.of(
-                                      context,
-                                    ).pushReplacement(
-                                      CleaningLoadingPage.route(
-                                        builder: (_) => const TitlePage(),
+                                    unawaited(
+                                      Navigator.of(
+                                        context,
+                                      ).pushReplacement(
+                                        CleaningLoadingPage.route(
+                                          builder: (_) => const TitlePage(),
+                                        ),
                                       ),
                                     );
                                   },
@@ -1360,9 +1378,11 @@ class _OverlayFracasoState extends State<_OverlayFracaso>
                                     );
 
                                     // 2. Navegar a través de la pantalla de limpieza para recargar todo
-                                    Navigator.of(context).pushReplacement(
-                                      CleaningLoadingPage.route(
-                                        builder: (_) => const GamePage(),
+                                    unawaited(
+                                      Navigator.of(context).pushReplacement(
+                                        CleaningLoadingPage.route(
+                                          builder: (_) => const GamePage(),
+                                        ),
                                       ),
                                     );
                                   },
@@ -1461,7 +1481,7 @@ class _RuidoMentalPainter extends CustomPainter {
       ..shader = RadialGradient(
         colors: [
           Colors.transparent,
-          Colors.black.withOpacity(intensity * 0.6),
+          Colors.black.withAlpha((intensity * 0.6 * 255).round()),
         ],
         stops: const [0.4, 1.0],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
@@ -1485,7 +1505,7 @@ class _RuidoMentalPainter extends CustomPainter {
     // Usamos el tick para variar el "seed" visual de la estática
     final drawCount = (_maxRects * intensity).toInt();
     final staticPaint = Paint()
-      ..color = Colors.white.withOpacity(intensity * 0.12);
+      ..color = Colors.white.withAlpha((intensity * 0.12 * 255).round());
 
     // Desplazamiento de índice basado en el tiempo para que la estática "baile"
     final indexOffset = (tick * 100).toInt();
@@ -1502,7 +1522,7 @@ class _RuidoMentalPainter extends CustomPainter {
       final glitchOffset = ((tick * 20) % 20 - 10) * (intensity - 0.5);
       canvas.translate(glitchOffset, 0);
       final glitchPaint = Paint()
-        ..color = const Color(0xFF8A2BE2).withOpacity((intensity - 0.5) * 0.4)
+        ..color = const Color(0xFF8A2BE2).withAlpha(((intensity - 0.5) * 0.4 * 255).round())
         ..blendMode = BlendMode.screen;
       for (var i = 0; i < 5; i++) {
         final y = (size.height / 5) * i;
@@ -1692,7 +1712,7 @@ class BlackEchoHUD extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "   $vidaPorcentaje%",
+                    '   $vidaPorcentaje%',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -1885,14 +1905,14 @@ class _ChamferedBorderPainter extends CustomPainter {
     canvas.drawPath(
       path,
       paint
-        ..strokeWidth = 4
-        ..color = color.withOpacity(0.5),
+        ..strokeWidth = 4.0
+        ..color = color.withAlpha((0.5 * 255).round()),
     );
     // Draw core
     canvas.drawPath(
       path,
       paint
-        ..strokeWidth = 2
+        ..strokeWidth = 2.0
         ..color = color
         ..maskFilter = null,
     );
@@ -1907,7 +1927,7 @@ class _ScanlinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black.withOpacity(0.3)
+      ..color = Colors.black.withAlpha((0.3 * 255).round())
       ..style = PaintingStyle.fill;
 
     for (double i = 0; i < size.height; i += 4) {
@@ -1937,15 +1957,15 @@ class _GlitchTitle extends StatelessWidget {
         shadows: [
           Shadow(
             offset: const Offset(-3, 0),
-            color: Colors.cyan.withOpacity(0.7),
+            color: Colors.cyan.withAlpha((0.7 * 255).round()),
           ),
           Shadow(
             offset: const Offset(3, 0),
-            color: Colors.red.withOpacity(0.7),
+            color: Colors.red.withAlpha((0.7 * 255).round()),
           ),
           Shadow(
             blurRadius: 8,
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withAlpha((0.8 * 255).round()),
           ),
         ],
       ),
@@ -1989,18 +2009,18 @@ class _HoloButtonState extends State<_HoloButton> {
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
           decoration: BoxDecoration(
             color: _isPressed
-                ? widget.color.withOpacity(0.3)
-                : Colors.transparent,
+              ? widget.color.withAlpha((0.3 * 255).round())
+              : Colors.transparent,
             border: Border.all(
-              color: _isHovered || _isPressed
+                color: _isHovered || _isPressed
                   ? widget.color
-                  : widget.color.withOpacity(0.5),
+                  : widget.color.withAlpha((0.5 * 255).round()),
               width: 1.5,
             ),
             boxShadow: [
               if (_isHovered || _isPressed)
                 BoxShadow(
-                  color: widget.color.withOpacity(0.4),
+                  color: widget.color.withAlpha((0.4 * 255).round()),
                   blurRadius: 10,
                   spreadRadius: 1,
                 ),

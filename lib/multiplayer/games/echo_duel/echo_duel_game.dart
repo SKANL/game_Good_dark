@@ -5,6 +5,7 @@ import 'package:echo_world/multiplayer/games/echo_duel/components/multiplayer_pl
 import 'package:echo_world/multiplayer/games/echo_duel/components/multiplayer_level_manager.dart';
 import 'package:echo_world/multiplayer/games/echo_duel/repository/echo_duel_repository.dart';
 import 'package:flame/components.dart';
+import 'package:echo_world/utils/unawaited.dart';
 
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
@@ -119,11 +120,11 @@ class EchoDuelGame extends FlameGame with HasLighting {
     _shootButton.removeFromParent();
 
     // Auto-leave after 5 seconds
-    Future.delayed(const Duration(seconds: 5), () {
+    unawaited(Future.delayed(const Duration(seconds: 5), () {
       // Navigate back to lobby (this needs access to Flutter context or a callback)
       // For now, just leave game session
       _repository.leaveGame();
-    });
+    }));
   }
 
   void _shoot() {

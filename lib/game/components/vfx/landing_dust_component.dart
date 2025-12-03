@@ -29,7 +29,7 @@ class LandingDustComponent extends Component {
               child: CircleParticle(
                 radius: 1.5,
                 paint: Paint()
-                  ..color = const Color(0xFFCCCCCC).withOpacity(0.6),
+                  ..color = const Color(0xFFCCCCCC).withAlpha((0.6 * 255).round()),
               ),
             );
           },

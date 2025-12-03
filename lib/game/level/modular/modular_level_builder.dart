@@ -372,7 +372,7 @@ class ModularLevelBuilder {
       exitPoint: exitPoint,
       exitHint: 'Explora las profundidades...',
       ambientLight: const Color(0xFF1A1A2E),
-      fogColor: const Color(0xFF16213E).withOpacity(0.3),
+      fogColor: const Color(0xFF16213E).withAlpha((0.3 * 255).round()),
     );
   }
 

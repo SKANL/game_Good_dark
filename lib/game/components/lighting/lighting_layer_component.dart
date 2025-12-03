@@ -93,7 +93,7 @@ class LightingLayerComponent extends Component with HasGameRef<BlackEchoGame> {
       // Modulate opacity by intensity
       revealPaint.color = const Color(
         0xFFFFFFFF,
-      ).withOpacity(intensity.clamp(0.0, 1.0));
+      ).withAlpha((intensity.clamp(0.0, 1.0) * 255).round());
 
       canvas.drawCircle(pos.toOffset(), radius, revealPaint);
 
@@ -104,8 +104,8 @@ class LightingLayerComponent extends Component with HasGameRef<BlackEchoGame> {
             pos.toOffset(),
             radius,
             [
-              light.color.withOpacity(0.6 * intensity),
-              light.color.withOpacity(0),
+              light.color.withAlpha((0.6 * intensity * 255).round()),
+              light.color.withAlpha(0),
             ],
             [0.0, 1.0],
           )

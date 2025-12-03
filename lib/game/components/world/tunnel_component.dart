@@ -62,7 +62,7 @@ class TunnelComponent extends PositionComponent with HasGameRef<BlackEchoGame> {
 
     // Cyan glow on SIDES (to indicate passage direction)
     final glowPaint = Paint()
-      ..color = const Color(0xFF00FFFF).withOpacity(0.4 + pulse * 0.3)
+      ..color = const Color(0xFF00FFFF).withAlpha(((0.4 + pulse * 0.3) * 255).round())
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
@@ -77,7 +77,7 @@ class TunnelComponent extends PositionComponent with HasGameRef<BlackEchoGame> {
 
     // Bottom glow line
     final bottomGlowPaint = Paint()
-      ..color = const Color(0xFF00FFFF).withOpacity(0.6)
+      ..color = const Color(0xFF00FFFF).withAlpha((0.6 * 255).round())
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     canvas.drawLine(

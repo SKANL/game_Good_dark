@@ -2,6 +2,7 @@
 import 'package:echo_world/minigames/surgery/widgets/glowing_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:echo_world/utils/unawaited.dart';
 
 class IntroPage extends StatelessWidget {
   const IntroPage({super.key});
@@ -71,7 +72,7 @@ class IntroPage extends StatelessWidget {
                 GlowingButton(
                   text: 'INICIAR PROCEDIMIENTO',
                   onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/surgery');
+                    unawaited(Navigator.pushReplacementNamed(context, '/surgery'));
                   },
                 ),
                 const SizedBox(height: 40), // Replace Spacer

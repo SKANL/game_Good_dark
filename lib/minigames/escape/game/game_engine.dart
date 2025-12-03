@@ -1,7 +1,7 @@
+import 'package:echo_world/minigames/escape/entities/game_constants.dart';
+import 'package:echo_world/minigames/escape/entities/level_data.dart';
+import 'package:echo_world/minigames/escape/entities/player.dart';
 import 'package:flutter/material.dart';
-import '../entities/game_constants.dart';
-import '../entities/player.dart';
-import '../entities/level_data.dart';
 
 class GameEngine {
   late EscapePlayer player;
@@ -57,7 +57,7 @@ class GameEngine {
     _handleTileCollisions();
 
     // Update traps
-    for (var trap in currentLevel.traps) {
+    for (final trap in currentLevel.traps) {
       trap.update(player.x, player.y);
     }
 
@@ -72,7 +72,7 @@ class GameEngine {
     // RESOLUCIÓN DE COLISIONES (según especificación)
     // Solo después de mover al personaje, chequea colisiones AABB
 
-    for (var tile in currentLevel.tiles) {
+    for (final tile in currentLevel.tiles) {
       if (!tile.isSolid()) continue;
 
       // Check collision
@@ -87,12 +87,12 @@ class GameEngine {
         tile.height,
       )) {
         // Determine collision side
-        double overlapLeft = (player.x + player.width) - tile.x;
-        double overlapRight = (tile.x + tile.width) - player.x;
-        double overlapTop = (player.y + player.height) - tile.y;
-        double overlapBottom = (tile.y + tile.height) - player.y;
+        final overlapLeft = (player.x + player.width) - tile.x;
+        final overlapRight = (tile.x + tile.width) - player.x;
+        final overlapTop = (player.y + player.height) - tile.y;
+        final overlapBottom = (tile.y + tile.height) - player.y;
 
-        double minOverlap = [
+        final minOverlap = [
           overlapLeft,
           overlapRight,
           overlapTop,
@@ -145,7 +145,7 @@ class GameEngine {
   }
 
   void _handleTrapCollisions() {
-    for (var trap in currentLevel.traps) {
+    for (final trap in currentLevel.traps) {
       if (!trap.isActive) continue;
 
       bool collision = trap.checkCollision(
@@ -227,7 +227,7 @@ class GameEngine {
 
   void _checkDeathConditions() {
     // Fall off screen
-    double screenHeight = GameConstants.gridHeight * GameConstants.tileSize;
+    final screenHeight = GameConstants.gridHeight * GameConstants.tileSize;
     if (player.y > screenHeight + 50 || player.y < -130) {
       // Ajustado para el offset de -80
       if (!isDead) {
@@ -237,7 +237,7 @@ class GameEngine {
     }
 
     // Limitar movimiento horizontal para no salirse de la pantalla
-    double screenWidth = GameConstants.gridWidth * GameConstants.tileSize;
+    final screenWidth = GameConstants.gridWidth * GameConstants.tileSize;
     if (player.x < 0) {
       player.x = 0;
       player.velocityX = 0;
@@ -265,7 +265,7 @@ class GameEngine {
     isLevelComplete = false;
     player.reset(currentLevel.startX, currentLevel.startY);
     // Reset traps
-    for (var trap in currentLevel.traps) {
+    for (final trap in currentLevel.traps) {
       trap.isActive = true;
       trap.isTriggered = false;
       trap.collapseTimer = 0;
