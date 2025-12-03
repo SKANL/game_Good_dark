@@ -126,7 +126,7 @@ class _CalibrationOverlayState extends State<CalibrationOverlay> {
             onTap: () =>
                 context.read<TutorialBloc>().add(TutorialStepCompleted()),
             child: Container(
-              color: Colors.black.withOpacity(0.85),
+              color: Colors.black.withAlpha((0.85 * 255).round()),
               width: double.infinity,
               height: double.infinity,
               child: CustomPaint(
@@ -197,7 +197,7 @@ class _CalibrationOverlayState extends State<CalibrationOverlay> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF00FFCC).withOpacity(0.5),
+                        color: const Color(0xFF00FFCC).withAlpha((0.5 * 255).round()),
                         blurRadius: 15,
                         spreadRadius: 2,
                       ),
@@ -227,7 +227,7 @@ class _DimmedArea extends StatelessWidget {
         // Block input
       },
       child: Container(
-        color: Colors.black.withOpacity(0.85),
+      color: Colors.black.withAlpha((0.85 * 255).round()),
         child: title != null
             ? Center(
                 child: Column(
@@ -254,7 +254,7 @@ class _DimmedArea extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.shareTechMono(
                         fontSize: 16,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withAlpha((0.9 * 255).round()),
                       ),
                     ),
                   ],
@@ -276,7 +276,7 @@ class _TextPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // Scanlines
     final scanlinePaint = Paint()
-      ..color = Colors.white.withOpacity(0.05)
+      ..color = Colors.white.withAlpha((0.05 * 255).round())
       ..strokeWidth = 1;
     for (double y = 0; y < size.height; y += 4) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), scanlinePaint);
@@ -292,7 +292,7 @@ class _TextPainter extends CustomPainter {
 
     final textStyleDesc = GoogleFonts.shareTechMono(
       fontSize: 16,
-      color: Colors.white.withOpacity(0.9),
+      color: Colors.white.withAlpha((0.9 * 255).round()),
     );
 
     final titleSpan = TextSpan(text: title, style: textStyleTitle);

@@ -39,7 +39,7 @@ class RuptureVfxComponent extends PositionComponent {
             final radius = particle.progress * 128; // Expand to 4 tiles
             final opacity = 1 - particle.progress;
             final paint = Paint()
-              ..color = const Color(0xFFFFFFFF).withOpacity(opacity)
+              ..color = const Color(0xFFFFFFFF).withAlpha((opacity * 255).round())
               ..style = PaintingStyle.stroke
               ..strokeWidth = 4 * (1 - particle.progress);
             canvas.drawCircle(Offset.zero, radius, paint);

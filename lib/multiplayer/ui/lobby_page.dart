@@ -1,5 +1,6 @@
 import 'package:echo_world/multiplayer/games/echo_duel/echo_duel_page.dart';
 import 'package:echo_world/multiplayer/repository/multiplayer_repository.dart';
+import 'package:echo_world/utils/unawaited.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -81,15 +82,15 @@ class _LobbyPageState extends State<LobbyPage> {
       ),
     );
 
-    Future.delayed(const Duration(milliseconds: 500), () {
+    unawaited(Future.delayed(const Duration(milliseconds: 500), () {
       if (!mounted) return;
       if (widget.gameType.contains("Duelo")) {
-        Navigator.of(context).pushReplacement(EchoDuelPage.route(matchId));
+        unawaited(Navigator.of(context).pushReplacement(EchoDuelPage.route(matchId)));
       } else {
         // Fallback for other modes
-        Navigator.of(context).pushReplacement(EchoDuelPage.route(matchId));
+        unawaited(Navigator.of(context).pushReplacement(EchoDuelPage.route(matchId)));
       }
-    });
+    }));
   }
 
   Future<void> _startMatch() async {
@@ -102,7 +103,7 @@ class _LobbyPageState extends State<LobbyPage> {
 
   @override
   void dispose() {
-    widget.repository.leaveLobby();
+    unawaited(widget.repository.leaveLobby());
     super.dispose();
   }
 

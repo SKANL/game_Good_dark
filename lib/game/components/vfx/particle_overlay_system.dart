@@ -66,7 +66,7 @@ class ParticleOverlaySystem extends Component with HasGameRef<BlackEchoGame> {
       // Fade out
       final lifeRatio = p.life / p.maxLife;
       if (lifeRatio > 0.8) {
-        p.color = p.color.withOpacity(1.0 - (lifeRatio - 0.8) * 5);
+        p.color = p.color.withAlpha(((1.0 - (lifeRatio - 0.8) * 5) * 255).round());
       }
     }
   }
@@ -84,7 +84,7 @@ class ParticleOverlaySystem extends Component with HasGameRef<BlackEchoGame> {
           (_random.nextDouble() - 0.5) * 20,
           30.0 + _random.nextDouble() * 30, // Fast upward
         ),
-        color: const Color(0xFFFF4400).withOpacity(0.8), // Red/Orange
+        color: const Color(0xFFFF4400).withAlpha((0.8 * 255).round()), // Red/Orange
         size: 3.0 + _random.nextDouble() * 4.0,
         maxLife: 0.5 + _random.nextDouble() * 0.5, // Short life
       ),

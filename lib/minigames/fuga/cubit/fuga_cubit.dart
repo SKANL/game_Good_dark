@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:bloc/bloc.dart';
-import '../models/models.dart';
-import 'fuga_state.dart';
+import 'package:echo_world/utils/unawaited.dart';
+import 'package:echo_world/minigames/fuga/models/models.dart';
+import 'package:echo_world/minigames/fuga/cubit/fuga_state.dart';
 
 const int mazeWidth = 21;
 const int mazeHeight = 21;
@@ -155,9 +156,9 @@ class FugaCubit extends Cubit<FugaState> {
     );
 
     // Perform enemy action after short delay
-    Future.delayed(const Duration(milliseconds: 600), () {
+    unawaited(Future.delayed(const Duration(milliseconds: 600), () {
       if (!isClosed) _enemyTurn();
-    });
+    }));
   }
 
   void _enemyTurn() {

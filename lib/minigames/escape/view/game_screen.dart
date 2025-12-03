@@ -1,10 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import '../entities/game_constants.dart';
-import '../game/game_engine.dart';
-import '../widgets/game_painter.dart';
-import '../widgets/game_controls.dart';
+import 'package:echo_world/minigames/escape/entities/game_constants.dart';
+import 'package:echo_world/minigames/escape/game/game_engine.dart';
+import 'package:echo_world/minigames/escape/widgets/game_painter.dart';
+import 'package:echo_world/minigames/escape/widgets/game_controls.dart';
+import 'package:echo_world/utils/unawaited.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -42,7 +43,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     _ticker.start();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showLevelMessage(_gameEngine.currentLevel.startMessage, Colors.cyan);
+      unawaited(
+        _showLevelMessage(_gameEngine.currentLevel.startMessage, Colors.cyan),
+      );
     });
   }
 
@@ -71,11 +74,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       _showLevelMessage(
         'Level Complete!',
         Colors.green,
-        onDismiss: () {
+        onDismiss: () async {
           setState(() {
             _gameEngine.nextLevel();
           });
-          _showLevelMessage(_gameEngine.currentLevel.startMessage, Colors.cyan);
+          await _showLevelMessage(_gameEngine.currentLevel.startMessage, Colors.cyan);
         },
       );
     }
@@ -90,7 +93,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     _showLevelMessage(
       message,
       Colors.red,
-      onDismiss: () {
+      onDismiss: () async {
         setState(() {
           _gameEngine.resetLevel();
         });
@@ -103,14 +106,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   void _handleShowMessage(String message, Color color) {
-    _showLevelMessage(message, color);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_showLevelMessage(message, color));
+    });
   }
 
-  void _showLevelMessage(
+  Future<void> _showLevelMessage(
     String message,
     Color color, {
-    VoidCallback? onDismiss,
-  }) {
+    Future<void> Function()? onDismiss,
+  }) async {
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 600;
 
@@ -119,7 +124,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     // Detener el movimiento del jugador
     _gameEngine.player.stopMoving();
 
-    showDialog<void>(
+    await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) => Center(
@@ -129,7 +134,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             padding: EdgeInsets.all(isSmallScreen ? 20 : 30),
             margin: EdgeInsets.symmetric(horizontal: isSmallScreen ? 20 : 40),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.9),
+              color: Colors.black.withAlpha((0.9 * 255).round()),
               border: Border.all(color: color, width: 2),
             ),
             child: Column(
@@ -145,12 +150,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                   ),
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
+                  ElevatedButton(
+                  onPressed: () async {
                     Navigator.pop(context);
                     // Reanudar el juego
                     _ticker.start();
-                    onDismiss?.call();
+                    if (onDismiss != null) {
+                      await onDismiss();
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: color,
@@ -178,7 +185,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     _ticker.stop();
     _gameEngine.player.stopMoving();
 
-    showDialog<void>(
+    final dialogFuture = showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) => Center(
@@ -188,7 +195,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             padding: EdgeInsets.all(isSmallScreen ? 20 : 40),
             margin: EdgeInsets.symmetric(horizontal: isSmallScreen ? 20 : 40),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.95),
+              color: Colors.black.withAlpha((0.95 * 255).round()),
               border: Border.all(color: GameConstants.doorColor, width: 3),
             ),
             child: Column(
@@ -238,6 +245,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         ),
       ),
     );
+    unawaited(dialogFuture);
   }
 
   @override

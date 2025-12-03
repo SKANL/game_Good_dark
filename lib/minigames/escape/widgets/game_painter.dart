@@ -13,11 +13,11 @@ class GamePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Calculate scale to fit game in screen
-    double scaleX =
-        size.width / (GameConstants.gridWidth * GameConstants.tileSize);
-    double scaleY =
-        size.height / (GameConstants.gridHeight * GameConstants.tileSize);
-    double scale = scaleX < scaleY ? scaleX : scaleY;
+      final scaleX =
+          size.width / (GameConstants.gridWidth * GameConstants.tileSize);
+      final scaleY =
+          size.height / (GameConstants.gridHeight * GameConstants.tileSize);
+      final scale = scaleX < scaleY ? scaleX : scaleY;
 
     canvas.save();
     canvas.scale(scale);
@@ -41,7 +41,7 @@ class GamePainter extends CustomPainter {
   void _drawTile(Canvas canvas, Tile tile) {
     if (!tile.isVisible()) return;
 
-    Paint paint = Paint();
+      final paint = Paint();
 
     switch (tile.type) {
       case TileType.platform:
@@ -60,10 +60,10 @@ class GamePainter extends CustomPainter {
     );
 
     // Draw grid lines for retro look
-    Paint gridPaint = Paint()
-      ..color = Colors.black26
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
+      final gridPaint = Paint()
+        ..color = Colors.black26
+        ..strokeWidth = 1
+        ..style = PaintingStyle.stroke;
     canvas.drawRect(
       Rect.fromLTWH(tile.x, tile.y, tile.width, tile.height),
       gridPaint,
@@ -77,7 +77,7 @@ class GamePainter extends CustomPainter {
       return;
     }
 
-    Paint paint = Paint();
+      final paint = Paint();
 
     switch (trap.type) {
       case TrapType.spike:
@@ -101,9 +101,9 @@ class GamePainter extends CustomPainter {
           paint,
         );
         // Draw door pattern
-        Paint patternPaint = Paint()
-          ..color = Colors.black26
-          ..strokeWidth = 2;
+          final patternPaint = Paint()
+            ..color = Colors.black26
+            ..strokeWidth = 2;
         canvas.drawLine(
           Offset(trap.x + trap.width / 2, trap.y),
           Offset(trap.x + trap.width / 2, trap.y + trap.height),
@@ -120,9 +120,9 @@ class GamePainter extends CustomPainter {
           Rect.fromLTWH(trap.x, trap.y, trap.width, trap.height),
           paint,
         );
-        Paint patternPaint = Paint()
-          ..color = Colors.black26
-          ..strokeWidth = 2;
+          final patternPaint = Paint()
+            ..color = Colors.black26
+            ..strokeWidth = 2;
         canvas.drawLine(
           Offset(trap.x + trap.width / 2, trap.y),
           Offset(trap.x + trap.width / 2, trap.y + trap.height),
@@ -136,10 +136,10 @@ class GamePainter extends CustomPainter {
           paint,
         );
         // Draw warning lines
-        Paint warningPaint = Paint()
-          ..color = Colors.red.withValues(alpha: 0.3)
-          ..strokeWidth = 2;
-        for (double i = 0; i < trap.width; i += 10) {
+          final warningPaint = Paint()
+            ..color = Colors.red.withValues(alpha: 0.3)
+            ..strokeWidth = 2;
+        for (var i = 0.0; i < trap.width; i += 10) {
           canvas.drawLine(
             Offset(trap.x + i, trap.y + trap.height),
             Offset(trap.x + i + 5, trap.y + trap.height),
@@ -148,8 +148,8 @@ class GamePainter extends CustomPainter {
         }
         break;
       case TrapType.collapsingPlatform:
-        double opacity =
-            1.0 - (trap.collapseTimer / GameConstants.collapseDelay);
+          final opacity =
+              1.0 - (trap.collapseTimer / GameConstants.collapseDelay);
         paint.color = GameConstants.platformColor.withValues(
           alpha: opacity.clamp(0.0, 1.0),
         );
@@ -174,7 +174,7 @@ class GamePainter extends CustomPainter {
   }
 
   void _drawPlayer(Canvas canvas, EscapePlayer player) {
-    Paint paint = Paint()..color = GameConstants.playerColor;
+    final paint = Paint()..color = GameConstants.playerColor;
 
     // Draw player as a square with a small indicator
     canvas.drawRect(
@@ -183,8 +183,8 @@ class GamePainter extends CustomPainter {
     );
 
     // Draw eye indicator
-    Paint eyePaint = Paint()..color = Colors.cyan;
-    double eyeSize = 4;
+      final eyePaint = Paint()..color = Colors.cyan;
+      final double eyeSize = 4.0;
     canvas.drawCircle(
       Offset(player.x + player.width / 2, player.y + player.height / 3),
       eyeSize,
@@ -192,10 +192,10 @@ class GamePainter extends CustomPainter {
     );
 
     // Draw border
-    Paint borderPaint = Paint()
-      ..color = Colors.cyan
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
+      final borderPaint = Paint()
+        ..color = Colors.cyan
+        ..strokeWidth = 2
+        ..style = PaintingStyle.stroke;
     canvas.drawRect(
       Rect.fromLTWH(player.x, player.y, player.width, player.height),
       borderPaint,

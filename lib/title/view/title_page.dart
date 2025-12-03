@@ -1,14 +1,13 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:echo_world/game/game.dart';
-import 'package:flame_audio/flame_audio.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:video_player/video_player.dart';
 import 'package:echo_world/game/ui/screens/journey_page.dart';
 import 'package:echo_world/loading/view/cleaning_loading_page.dart';
 import 'package:echo_world/minigames/menu/view/minigames_menu_page.dart';
-
 import 'package:echo_world/multiplayer/ui/multiplayer_login_page.dart';
+import 'package:flame_audio/flame_audio.dart';
+import 'package:echo_world/utils/unawaited.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart';
 
 class TitlePage extends StatelessWidget {
   const TitlePage({super.key});
@@ -236,20 +235,22 @@ class _MenuPrincipalState extends State<MenuPrincipal>
         case 0:
           debugPrint("Navigating to GamePage");
           FlameAudio.bgm.stop();
-          Navigator.of(context).pushReplacement(
-            CleaningLoadingPage.route(builder: (_) => const GamePage()),
+          unawaited(
+            Navigator.of(context).pushReplacement(
+              CleaningLoadingPage.route(builder: (_) => const GamePage()),
+            ),
           );
           break;
         case 1:
           debugPrint("Accediendo a Protocolos Multijugador...");
-          Navigator.of(context).push(MultiplayerLoginPage.route());
+          unawaited(Navigator.of(context).push(MultiplayerLoginPage.route()));
           break;
         case 2:
-          print("Accediendo a Pruebas...");
-          Navigator.of(context).push(MinigamesMenu.route());
+          debugPrint('Accediendo a Pruebas...');
+          unawaited(Navigator.of(context).push(MinigamesMenu.route()));
           break;
         case 3:
-          print("Calibrando Sistema...");
+          debugPrint('Calibrando Sistema...');
           break;
         case 4:
           debugPrint("Cortando Señal (Saliendo)...");
@@ -289,7 +290,7 @@ class _MenuPrincipalState extends State<MenuPrincipal>
               end: Alignment.centerRight,
               stops: const [0.2, 1.0],
               colors: [
-                Colors.black.withOpacity(0.8),
+                Colors.black.withAlpha((0.8 * 255).round()),
                 Colors.transparent,
               ],
             ),
@@ -311,7 +312,7 @@ class _MenuPrincipalState extends State<MenuPrincipal>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "BLACK ECHO",
+                      'BLACK ECHO',
                       style: TextStyle(
                         fontSize: 50,
                         fontWeight: FontWeight.bold,
@@ -324,7 +325,7 @@ class _MenuPrincipalState extends State<MenuPrincipal>
                       ),
                     ),
                     const Text(
-                      "PROYECTO CASANDRA // SUJETO 7",
+                      'PROYECTO CASANDRA // SUJETO 7',
                       style: TextStyle(
                         color: Colors.cyanAccent,
                         letterSpacing: 2.0,
@@ -475,7 +476,7 @@ class _JourneyButtonState extends State<JourneyButton> {
   void _onTapUp(PointerUpEvent event) {
     setState(() => _isPressed = false);
     // Navegar a JourneyPage
-    Navigator.of(context).push(JourneyPage.route());
+    unawaited(Navigator.of(context).push(JourneyPage.route()));
   }
 
   void _onTapCancel(PointerCancelEvent event) {

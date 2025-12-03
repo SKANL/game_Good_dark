@@ -1,6 +1,7 @@
 import 'package:echo_world/game/audio/audio_manager.dart';
 import 'package:flame/flame.dart';
 import 'package:flame_audio/flame_audio.dart';
+import 'package:echo_world/utils/unawaited.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -88,20 +89,22 @@ class _CleaningLoadingPageState extends State<CleaningLoadingPage> {
       await Future<void>.delayed(remaining);
     }
 
-    if (mounted) {
-      setState(() {
-        _progress = 1.0;
-        _statusText = 'SISTEMA LISTO.';
-      });
-
-      // Navegar al destino
-      await Future<void>.delayed(const Duration(milliseconds: 200));
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute<void>(builder: widget.builder),
-        );
+        setState(() {
+          _progress = 1.0;
+          _statusText = 'SISTEMA LISTO.';
+        });
+
+        // Navegar al destino
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        if (mounted) {
+          unawaited(
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute<void>(builder: widget.builder),
+            ),
+          );
+        }
       }
-    }
   }
 
   @override
@@ -119,7 +122,7 @@ class _CleaningLoadingPageState extends State<CleaningLoadingPage> {
 
           // Overlay oscuro para mejorar legibilidad
           Container(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withAlpha((0.3 * 255).round()),
           ),
 
           // Contenido
@@ -182,7 +185,7 @@ class _CleaningLoadingPageState extends State<CleaningLoadingPage> {
                   child: Text(
                     'MEM_USAGE: OPTIMIZED',
                     style: GoogleFonts.shareTechMono(
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withAlpha((0.5 * 255).round()),
                       fontSize: 12,
                     ),
                   ),

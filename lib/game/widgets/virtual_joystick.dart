@@ -86,7 +86,7 @@ class _VirtualJoystickState extends State<VirtualJoystick> {
                   color: const Color(0xAA00FFFF),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF00FFFF).withOpacity(0.5),
+                      color: const Color.fromRGBO(0, 255, 255, 0.5),
                       blurRadius: 10,
                       spreadRadius: 2,
                     ),

@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:echo_world/minigames/surgery/widgets/glowing_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:echo_world/utils/unawaited.dart';
 
 class EndPage extends StatefulWidget {
   const EndPage({super.key});
@@ -29,7 +30,7 @@ class _EndPageState extends State<EndPage> {
   }
 
   void _restartGame() {
-    Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    unawaited(Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false));
   }
 
   @override

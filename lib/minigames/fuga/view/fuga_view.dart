@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:echo_world/utils/unawaited.dart';
 import '../cubit/fuga_cubit.dart';
 import '../cubit/fuga_state.dart';
 import '../models/models.dart';
@@ -37,7 +38,8 @@ class _FugaViewState extends State<FugaView>
   void _showLore(BuildContext context) {
     final state = context.read<FugaCubit>().state;
     if (state.gameStatus == GameStatus.lore) {
-      showDialog<void>(
+      unawaited(
+        showDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (_) => AlertDialog(
@@ -67,6 +69,7 @@ class _FugaViewState extends State<FugaView>
             ),
           ],
         ),
+        ),
       );
     }
   }
@@ -85,7 +88,8 @@ class _FugaViewState extends State<FugaView>
                 ? '!HAZ LOGRADO ESCAPAR DE LA CRIATURA¡'
                 : '!TEAN ATRAPADO YA NO QUEDA ESPERANZA PARA TI¡');
 
-        showDialog<void>(
+        unawaited(
+          showDialog<void>(
           context: context,
           barrierDismissible: false,
           builder: (_) => AlertDialog(
@@ -121,6 +125,7 @@ class _FugaViewState extends State<FugaView>
                 ),
               ),
             ],
+          ),
           ),
         );
       },

@@ -1,5 +1,6 @@
 import 'package:echo_world/multiplayer/repository/multiplayer_repository.dart';
 import 'package:echo_world/multiplayer/ui/multiplayer_menu.dart';
+import 'package:echo_world/utils/unawaited.dart';
 import 'package:flutter/material.dart';
 
 class MultiplayerLoginPage extends StatefulWidget {
@@ -55,7 +56,7 @@ class _MultiplayerLoginPageState extends State<MultiplayerLoginPage> {
           password: password,
         );
         if (mounted) {
-          Navigator.of(context).pushReplacement(MultiplayerMenu.route());
+          unawaited(Navigator.of(context).pushReplacement(MultiplayerMenu.route()));
         }
       }
     } catch (e) {
@@ -87,10 +88,10 @@ class _MultiplayerLoginPageState extends State<MultiplayerLoginPage> {
           child: Container(
             padding: const EdgeInsets.all(30),
             constraints: const BoxConstraints(maxWidth: 400),
-            decoration: BoxDecoration(
+              decoration: BoxDecoration(
               border: Border.all(color: Colors.cyanAccent, width: 2),
               borderRadius: BorderRadius.circular(20),
-              color: Colors.black.withOpacity(0.8),
+              color: Colors.black.withAlpha((0.8 * 255).round()),
               boxShadow: const [
                 BoxShadow(color: Colors.cyan, blurRadius: 20, spreadRadius: 2),
               ],

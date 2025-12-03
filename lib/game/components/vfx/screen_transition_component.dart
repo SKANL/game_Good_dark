@@ -57,7 +57,7 @@ class ScreenTransitionComponent extends Component with HasGameRef<FlameGame> {
     // But we will add this to the GAME directly (like RaycastRenderer), so coordinate system is canvas.
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.x, size.y),
-      Paint()..color = color.withOpacity(opacity),
+      Paint()..color = color.withAlpha((opacity * 255).round()),
     );
   }
 }

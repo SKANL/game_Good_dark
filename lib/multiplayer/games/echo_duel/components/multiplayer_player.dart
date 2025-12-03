@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
+import 'package:echo_world/utils/unawaited.dart';
 import 'package:echo_world/game/components/lighting/light_source_component.dart';
 import 'package:echo_world/multiplayer/games/echo_duel/echo_duel_game.dart';
 import 'package:echo_world/multiplayer/games/echo_duel/components/vfx/multiplayer_death_vfx_component.dart';
@@ -240,11 +241,11 @@ class MultiplayerPlayer extends PositionComponent
       circle.paint.color = Colors.white;
 
       // Reset color after 100ms
-      Future.delayed(const Duration(milliseconds: 100), () {
+      unawaited(Future.delayed(const Duration(milliseconds: 100), () {
         if (!isDead && circle.isMounted) {
           circle.paint.color = originalColor;
         }
-      });
+      }));
     }
 
     if (health <= 0) {

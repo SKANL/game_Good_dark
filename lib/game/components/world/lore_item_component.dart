@@ -55,7 +55,8 @@ class LoreItemComponent extends PositionComponent
 
     // Outer glow
     final glowPaint = Paint()
-      ..color = const Color(0xFF00FFFF).withOpacity(0.3 + pulse * 0.3)
+      ..color = const Color(0xFF00FFFF)
+          .withAlpha(((0.3 + pulse * 0.3) * 255).round())
       ..maskFilter = const MaskFilter.blur(ui.BlurStyle.normal, 15);
 
     canvas.drawCircle(
@@ -70,7 +71,7 @@ class LoreItemComponent extends PositionComponent
         const Color(0xFF00FFFF),
         const Color(0xFFFFFFFF),
         pulse,
-      )!.withOpacity(0.9)
+      )!.withAlpha((0.9 * 255).round())
       ..style = PaintingStyle.fill;
 
     final path = ui.Path();

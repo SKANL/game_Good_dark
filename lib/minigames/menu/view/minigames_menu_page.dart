@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:echo_world/utils/unawaited.dart';
 import '../../surgery/surgery_game.dart';
 import '../../escape/view/escape_page.dart';
 import '../../fuga/view/fuga_page.dart';
@@ -33,34 +34,40 @@ class MinigamesMenu extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 60),
-              _MenuButton(
+                _MenuButton(
                 label: 'PRUEBA 1: CIRUGÍA',
                 color: Colors.green,
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const SurgeryGame(),
+                  unawaited(
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const SurgeryGame(),
+                      ),
                     ),
                   );
                 },
               ),
               const SizedBox(height: 20),
-              _MenuButton(
+                _MenuButton(
                 label: 'PRUEBA 2: ESCAPE',
                 color: Colors.orange,
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const EscapeGame()),
+                  unawaited(
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(builder: (_) => const EscapeGame()),
+                    ),
                   );
                 },
               ),
               const SizedBox(height: 20),
-              _MenuButton(
+                _MenuButton(
                 label: 'PRUEBA 3: FUGA',
                 color: Colors.red,
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const FugaPage()),
+                  unawaited(
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(builder: (_) => const FugaPage()),
+                    ),
                   );
                 },
               ),

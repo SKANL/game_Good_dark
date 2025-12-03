@@ -43,7 +43,7 @@ class JourneyPage extends StatelessWidget {
               final isUnlocked = state.ecosDesbloqueados.contains(entry.id);
 
               return Card(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withAlpha((0.5 * 255).round()),
                 shape: RoundedRectangleBorder(
                   side: BorderSide(
                     color: isUnlocked ? Colors.cyan : Colors.grey.shade800,
@@ -112,10 +112,8 @@ class JourneyPage extends StatelessWidget {
                                         : Icons.audiotrack,
                                   ),
                                   label: const Text('REPRODUCIR ARCHIVO'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.cyan.withOpacity(
-                                      0.2,
-                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.cyan.withAlpha((0.2 * 255).round()),
                                     foregroundColor: Colors.cyanAccent,
                                   ),
                                 ),
