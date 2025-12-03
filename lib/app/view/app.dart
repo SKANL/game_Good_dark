@@ -4,6 +4,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:echo_world/l10n/l10n.dart';
 import 'package:echo_world/loading/loading.dart';
 import 'package:echo_world/lore/lore.dart';
+import 'package:echo_world/tutorial/tutorial.dart';
 import 'package:flame/cache.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,6 +30,10 @@ class App extends StatelessWidget {
             unawaited(cubit.loadSequentially());
             return cubit;
           },
+        ),
+        // TutorialBloc persistente
+        BlocProvider(
+          create: (_) => TutorialBloc(),
         ),
       ],
       child: const AppView(),
