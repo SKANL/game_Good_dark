@@ -525,7 +525,9 @@ class _ActionButtonsDiamond extends StatelessWidget {
     required this.assetA,
     required this.onX,
     required this.assetX,
-    required this.onB,
+    this.onTapDownB,
+    this.onTapUpB,
+    this.onTapCancelB,
     required this.assetB,
     this.onSecondary,
     this.assetSecondary,
@@ -548,7 +550,10 @@ class _ActionButtonsDiamond extends StatelessWidget {
   final String assetX;
   final GlobalKey? keyX;
 
-  final VoidCallback onB; // Right
+  // B (Right) - Sigilo / Eco (Hold support)
+  final GestureTapDownCallback? onTapDownB;
+  final GestureTapUpCallback? onTapUpB;
+  final GestureTapCancelCallback? onTapCancelB;
   final String assetB;
   final GlobalKey? keyB;
 
@@ -617,7 +622,9 @@ class _ActionButtonsDiamond extends StatelessWidget {
             assetPath: assetB,
             width: 82,
             height: 120,
-            onPressed: onB,
+            onTapDown: onTapDownB,
+            onTapUp: onTapUpB,
+            onTapCancel: onTapCancelB,
           ),
         ),
         // Secondary (Optional) - Top Right Offset
@@ -770,6 +777,7 @@ class _HudTopDown extends StatelessWidget {
                 },
                 // B: Sigilo
                 assetB: 'assets/img/Botton_Sigilo.png',
+<<<<<<< HEAD
                 onB: () {
                   bloc.add(ModoSigiloActivado());
                   unawaited(
@@ -779,6 +787,11 @@ class _HudTopDown extends StatelessWidget {
                     ),
                   );
                 },
+=======
+                onTapDownB: (_) => bloc.add(ModoSigiloActivado()),
+                onTapUpB: (_) => bloc.add(ModoSigiloDesactivado()),
+                onTapCancelB: () => bloc.add(ModoSigiloDesactivado()),
+>>>>>>> 5d17c25c15ee6099e800a125ca3289518559d561
                 // A: Eco
                 assetA: 'assets/img/Botton_Eco.png',
                 onA: () {
@@ -937,6 +950,7 @@ class _HudSideScroll extends StatelessWidget {
                 },
                 // B: Sigilo
                 assetB: 'assets/img/Botton_Sigilo.png',
+<<<<<<< HEAD
                 onB: () {
                   bloc.add(ModoSigiloActivado());
                   unawaited(
@@ -946,6 +960,11 @@ class _HudSideScroll extends StatelessWidget {
                     ),
                   );
                 },
+=======
+                onTapDownB: (_) => bloc.add(ModoSigiloActivado()),
+                onTapUpB: (_) => bloc.add(ModoSigiloDesactivado()),
+                onTapCancelB: () => bloc.add(ModoSigiloDesactivado()),
+>>>>>>> 5d17c25c15ee6099e800a125ca3289518559d561
                 // A: Eco
                 assetA: 'assets/img/Botton_Eco.png',
                 onA: () {
@@ -1107,6 +1126,7 @@ class _HudFirstPerson extends StatelessWidget {
                 },
                 // B: Sigilo
                 assetB: 'assets/img/Botton_Sigilo.png',
+<<<<<<< HEAD
                 onB: () {
                   bloc.add(ModoSigiloActivado());
                   unawaited(
@@ -1116,6 +1136,11 @@ class _HudFirstPerson extends StatelessWidget {
                     ),
                   );
                 },
+=======
+                onTapDownB: (_) => bloc.add(ModoSigiloActivado()),
+                onTapUpB: (_) => bloc.add(ModoSigiloDesactivado()),
+                onTapCancelB: () => bloc.add(ModoSigiloDesactivado()),
+>>>>>>> 5d17c25c15ee6099e800a125ca3289518559d561
                 // A: Eco
                 assetA: 'assets/img/Botton_Eco.png',
                 onA: () {
