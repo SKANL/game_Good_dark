@@ -777,21 +777,9 @@ class _HudTopDown extends StatelessWidget {
                 },
                 // B: Sigilo
                 assetB: 'assets/img/Botton_Sigilo.png',
-<<<<<<< HEAD
-                onB: () {
-                  bloc.add(ModoSigiloActivado());
-                  unawaited(
-                    Future.delayed(
-                      const Duration(milliseconds: 200),
-                      () => bloc.add(ModoSigiloDesactivado()),
-                    ),
-                  );
-                },
-=======
                 onTapDownB: (_) => bloc.add(ModoSigiloActivado()),
                 onTapUpB: (_) => bloc.add(ModoSigiloDesactivado()),
                 onTapCancelB: () => bloc.add(ModoSigiloDesactivado()),
->>>>>>> 5d17c25c15ee6099e800a125ca3289518559d561
                 // A: Eco
                 assetA: 'assets/img/Botton_Eco.png',
                 onA: () {
@@ -950,21 +938,9 @@ class _HudSideScroll extends StatelessWidget {
                 },
                 // B: Sigilo
                 assetB: 'assets/img/Botton_Sigilo.png',
-<<<<<<< HEAD
-                onB: () {
-                  bloc.add(ModoSigiloActivado());
-                  unawaited(
-                    Future.delayed(
-                      const Duration(milliseconds: 200),
-                      () => bloc.add(ModoSigiloDesactivado()),
-                    ),
-                  );
-                },
-=======
                 onTapDownB: (_) => bloc.add(ModoSigiloActivado()),
                 onTapUpB: (_) => bloc.add(ModoSigiloDesactivado()),
                 onTapCancelB: () => bloc.add(ModoSigiloDesactivado()),
->>>>>>> 5d17c25c15ee6099e800a125ca3289518559d561
                 // A: Eco
                 assetA: 'assets/img/Botton_Eco.png',
                 onA: () {
@@ -1126,21 +1102,9 @@ class _HudFirstPerson extends StatelessWidget {
                 },
                 // B: Sigilo
                 assetB: 'assets/img/Botton_Sigilo.png',
-<<<<<<< HEAD
-                onB: () {
-                  bloc.add(ModoSigiloActivado());
-                  unawaited(
-                    Future.delayed(
-                      const Duration(milliseconds: 200),
-                      () => bloc.add(ModoSigiloDesactivado()),
-                    ),
-                  );
-                },
-=======
                 onTapDownB: (_) => bloc.add(ModoSigiloActivado()),
                 onTapUpB: (_) => bloc.add(ModoSigiloDesactivado()),
                 onTapCancelB: () => bloc.add(ModoSigiloDesactivado()),
->>>>>>> 5d17c25c15ee6099e800a125ca3289518559d561
                 // A: Eco
                 assetA: 'assets/img/Botton_Eco.png',
                 onA: () {
