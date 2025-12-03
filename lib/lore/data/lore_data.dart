@@ -3,6 +3,34 @@ import 'package:echo_world/lore/models/lore_model.dart';
 class LoreData {
   static const List<LoreEntry> allEntries = [
     LoreEntry(
+      id: 'video_intro',
+      title: 'Archivo: Despertar',
+      content: 'Registro visual del inicio de la consciencia del Sujeto 7.',
+      mediaPath: 'assets/video/intro_despertar.mp4',
+      isVideo: true,
+    ),
+    LoreEntry(
+      id: 'video_flashback',
+      title: 'Archivo: Núcleo',
+      content: 'Fragmento de memoria recuperado: El origen del colapso.',
+      mediaPath: 'assets/video/flashback_nucleo.mp4',
+      isVideo: true,
+    ),
+    LoreEntry(
+      id: 'video_final_good',
+      title: 'Archivo: Ascensión',
+      content: 'Proyección de un futuro posible: La superación del ciclo.',
+      mediaPath: 'assets/video/final_bueno.mp4',
+      isVideo: true,
+    ),
+    LoreEntry(
+      id: 'video_final_bad',
+      title: 'Archivo: Silencio',
+      content: 'Proyección de un futuro posible: La asimilación total.',
+      mediaPath: 'assets/video/final_malo.mp4',
+      isVideo: true,
+    ),
+    LoreEntry(
       id: 'lore_1',
       title: '1. La Guerra Silenciosa',
       content:

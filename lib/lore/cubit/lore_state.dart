@@ -10,15 +10,29 @@ class LoreState extends Equatable {
 
   factory LoreState.initial() {
     return const LoreState(
-      ecosDesbloqueados: {},
+      ecosDesbloqueados: {
+        'video_intro',
+        'video_flashback',
+        'video_final_good',
+        'video_final_bad',
+      },
       primeraSesion: true,
     );
   }
 
   /// Reconstruye el estado desde JSON
   factory LoreState.fromJson(Map<String, dynamic> json) {
+    final loaded = Set<String>.from(json['ecosDesbloqueados'] as List);
+    // Force add videos for update
+    loaded.addAll({
+      'video_intro',
+      'video_flashback',
+      'video_final_good',
+      'video_final_bad',
+    });
+
     return LoreState(
-      ecosDesbloqueados: Set<String>.from(json['ecosDesbloqueados'] as List),
+      ecosDesbloqueados: loaded,
       primeraSesion: json['primeraSesion'] as bool,
     );
   }

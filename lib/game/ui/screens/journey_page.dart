@@ -1,3 +1,4 @@
+import 'package:echo_world/game/ui/screens/video_player_screen.dart';
 import 'package:echo_world/lore/cubit/lore_bloc.dart';
 import 'package:echo_world/lore/cubit/lore_state.dart';
 import 'package:echo_world/lore/data/lore_data.dart';
@@ -85,14 +86,25 @@ class JourneyPage extends StatelessWidget {
                                 const SizedBox(height: 16),
                                 ElevatedButton.icon(
                                   onPressed: () {
-                                    // TODO: Implement media playback
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Reproduciendo archivo...',
+                                    if (entry.isVideo &&
+                                        entry.mediaPath != null) {
+                                      Navigator.of(context).push(
+                                        FullScreenVideoPlayer.route(
+                                          entry.mediaPath!,
                                         ),
-                                      ),
-                                    );
+                                      );
+                                    } else {
+                                      // TODO: Implement audio playback
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Reproduciendo archivo de audio...',
+                                          ),
+                                        ),
+                                      );
+                                    }
                                   },
                                   icon: Icon(
                                     entry.isVideo
