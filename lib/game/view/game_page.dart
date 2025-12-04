@@ -735,7 +735,48 @@ class _HudTopDown extends StatelessWidget {
                               volume: 0.5,
                             );
 
+                            // Verificar si el núcleo es un fragmento de memoria
+                            final isMemoryFragment = closest.isMemoryFragment;
+
                             closest.removeFromParent();
+
+                            // Otorgar fragmento si el núcleo era blanco
+                            if (isMemoryFragment) {
+                              // Leer el estado ANTES de disparar el evento
+                              final loreState = context.read<LoreBloc>().state;
+                              final fragmentosAnteriores =
+                                  loreState.fragmentosMemoria;
+                              final fragmentosNuevos = fragmentosAnteriores + 1;
+
+                              // Disparar el evento
+                              context.read<LoreBloc>().add(FragmentoObtenido());
+
+                              // Feedback visual con el valor NUEVO calculado
+                              final fragmentosParaSiguiente =
+                                  5 - (fragmentosNuevos % 5);
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Fragmento de Memoria obtenido [$fragmentosNuevos/20] '
+                                    '($fragmentosParaSiguiente para el siguiente eco)',
+                                    style: const TextStyle(
+                                      color: Colors.cyanAccent,
+                                    ),
+                                  ),
+                                  backgroundColor: Colors.black.withOpacity(
+                                    0.8,
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+
+                              // Feedback de audio
+                              AudioManager.instance.playSfx(
+                                'eco_ping',
+                                volume: 0.3,
+                              );
+                            }
                           }
 
                           bloc.add(AbsorcionConfirmada());
@@ -1511,7 +1552,9 @@ class _RuidoMentalPainter extends CustomPainter {
       final glitchOffset = ((tick * 20) % 20 - 10) * (intensity - 0.5);
       canvas.translate(glitchOffset, 0);
       final glitchPaint = Paint()
-        ..color = const Color(0xFF8A2BE2).withAlpha(((intensity - 0.5) * 0.4 * 255).round())
+        ..color = const Color(
+          0xFF8A2BE2,
+        ).withAlpha(((intensity - 0.5) * 0.4 * 255).round())
         ..blendMode = BlendMode.screen;
       for (var i = 0; i < 5; i++) {
         final y = (size.height / 5) * i;
@@ -1998,10 +2041,10 @@ class _HoloButtonState extends State<_HoloButton> {
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
           decoration: BoxDecoration(
             color: _isPressed
-              ? widget.color.withAlpha((0.3 * 255).round())
-              : Colors.transparent,
+                ? widget.color.withAlpha((0.3 * 255).round())
+                : Colors.transparent,
             border: Border.all(
-                color: _isHovered || _isPressed
+              color: _isHovered || _isPressed
                   ? widget.color
                   : widget.color.withAlpha((0.5 * 255).round()),
               width: 1.5,

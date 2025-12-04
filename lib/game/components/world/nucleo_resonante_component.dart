@@ -11,11 +11,16 @@ import 'package:flame/effects.dart';
 /// Comportamiento: Emite EstimuloDeSonido (Bajo) constante.
 class NucleoResonanteComponent extends PositionComponent
     with CollisionCallbacks, HasGameRef<BlackEchoGame> {
-  NucleoResonanteComponent({required super.position})
-    : super(
-        size: Vector2.all(20),
-        anchor: Anchor.center,
-      );
+  NucleoResonanteComponent({
+    required super.position,
+    this.isMemoryFragment = false,
+  }) : super(
+         size: Vector2.all(20),
+         anchor: Anchor.center,
+       );
+
+  /// Indica si este núcleo otorga un fragmento de memoria
+  final bool isMemoryFragment;
 
   // Temporizador para emitir sonido periódicamente
   double _soundTimer = 0;
@@ -47,7 +52,9 @@ class NucleoResonanteComponent extends PositionComponent
 
     add(
       LightSourceComponent(
-        color: const Color(0xFFFFD700), // Golden
+        color: isMemoryFragment
+            ? const Color(0xFFFFFFFF) // Blanco para fragmentos
+            : const Color(0xFFFFD700), // Dorado para normales
         intensity: 1.2,
         radius: 120,
         softness: 0.6,
@@ -77,19 +84,28 @@ class NucleoResonanteComponent extends PositionComponent
     // NO renderizar núcleo visual en first-person (el raycaster lo proyecta en 3D)
     if (gameRef.gameBloc.state.enfoqueActual == Enfoque.firstPerson) return;
 
-    // Render procedural: círculo dorado (#FFD700) en top-down/side-scroll
+    // Render procedural: círculo dorado o blanco según tipo
     final center = size / 2;
     final radius = size.x / 2;
 
-    // Relleno dorado
+    // Color según tipo de núcleo
+    final nucleusColor = isMemoryFragment
+        ? const Color(0xFFFFFFFF) // Blanco para fragmentos
+        : const Color(0xFFFFD700); // Dorado para normales
+
+    final outlineColor = isMemoryFragment
+        ? const Color(0xFFCCCCCC) // Gris claro para fragmentos
+        : const Color(0xFFFF8C00); // Naranja para normales
+
+    // Relleno
     final fillPaint = Paint()
-      ..color = const Color(0xFFFFD700)
+      ..color = nucleusColor
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(center.x, center.y), radius, fillPaint);
 
-    // Contorno naranja brillante para destacar
+    // Contorno para destacar
     final strokePaint = Paint()
-      ..color = const Color(0xFFFF8C00)
+      ..color = outlineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawCircle(Offset(center.x, center.y), radius, strokePaint);

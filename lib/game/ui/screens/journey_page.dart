@@ -20,13 +20,31 @@ class JourneyPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(
-          'ECOS DE LA MEMORIA',
-          style: GoogleFonts.courierPrime(
-            color: Colors.cyanAccent,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 2,
-          ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'ECOS DE LA MEMORIA',
+              style: GoogleFonts.courierPrime(
+                color: Colors.cyanAccent,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+              ),
+            ),
+            BlocBuilder<LoreBloc, LoreState>(
+              builder: (context, loreState) {
+                final fragmentos = loreState.fragmentosMemoria;
+                final paraProximo = 5 - (fragmentos % 5);
+                return Text(
+                  'Fragmentos: $fragmentos/20 ($paraProximo para el siguiente)',
+                  style: GoogleFonts.robotoMono(
+                    color: Colors.cyan.withOpacity(0.7),
+                    fontSize: 12,
+                  ),
+                );
+              },
+            ),
+          ],
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.cyanAccent),
@@ -112,8 +130,10 @@ class JourneyPage extends StatelessWidget {
                                         : Icons.audiotrack,
                                   ),
                                   label: const Text('REPRODUCIR ARCHIVO'),
-                                    style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.cyan.withAlpha((0.2 * 255).round()),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.cyan.withAlpha(
+                                      (0.2 * 255).round(),
+                                    ),
                                     foregroundColor: Colors.cyanAccent,
                                   ),
                                 ),
