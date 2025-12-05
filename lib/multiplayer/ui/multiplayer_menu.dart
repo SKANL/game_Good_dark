@@ -29,7 +29,10 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
     await _showRoomSelectionDialog(context, _games[index]);
   }
 
-  Future<void> _showRoomSelectionDialog(BuildContext context, String gameType) async {
+  Future<void> _showRoomSelectionDialog(
+    BuildContext context,
+    String gameType,
+  ) async {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -99,7 +102,10 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
     await Navigator.of(context).push(LobbyPage.route(gameType, roomId));
   }
 
-  Future<void> _showJoinRoomDialog(BuildContext context, String gameType) async {
+  Future<void> _showJoinRoomDialog(
+    BuildContext context,
+    String gameType,
+  ) async {
     final controller = TextEditingController();
     await showDialog<void>(
       context: context,
@@ -120,7 +126,7 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
           textAlign: TextAlign.center,
           textCapitalization: TextCapitalization.characters,
           maxLength: 4,
-            decoration: const InputDecoration(
+          decoration: const InputDecoration(
             hintText: 'ABCD',
             hintStyle: TextStyle(color: Colors.grey),
             enabledBorder: OutlineInputBorder(
@@ -133,13 +139,15 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
         ),
         actions: [
           TextButton(
-                onPressed: () {
-                  final roomId = controller.text.trim().toUpperCase();
-                  if (roomId.length == 4) {
-                    Navigator.pop(context);
-                    unawaited(Navigator.of(context).push(LobbyPage.route(gameType, roomId)));
-                  }
-                },
+            onPressed: () {
+              final roomId = controller.text.trim().toUpperCase();
+              if (roomId.length == 4) {
+                Navigator.pop(context);
+                unawaited(
+                  Navigator.of(context).push(LobbyPage.route(gameType, roomId)),
+                );
+              }
+            },
             child: const Text(
               'JOIN',
               style: TextStyle(color: Colors.greenAccent, fontSize: 18),
@@ -261,7 +269,7 @@ class _MultiplayerMenuState extends State<MultiplayerMenu> {
                       final data = snapshot.data!;
                       return Column(
                         children: [
-                            Text(
+                          Text(
                             'OPERATIVE: ${data['username']}',
                             style: const TextStyle(
                               color: Colors.greenAccent,

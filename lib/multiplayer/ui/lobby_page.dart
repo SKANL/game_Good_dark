@@ -82,15 +82,21 @@ class _LobbyPageState extends State<LobbyPage> {
       ),
     );
 
-    unawaited(Future.delayed(const Duration(milliseconds: 500), () {
-      if (!mounted) return;
-      if (widget.gameType.contains("Duelo")) {
-        unawaited(Navigator.of(context).pushReplacement(EchoDuelPage.route(matchId)));
-      } else {
-        // Fallback for other modes
-        unawaited(Navigator.of(context).pushReplacement(EchoDuelPage.route(matchId)));
-      }
-    }));
+    unawaited(
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+        if (widget.gameType.contains("Duelo")) {
+          unawaited(
+            Navigator.of(context).pushReplacement(EchoDuelPage.route(matchId)),
+          );
+        } else {
+          // Fallback for other modes
+          unawaited(
+            Navigator.of(context).pushReplacement(EchoDuelPage.route(matchId)),
+          );
+        }
+      }),
+    );
   }
 
   Future<void> _startMatch() async {
