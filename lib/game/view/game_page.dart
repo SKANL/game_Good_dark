@@ -486,7 +486,6 @@ class _SpriteButtonState extends State<SpriteButton> {
     // print('🔍 Building SpriteButton: ${widget.assetPath}'); // Uncomment if needed, but might be too noisy
     Widget content = GestureDetector(
       onTapDown: (details) {
-        // AudioManager.instance.playSfx('select_main'); // Removed as per user request
         setState(() => _isPressed = true);
         widget.onTapDown?.call(details);
       },

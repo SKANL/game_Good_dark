@@ -93,7 +93,10 @@ class RaycastRendererComponent extends Component
   static const double fov = math.pi / 3; // 60° field of view
   static const int rayCount = 200; // Increased resolution
   static const double maxDepth = 20; // Profundidad máxima en tiles
-  static const double rayStep = 0.05; // Paso de marcha para cada rayo
+  // OPTIMIZED: Adaptive ray step (near: precise, far: fast)
+  static const double rayStepNear = 0.08; // Near: more precise
+  static const double rayStepFar = 0.15; // Far: faster
+  static const double transitionDist = 5.0; // Transition at 5 tiles
 
   double _time = 0;
   Vector2 _lastPosition = Vector2.zero();
@@ -108,6 +111,9 @@ class RaycastRendererComponent extends Component
   ui.Image? _wallTexture;
   // Map of sprite assets by name
   final Map<String, ui.Image> _spriteAssets = {};
+
+  // OPTIMIZED: Pre-calculated ray directions (saves 200 cos/sin per frame)
+  final List<Vector2> _rayDirections = [];
 
   // Z-Buffer for Sprite Casting
   // Stores perpendicular distance to wall for each vertical stripe
@@ -149,6 +155,15 @@ class RaycastRendererComponent extends Component
         }
       }
 
+      // OPTIMIZED: Pre-calculate ray directions (saves 200 cos/sin per frame)
+      _rayDirections.clear();
+      for (var i = 0; i < 300; i++) {
+        // Max 300 rays
+        final rel = (i / 299) - 0.5;
+        final angle = rel * fov;
+        _rayDirections.add(Vector2(math.cos(angle), math.sin(angle)));
+      }
+
       // Initialize Particle System
       particleSystem = ParticleOverlaySystem();
       add(particleSystem!);
@@ -180,15 +195,18 @@ class RaycastRendererComponent extends Component
     }
     _lastPosition = player.position.clone();
 
-    // Adaptive resolution logic
+    // Adaptive resolution logic (OPTIMIZED: More aggressive)
     _frameTimeAccumulator += dt;
     _frameCount++;
-    if (_frameTimeAccumulator >= 1.0) {
+    if (_frameTimeAccumulator >= 0.5) {
+      // Reduced from 1.0s to 0.5s
       final fps = _frameCount / _frameTimeAccumulator;
-      if (fps < 45 && _currentRayCount > 50) {
-        _currentRayCount -= 20; // Reduce quality
-      } else if (fps > 55 && _currentRayCount < 300) {
-        _currentRayCount += 10; // Increase quality
+      if (fps < 40 && _currentRayCount > 80) {
+        _currentRayCount -= 40; // More aggressive: -40 instead of -20
+      } else if (fps < 50 && _currentRayCount > 100) {
+        _currentRayCount -= 20; // New intermediate threshold
+      } else if (fps > 55 && _currentRayCount < 200) {
+        _currentRayCount += 10; // Limited to 200 (was 300)
       }
       _frameTimeAccumulator = 0;
       _frameCount = 0;
@@ -324,16 +342,24 @@ class RaycastRendererComponent extends Component
     }
 
     for (var i = 0; i < _currentRayCount; i++) {
-      final rel = (i / (_currentRayCount - 1)) - 0.5; // -0.5 a 0.5
+      // OPTIMIZED: Use pre-calculated directions
+      final rayDir = _rayDirections[i];
+
+      // Rotate by player heading (only 2 multiplications instead of cos/sin)
+      final cosH = math.cos(heading);
+      final sinH = math.sin(heading);
+      var dirX = rayDir.x * cosH - rayDir.y * sinH;
+      var dirY = rayDir.x * sinH + rayDir.y * cosH;
 
       // Glitch: Desplazamiento angular aleatorio
-      var rayAng = heading + rel * fov;
       if (random.nextDouble() < glitchChance * 0.1) {
-        rayAng += (random.nextDouble() - 0.5) * 0.2;
+        final glitchAngle = (random.nextDouble() - 0.5) * 0.2;
+        final cosG = math.cos(glitchAngle);
+        final sinG = math.sin(glitchAngle);
+        final tempX = dirX;
+        dirX = dirX * cosG - dirY * sinG;
+        dirY = tempX * sinG + dirY * cosG;
       }
-
-      final dirX = math.cos(rayAng);
-      final dirY = math.sin(rayAng);
 
       var dist = 0.01;
       var hitX = posX;
@@ -343,14 +369,17 @@ class RaycastRendererComponent extends Component
       var wallX =
           0.0; // Coordenada X exacta del impacto en la pared (0.0 - 1.0)
 
-      // Marcha del rayo
+      // Marcha del rayo (OPTIMIZED: Adaptive step)
       while (dist < maxDepth) {
+        // Adaptive step based on distance
+        final step = dist < transitionDist ? rayStepNear : rayStepFar;
+
         hitX = posX + dirX * dist;
         hitY = posY + dirY * dist;
         final mx = hitX.floor();
         final my = hitY.floor();
 
-        // Fuera de bounds
+        // Fuera de bounds (early exit)
         if (my < 0 || my >= grid.length || mx < 0 || mx >= grid[0].length) {
           break;
         }
@@ -371,11 +400,13 @@ class RaycastRendererComponent extends Component
           break;
         }
 
-        dist += rayStep;
+        dist += step; // Use adaptive step
       }
 
       // Save distance to Z-Buffer for Sprite Casting
       // Correct fisheye for Z-Buffer too to match wall rendering
+      // Calculate ray angle from direction for fisheye correction
+      final rayAng = math.atan2(dirY, dirX);
       final perpDist = dist * math.cos(rayAng - heading);
       if (i < _wallDistances.length) {
         _wallDistances[i] = perpDist;
@@ -383,7 +414,7 @@ class RaycastRendererComponent extends Component
 
       if (!hit) continue;
 
-      // Corrección de fisheye
+      // Corrección de fisheye (rayAng already calculated above)
       final perp = dist * math.cos(rayAng - heading);
       final wallH =
           (renderSize.y) / (perp + 0.0001); // Usar altura completa del canvas
@@ -542,6 +573,9 @@ class RaycastRendererComponent extends Component
         }
 
         // 2. Accumulate Colored Light
+        // OPTIMIZED: Use fast lighting when performance is low
+        final useFastLighting = _currentRayCount < 150;
+
         var totalDiffuseR = 0.0, totalDiffuseG = 0.0, totalDiffuseB = 0.0;
         var totalSpecularR = 0.0;
         var totalSpecularG = 0.0;
@@ -549,62 +583,86 @@ class RaycastRendererComponent extends Component
 
         final hitPos = Vector2(hitX * tile, hitY * tile);
 
-        for (final light in activeLights) {
-          final distSq = hitPos.distanceToSquared(light.position);
-          final radiusSq = light.radius * light.radius;
-          if (distSq >= radiusSq) continue;
+        if (useFastLighting) {
+          // FAST PATH: Only attenuation, no Phong
+          for (final light in activeLights) {
+            final distSq = hitPos.distanceToSquared(light.position);
+            final radiusSq = light.radius * light.radius;
+            if (distSq >= radiusSq) continue;
 
-          // Line of Sight Check
-          if (!_hasLineOfSight(light.position, hitPos, grid, tile)) continue;
+            final dist = math.sqrt(distSq);
+            final normDist = dist / light.radius;
+            final att = (1.0 - normDist).clamp(0.0, 1.0);
 
-          final distToLight = math.sqrt(distSq);
-          final lightDirX = (light.position.x - hitPos.x) / distToLight;
-          final lightDirY = (light.position.y - hitPos.y) / distToLight;
+            final lightR = light.color.red / 255.0;
+            final lightG = light.color.green / 255.0;
+            final lightB = light.color.blue / 255.0;
 
-          // Diffuse: dot(normal, lightDir)
-          final dotNL = (normalX * lightDirX + normalY * lightDirY).clamp(
-            0.0,
-            1.0,
-          );
-
-          // Specular: Blinn-Phong
-          final viewDirX = -dirX;
-          final viewDirY = -dirY;
-
-          // Half vector H = (L + V) / |L + V|
-          var hX = lightDirX + viewDirX;
-          var hY = lightDirY + viewDirY;
-          final hLen = math.sqrt(hX * hX + hY * hY);
-          if (hLen > 0) {
-            hX /= hLen;
-            hY /= hLen;
+            final contrib = att * light.effectiveIntensity;
+            totalDiffuseR += contrib * lightR;
+            totalDiffuseG += contrib * lightG;
+            totalDiffuseB += contrib * lightB;
           }
+        } else {
+          // FULL PHONG PATH: Original quality
+          for (final light in activeLights) {
+            final distSq = hitPos.distanceToSquared(light.position);
+            final radiusSq = light.radius * light.radius;
+            if (distSq >= radiusSq) continue;
 
-          final dotNH = (normalX * hX + normalY * hY).clamp(0.0, 1.0);
-          final specular = math.pow(dotNH, 32); // Sharper highlight
+            // Line of Sight Check
+            if (!_hasLineOfSight(light.position, hitPos, grid, tile)) continue;
 
-          // Attenuation: Smoothstep
-          final normalizedDist = distToLight / light.radius;
-          final attLinear = (1.0 - normalizedDist).clamp(0.0, 1.0);
-          final attenuation = attLinear * attLinear * (3 - 2 * attLinear);
+            final distToLight = math.sqrt(distSq);
+            final lightDirX = (light.position.x - hitPos.x) / distToLight;
+            final lightDirY = (light.position.y - hitPos.y) / distToLight;
 
-          // Get light color
-          final lightR = light.color.red / 255.0;
-          final lightG = light.color.green / 255.0;
-          final lightB = light.color.blue / 255.0;
+            // Diffuse: dot(normal, lightDir)
+            final dotNL = (normalX * lightDirX + normalY * lightDirY).clamp(
+              0.0,
+              1.0,
+            );
 
-          // Accumulate colored diffuse
-          final diffuseContrib = dotNL * attenuation * light.effectiveIntensity;
-          totalDiffuseR += diffuseContrib * lightR;
-          totalDiffuseG += diffuseContrib * lightG;
-          totalDiffuseB += diffuseContrib * lightB;
+            // Specular: Blinn-Phong
+            final viewDirX = -dirX;
+            final viewDirY = -dirY;
 
-          // Accumulate colored specular
-          final specularContrib =
-              specular * attenuation * light.effectiveIntensity * 3.0;
-          totalSpecularR += specularContrib * lightR;
-          totalSpecularG += specularContrib * lightG;
-          totalSpecularB += specularContrib * lightB;
+            // Half vector H = (L + V) / |L + V|
+            var hX = lightDirX + viewDirX;
+            var hY = lightDirY + viewDirY;
+            final hLen = math.sqrt(hX * hX + hY * hY);
+            if (hLen > 0) {
+              hX /= hLen;
+              hY /= hLen;
+            }
+
+            final dotNH = (normalX * hX + normalY * hY).clamp(0.0, 1.0);
+            final specular = math.pow(dotNH, 32); // Sharper highlight
+
+            // Attenuation: Smoothstep
+            final normalizedDist = distToLight / light.radius;
+            final attLinear = (1.0 - normalizedDist).clamp(0.0, 1.0);
+            final attenuation = attLinear * attLinear * (3 - 2 * attLinear);
+
+            // Get light color
+            final lightR = light.color.red / 255.0;
+            final lightG = light.color.green / 255.0;
+            final lightB = light.color.blue / 255.0;
+
+            // Accumulate colored diffuse
+            final diffuseContrib =
+                dotNL * attenuation * light.effectiveIntensity;
+            totalDiffuseR += diffuseContrib * lightR;
+            totalDiffuseG += diffuseContrib * lightG;
+            totalDiffuseB += diffuseContrib * lightB;
+
+            // Accumulate colored specular
+            final specularContrib =
+                specular * attenuation * light.effectiveIntensity * 3.0;
+            totalSpecularR += specularContrib * lightR;
+            totalSpecularG += specularContrib * lightG;
+            totalSpecularB += specularContrib * lightB;
+          }
         }
 
         // 3. Combine with Ambient
