@@ -10,6 +10,7 @@ import 'package:echo_world/game/components/lighting/lighting_layer_component.dar
 import 'package:echo_world/game/components/lighting/lighting_system.dart';
 import 'package:echo_world/game/components/ui/crosshair_component.dart';
 import 'package:echo_world/game/components/vfx/camera_shake_component.dart';
+import 'package:echo_world/game/components/vfx/flash_overlay_component.dart';
 import 'package:echo_world/game/components/vfx/screen_transition_component.dart';
 import 'package:echo_world/game/cubit/audio/audio_cubit.dart';
 import 'package:echo_world/game/cubit/checkpoint/checkpoint_bloc.dart';
@@ -431,6 +432,15 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection, HasLighting {
 
   void shakeCamera({double intensity = 5, double duration = 0.3}) {
     world.add(CameraShakeComponent(intensity: intensity, duration: duration));
+  }
+
+  void triggerFlash({
+    Color color = const ui.Color(0xFFFFFFFF),
+    double duration = 0.15,
+  }) {
+    camera.viewport.add(
+      FlashOverlayComponent(color: color, duration: duration),
+    );
   }
 
   void emitSound(Vector2 pos, NivelSonido nivel, {double ttl = 1.0}) {

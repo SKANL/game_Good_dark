@@ -60,7 +60,12 @@ class HearingBehavior extends Behavior<PositionedEntity>
     // Apply Knockback physics
     if (!_knockbackVelocity.isZero()) {
       parent.position += _knockbackVelocity * dt;
-      _knockbackVelocity *= _knockbackDecay; // Apply friction
+
+      // Apply drag (friction) based on time, not frames
+      // Antes era 0.9 por frame, lo que es ~6.0 de drag (muy alto).
+      // Usamos 3.0 para un deslizamiento más natural y largo.
+      const drag = 3.0;
+      _knockbackVelocity -= _knockbackVelocity * (drag * dt);
 
       if (_knockbackVelocity.length < 10) {
         _knockbackVelocity = Vector2.zero();
@@ -181,8 +186,29 @@ class HearingBehavior extends Behavior<PositionedEntity>
     _duracionAturdimiento = duracion;
   }
 
+  /// Causa "Amnesia Táctica" al enemigo.
+  /// Lo aturde y borra su memoria del jugador, forzando un estado de ALERTA al recuperarse.
+  void confuse(double duracion) {
+    stun(duracion);
+    // Borrar target y memoria
+    ultimaPosicionSonido = null;
+    _tiempoPersecucion = 0;
+    _tiempoInvestigacion = 0;
+
+    // Forzar transición a ALERTA al terminar el stun (se maneja en update)
+    // Usamos una flag o simplemente confiamos en que al no tener target,
+    // si hay sonido volverá a ALERTA, o si no, a ATORMENTADO.
+    // Para forzar ALERTA, podríamos establecer una posición de sonido falsa o
+    // simplemente dejar que la lógica de update decida.
+    // MEJORA: Al salir de stun, si estaba en CAZA, bajar a ALERTA.
+  }
+
   /// Aplica un empuje físico al enemigo
   void pushBack(Vector2 direction, double force) {
+    if (direction.isZero()) {
+      // Si la dirección es cero (posiciones idénticas), elegir una aleatoria
+      direction = Vector2(1, 0)..rotate(0.5); // Arbitrario
+    }
     _knockbackVelocity = direction.normalized() * force;
     // También aturdir brevemente si el golpe es fuerte
     if (force > 200) {

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
+import 'package:flame/effects.dart';
 import 'package:flame_behaviors/flame_behaviors.dart';
 import 'package:echo_world/game/entities/player/behaviors/behaviors.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
@@ -200,6 +201,153 @@ class PlayerComponent extends PositionedEntity
         light.color = const Color(0xFF00FFFF);
       }
     }
+
+    // --- Continuous Collision Check (Enemies) ---
+    // Check for collisions manually to handle continuous contact during invulnerability
+    if (_invulnerableTimer <= 0) {
+      final enemies = gameRef.world.children.query<PositionedEntity>();
+      for (final other in enemies) {
+        if (other is CazadorComponent ||
+            other is VigiaComponent ||
+            other is BrutoComponent) {
+          // Simple distance check (radius based) for performance
+          // Assuming average enemy radius ~16 and player ~12 -> 28 threshold
+          if (position.distanceTo(other.position) < 28) {
+            final enemy = other;
+            final hearing = enemy.findBehavior<HearingBehavior>();
+
+            if (hearing.estadoActual == AIState.caza) {
+              _handleEnemyCollision(enemy, hearing);
+              break; // Handle one collision per frame max
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void _handleEnemyCollision(PositionedEntity enemy, HearingBehavior hearing) {
+    // 1. DEFENSA PERFECTA (Escudo Sónico)
+    // Condición: Energía >= 50
+    if (gameBloc.state.energiaGrito >= 50) {
+      // SFX: reproducir sonido de escudo sónico
+      AudioManager.instance.playSfx('rejection_shield', volume: 0.9);
+
+      // Consumir energía
+      gameBloc.add(RechazoSonicoActivado(50));
+
+      // Aturdir al enemigo (BUFF: 4.0s)
+      // hearing.stun(4); // Removed single target stun
+
+      // KNOCKBACK: Push enemy away (AoE for Shield too)
+      // OLD: final dir = (enemy.position - position).normalized();
+      // OLD: hearing.pushBack(dir, 500);
+
+      // --- EFECTO DE ÁREA (AoE) ESCUDO ---
+      // Empujar a todos los enemigos cercanos (Radio 180 - Menor que Mercy pero suficiente para despejar)
+      final enemies = gameRef.world.children.query<PositionedEntity>();
+      for (final e in enemies) {
+        if (e is CazadorComponent ||
+            e is BrutoComponent ||
+            e is VigiaComponent) {
+          final dist = position.distanceTo(e.position);
+          if (dist < 180) {
+            final eHearing = e.findBehavior<HearingBehavior>();
+
+            // Stun largo (4s) para el escudo
+            eHearing.stun(4.0);
+
+            // Empuje
+            final pushDir = (e.position - position).normalized();
+            eHearing.pushBack(pushDir, 500);
+          }
+        }
+      }
+
+      // Invulnerabilidad post-escudo
+      _invulnerableTimer = 2.0;
+
+      // VFX: onda de choque expansiva
+      parent?.add(RejectionVfxComponent(origin: position.clone()));
+
+      // Camera Shake (Leve)
+      gameRef.camera.viewfinder.add(
+        MoveEffect.by(
+          Vector2(5, 5),
+          EffectController(
+            duration: 0.2,
+            alternate: true,
+            repeatCount: 3,
+          ),
+        ),
+      );
+
+      // Emitir sonido alto para atraer otros enemigos (riesgo táctico)
+      game.emitSound(position.clone(), NivelSonido.alto, ttl: 1.5);
+    }
+    // 2. SOBRECARGA DE RESONANCIA (Mercy 2.0)
+    // Condición: 0 < Energía < 50
+    else if (gameBloc.state.energiaGrito > 0) {
+      // SFX: Sonido de escudo pero más agudo/distorsionado (si fuera posible)
+      AudioManager.instance.playSfx('rejection_shield', volume: 1.0);
+
+      // Consumir TODA la energía restante
+      gameBloc.add(RechazoSonicoActivado(gameBloc.state.energiaGrito));
+
+      // --- EFECTO DE ÁREA (AoE) ---
+      // Buscar TODOS los enemigos cercanos en un radio de 250px
+      final enemies = gameRef.world.children.query<PositionedEntity>();
+
+      for (final e in enemies) {
+        if (e is CazadorComponent ||
+            e is BrutoComponent ||
+            e is VigiaComponent) {
+          final dist = position.distanceTo(e.position);
+          if (dist < 250) {
+            final eHearing = e.findBehavior<HearingBehavior>();
+
+            // AMNESIA TÁCTICA: Confundir al enemigo
+            eHearing.confuse(3.0);
+
+            // EMPUJE MASIVO
+            final pushDir = (e.position - position).normalized();
+            eHearing.pushBack(
+              pushDir,
+              600,
+            ); // Fuerza mayor que el escudo normal
+          }
+        }
+      }
+
+      // Invulnerabilidad (2.0s para huir)
+      _invulnerableTimer = 2.0;
+
+      // VFX: Sobrecarga (RejectionVfx más grande o doble)
+      parent?.add(
+        RejectionVfxComponent(origin: position.clone(), radius: 250),
+      );
+
+      // GAME FEEL: Flash Blanco (Overlay)
+      gameRef.triggerFlash();
+
+      // GAME FEEL: Camera Shake (Intenso)
+      gameRef.camera.viewfinder.add(
+        MoveEffect.by(
+          Vector2(10, 10),
+          EffectController(
+            duration: 0.1,
+            alternate: true,
+            repeatCount: 5,
+          ),
+        ),
+      );
+    }
+    // 3. MUERTE (Game Over)
+    // Condición: Energía == 0
+    else {
+      // Game Over instantáneo
+      gameBloc.add(JugadorAtrapado());
+    }
   }
 
   @override
@@ -248,64 +396,14 @@ class PlayerComponent extends PositionedEntity
     }
 
     // Colisión con Resonancias (Cazador, Vigía, Bruto)
+    // MOVIDO A UPDATE: Para manejar contacto continuo si el jugador es invulnerable al inicio.
+    /*
     if (other is CazadorComponent ||
         other is VigiaComponent ||
         other is BrutoComponent) {
-      final enemy = other as PositionedEntity;
-      final hearing = enemy.findBehavior<HearingBehavior>();
-
-      if (hearing.estadoActual == AIState.caza) {
-        if (_invulnerableTimer > 0) return; // Ignore hits while invulnerable
-
-        // Verificar si tiene escudo (energía >= 50)
-        if (gameBloc.state.energiaGrito >= 50) {
-          // SFX: reproducir sonido de escudo sónico
-          AudioManager.instance.playSfx('rejection_shield', volume: 0.9);
-
-          // FIX: Consumir energía al usar el escudo (evita invencibilidad infinita)
-          gameBloc.add(RechazoSonicoActivado(50));
-
-          // Aturdir al enemigo (BUFF: 4.0s)
-          hearing.stun(4);
-
-          // KNOCKBACK: Push enemy away
-          final dir = (enemy.position - position).normalized();
-          hearing.pushBack(dir, 500);
-
-          // Invulnerabilidad post-escudo
-          _invulnerableTimer = 2.0;
-
-          // VFX: onda de choque expansiva
-          parent?.add(RejectionVfxComponent(origin: position.clone()));
-
-          // Emitir sonido alto para atraer otros enemigos
-          game.emitSound(position.clone(), NivelSonido.alto, ttl: 1.5);
-        } else if (gameBloc.state.energiaGrito > 0) {
-          // MERCY SYSTEM: Desperate Push
-          // Si tiene algo de energía pero < 50, sobrevive con 0 energía
-          AudioManager.instance.playSfx('rejection_shield', volume: 0.6);
-
-          // Consumir TODA la energía restante
-          gameBloc.add(RechazoSonicoActivado(gameBloc.state.energiaGrito));
-
-          // Aturdir brevemente (BUFF: 3.0s)
-          hearing.stun(3);
-
-          // KNOCKBACK: Push enemy away (weaker)
-          final dir = (enemy.position - position).normalized();
-          hearing.pushBack(dir, 300);
-
-          // Invulnerabilidad breve
-          _invulnerableTimer = 1.0;
-
-          // VFX menor
-          parent?.add(RejectionVfxComponent(origin: position.clone()));
-        } else {
-          // Game Over: energía insuficiente (0 exacto)
-          gameBloc.add(JugadorAtrapado());
-        }
-      }
+       ... logic moved ...
     }
+    */
   }
 
   @override
