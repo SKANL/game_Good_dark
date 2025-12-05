@@ -60,17 +60,17 @@ android {
         create("production") {
             dimension = "default"
             applicationIdSuffix = ""
-            manifestPlaceholders["appName"] = "Echo World"
+            manifestPlaceholders["appName"] = "Project Cassandra"
         }
         create("staging") {
             dimension = "default"
             applicationIdSuffix = ".stg"
-            manifestPlaceholders["appName"] = "[STG] Echo World"
+            manifestPlaceholders["appName"] = "Project Cassandra"
         }
         create("development") {
             dimension = "default"
             applicationIdSuffix = ".dev"
-            manifestPlaceholders["appName"] = "[DEV] Echo World"
+            manifestPlaceholders["appName"] = "Project Cassandra"
         }
     }
 
