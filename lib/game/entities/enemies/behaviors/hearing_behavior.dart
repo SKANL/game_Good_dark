@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/entities/enemies/behaviors/scream_behavior.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
@@ -57,9 +59,44 @@ class HearingBehavior extends Behavior<PositionedEntity>
 
   @override
   void update(double dt) {
-    // Apply Knockback physics
+    // Apply Knockback physics WITH COLLISION VALIDATION
     if (!_knockbackVelocity.isZero()) {
-      parent.position += _knockbackVelocity * dt;
+      final game = parent.findParent<BlackEchoGame>();
+
+      if (game != null) {
+        // Calculate desired movement
+        final desiredDelta = _knockbackVelocity * dt;
+
+        // Step-by-step validation to prevent wall clipping
+        // Max step size of 8px to avoid tunneling through thin walls
+        const maxStepSize = 8.0;
+        final totalDistance = desiredDelta.length;
+        final steps = (totalDistance / maxStepSize).ceil().clamp(1, 10);
+        final stepDelta = desiredDelta / steps.toDouble();
+
+        // Try to move in small increments
+        for (var i = 0; i < steps; i++) {
+          final newPos = parent.position + stepDelta;
+          final enemyRect = Rect.fromCenter(
+            center: Offset(newPos.x, newPos.y),
+            width: parent.size.x,
+            height: parent.size.y,
+          );
+
+          // Validate collision with level geometry
+          if (game.levelManager.isRectWalkable(enemyRect)) {
+            // Safe to move
+            parent.position = newPos;
+          } else {
+            // Hit a wall, stop knockback immediately
+            _knockbackVelocity = Vector2.zero();
+            break;
+          }
+        }
+      } else {
+        // Fallback: apply movement without validation (shouldn't happen)
+        parent.position += _knockbackVelocity * dt;
+      }
 
       // Apply drag (friction) based on time, not frames
       // Antes era 0.9 por frame, lo que es ~6.0 de drag (muy alto).
