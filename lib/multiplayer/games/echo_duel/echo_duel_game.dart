@@ -18,6 +18,7 @@ import 'package:echo_world/game/components/lighting/lighting_system.dart';
 import 'package:echo_world/game/components/lighting/lighting_layer_component.dart';
 import 'package:echo_world/multiplayer/games/echo_duel/components/ui/game_timer_component.dart';
 import 'package:echo_world/multiplayer/games/echo_duel/components/ui/scoreboard_component.dart';
+import 'package:echo_world/game/cubit/game/game_state.dart';
 
 class EchoDuelGame extends FlameGame with HasLighting {
   final String matchId;
@@ -40,13 +41,20 @@ class EchoDuelGame extends FlameGame with HasLighting {
 
     // Initialize Lighting System
     lightingSystem = LightingSystem();
-    await add(lightingSystem);
+    await world.add(lightingSystem);
 
     // Add Lighting Layer (Darkness)
-    await add(LightingLayerComponent(lightingSystem: lightingSystem));
+    // Add Lighting Layer (Darkness)
+    await world.add(
+      LightingLayerComponent(
+        lightingSystem: lightingSystem,
+        getEnfoque: () => Enfoque.topDown,
+      ),
+    );
 
     // Initialize Level Manager (Arena)
-    await add(MultiplayerLevelManager());
+    // Initialize Level Manager (Arena)
+    await world.add(MultiplayerLevelManager());
 
     _repository = EchoDuelRepository(matchId: matchId);
     final userId = Supabase.instance.client.auth.currentUser?.id ?? 'anon';
@@ -66,7 +74,7 @@ class EchoDuelGame extends FlameGame with HasLighting {
       background: CircleComponent(radius: 50, paint: backgroundPaint),
       margin: const EdgeInsets.only(left: 40, bottom: 40),
     );
-    add(_joystick);
+    camera.viewport.add(_joystick);
 
     // Shoot Button
     _shootButton = HudButtonComponent(
@@ -77,7 +85,7 @@ class EchoDuelGame extends FlameGame with HasLighting {
       margin: const EdgeInsets.only(right: 40, bottom: 60),
       onPressed: _shoot,
     );
-    add(_shootButton);
+    camera.viewport.add(_shootButton);
 
     // Local Player
     _localPlayer = MultiplayerPlayer(
@@ -85,13 +93,20 @@ class EchoDuelGame extends FlameGame with HasLighting {
       isMe: true,
       position: size / 2,
     );
-    add(_localPlayer);
+    world.add(_localPlayer);
 
     // UI Components
-    add(ScoreboardComponent());
-    add(GameTimerComponent());
+    // UI Components
+    camera.viewport.add(ScoreboardComponent());
+    camera.viewport.add(GameTimerComponent());
 
-    add(TextComponent(text: "MATCH: $matchId", position: Vector2(50, 50)));
+    camera.viewport.add(
+      TextComponent(text: "MATCH: $matchId", position: Vector2(50, 50)),
+    );
+
+    // Camera Follow
+    camera.follow(_localPlayer);
+    camera.viewfinder.zoom = 1.0;
   }
 
   // ... (existing methods)
@@ -120,11 +135,13 @@ class EchoDuelGame extends FlameGame with HasLighting {
     _shootButton.removeFromParent();
 
     // Auto-leave after 5 seconds
-    unawaited(Future.delayed(const Duration(seconds: 5), () {
-      // Navigate back to lobby (this needs access to Flutter context or a callback)
-      // For now, just leave game session
-      _repository.leaveGame();
-    }));
+    unawaited(
+      Future.delayed(const Duration(seconds: 5), () {
+        // Navigate back to lobby (this needs access to Flutter context or a callback)
+        // For now, just leave game session
+        _repository.leaveGame();
+      }),
+    );
   }
 
   void _shoot() {
@@ -136,10 +153,11 @@ class EchoDuelGame extends FlameGame with HasLighting {
       position: _localPlayer.position.clone(),
       direction: direction,
     );
-    add(bullet);
+
+    world.add(bullet);
 
     // Create Echo
-    add(EchoWave(position: _localPlayer.position.clone()));
+    world.add(EchoWave(position: _localPlayer.position.clone()));
 
     // Trigger hit scan
     _localPlayer.shoot(direction);
@@ -165,10 +183,11 @@ class EchoDuelGame extends FlameGame with HasLighting {
       position: Vector2(x, y),
       direction: Vector2(dx, dy),
     );
-    add(bullet);
+
+    world.add(bullet);
 
     // Create Echo for remote player
-    add(EchoWave(position: Vector2(x, y), color: Colors.redAccent));
+    world.add(EchoWave(position: Vector2(x, y), color: Colors.redAccent));
   }
 
   void _handleGameStateUpdate(Map<String, dynamic> payload) {
@@ -186,7 +205,7 @@ class EchoDuelGame extends FlameGame with HasLighting {
         position: Vector2(x, y),
       );
       _remotePlayers[userId] = newPlayer;
-      add(newPlayer);
+      world.add(newPlayer);
       // Initialize with first state
       newPlayer.onNewState(payload);
     }
@@ -226,7 +245,37 @@ class EchoDuelGame extends FlameGame with HasLighting {
     } else {
       _localPlayer.move(Vector2.zero());
     }
+
+    // DEBUG OVERLAY
+    if (children.whereType<TextComponent>().isEmpty) {
+      camera.viewport.add(
+        TextComponent(
+          text: 'DEBUG',
+          position: Vector2(10, 100),
+          textRenderer: TextPaint(
+            style: const TextStyle(color: Colors.yellow, fontSize: 12),
+          ),
+        ),
+      );
+    } else {
+      final debugText = camera.viewport.children
+          .whereType<TextComponent>()
+          .last;
+      final lights = lightingSystem.lights.length;
+      final camPos = camera.viewfinder.position;
+      final playerPos = _localPlayer.position;
+      debugText.text =
+          '''
+FPS: ${fps(dt)}
+Lights: $lights
+Cam: ${camPos.x.toStringAsFixed(1)}, ${camPos.y.toStringAsFixed(1)}
+Player: ${playerPos.x.toStringAsFixed(1)}, ${playerPos.y.toStringAsFixed(1)}
+World Children: ${world.children.length}
+''';
+    }
   }
+
+  String fps(double dt) => (1 / dt).toStringAsFixed(0);
 
   @override
   void onRemove() {

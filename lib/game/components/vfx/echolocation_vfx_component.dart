@@ -28,6 +28,8 @@ class EcholocationVfxComponent extends PositionComponent
     ..strokeWidth = 2
     ..color = const Color(0xFF00FFFF);
 
+  Color get color => _paint.color;
+
   late final LightSourceComponent _light;
 
   @override

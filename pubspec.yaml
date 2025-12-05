@@ -52,5 +52,10 @@ flutter:
     - assets/levels/skybox/skybox1.jpg
     - assets/minigames/surgery/imagenes/
     - assets/minigames/surgery/descripciones.json
+    - assets/enemigos/enemigo_comun.png
+    - assets/enemigos/enemigo_cyan.png
+    - assets/enemigos/enemigo_purpura.png
+    - assets/enemigos/enemigo_rojo.png
+    - assets/enemigos/enemigo_verde.png
     - lib/shaders/glitch.frag
     - lib/shaders/pulse.frag

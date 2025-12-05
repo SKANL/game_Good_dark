@@ -5,9 +5,10 @@ import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:echo_world/game/level/data/level_models.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame/game.dart';
 
 class WallComponent extends PositionComponent
-    with CollisionCallbacks, HasGameRef<BlackEchoGame> {
+    with CollisionCallbacks, HasGameRef<FlameGame> {
   WallComponent({
     required Vector2 position,
     required Vector2 size,
@@ -30,14 +31,18 @@ class WallComponent extends PositionComponent
       final tileY = (position.y / 32).floor();
 
       try {
-        final grid = gameRef.levelManager.currentGrid;
-        if (grid != null &&
-            tileY >= 0 &&
-            tileY < grid.length &&
-            tileX >= 0 &&
-            tileX < grid[0].length) {
-          grid[tileY][tileX] = CeldaData.suelo;
-          print('[WALL] Grid updated: ($tileX, $tileY) = FLOOR');
+        // Only attempt to update grid if we are in BlackEchoGame (Single Player)
+        // Multiplayer might need a different mechanism or just visual destruction for now
+        if (gameRef is BlackEchoGame) {
+          final grid = (gameRef as BlackEchoGame).levelManager.currentGrid;
+          if (grid != null &&
+              tileY >= 0 &&
+              tileY < grid.length &&
+              tileX >= 0 &&
+              tileX < grid[0].length) {
+            grid[tileY][tileX] = CeldaData.suelo;
+            print('[WALL] Grid updated: ($tileX, $tileY) = FLOOR');
+          }
         }
       } catch (e) {
         print('[WALL] Grid update error: $e');
@@ -50,6 +55,9 @@ class WallComponent extends PositionComponent
       }
 
       // Update batch renderer
+      // We need to find the batch renderer in the world
+      // In Flame 1.8+, world.children query is standard
+      // We can try to find it in the parent's children if added to world
       final batchRenderer = gameRef.world.children
           .query<Component>()
           .whereType<dynamic>()
@@ -74,7 +82,12 @@ class WallComponent extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    if (gameRef.gameBloc.state.enfoqueActual == Enfoque.firstPerson) return;
+    // Only check perspective if we are in BlackEchoGame
+    if (gameRef is BlackEchoGame) {
+      if ((gameRef as BlackEchoGame).gameBloc.state.enfoqueActual ==
+          Enfoque.firstPerson)
+        return;
+    }
 
     if (destructible) {
       final glowPaint = Paint()

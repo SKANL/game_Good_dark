@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/entities/enemies/behaviors/hearing_behavior.dart';
 import 'package:echo_world/game/utils/pathfinding.dart';
@@ -67,6 +69,9 @@ class AIMovementBehavior extends Behavior<PositionedEntity> {
       // Moverse hacia nextPoint
       final dir = (nextPoint - parent.position).normalized();
       final delta = dir * hearing.velocidadActual * dt;
+
+      // Actualizar rotación para mirar hacia donde se mueve
+      parent.angle = math.atan2(dir.y, dir.x);
 
       // Aplicar movimiento (sin colisiones complejas, confiamos en A*)
       // Aún así, mantenemos una comprobación básica por si acaso

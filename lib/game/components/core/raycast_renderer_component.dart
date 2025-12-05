@@ -106,6 +106,15 @@ class RaycastRendererComponent extends Component
 
   // Texturas
   ui.Image? _wallTexture;
+  // Map of sprite assets by name
+  final Map<String, ui.Image> _spriteAssets = {};
+
+  // Z-Buffer for Sprite Casting
+  // Stores perpendicular distance to wall for each vertical stripe
+  final List<double> _wallDistances = List.filled(
+    300,
+    0.0,
+  ); // Max resolution buffer
 
   // VFX System
   ParticleOverlaySystem? particleSystem;
@@ -115,17 +124,36 @@ class RaycastRendererComponent extends Component
     await super.onLoad();
     try {
       // Cargar la textura de la pared
-      // Usamos una instancia local de Images con prefix 'assets/' porque
-      // la imagen está en assets/levels/walls/, no en assets/images/
       final loader = Images(prefix: 'assets/');
       _wallTexture = await loader.load('levels/walls/wall_1.png');
+
+      // Cargar sprites de enemigos
+      final spriteNames = [
+        'enemigo_cyan.png',
+        'enemigo_purpura.png',
+        'enemigo_rojo.png',
+        'enemigo_verde.png',
+      ];
+
+      for (final name in spriteNames) {
+        try {
+          _spriteAssets[name] = await loader.load('enemigos/$name');
+        } catch (e) {
+          debugPrint('Sprite asset $name not found: $e');
+          // Fallback: Generate colored placeholder
+          final recorder = ui.PictureRecorder();
+          final canvas = Canvas(recorder);
+          final paint = Paint()..color = const Color(0xFFFFFFFF);
+          canvas.drawRect(const Rect.fromLTWH(0, 0, 32, 100), paint);
+          _spriteAssets[name] = await recorder.endRecording().toImage(32, 100);
+        }
+      }
 
       // Initialize Particle System
       particleSystem = ParticleOverlaySystem();
       add(particleSystem!);
     } catch (e) {
       debugPrint('Error loading resources: $e');
-      // Fallback: _wallTexture quedará null y se usará el renderizado antiguo
     }
   }
 
@@ -217,7 +245,8 @@ class RaycastRendererComponent extends Component
         const Color(0xFF000510); // Darker fog
 
     // Cielo y suelo (fondo)
-    final skyPaint = Paint()..color = ambientColor.withAlpha((0.8 * 255).round());
+    final skyPaint = Paint()
+      ..color = ambientColor.withAlpha((0.8 * 255).round());
     final floorPaint = Paint()..color = ambientColor;
 
     // NO aplicar transformación: renderizar en espacio de canvas directamente
@@ -259,10 +288,18 @@ class RaycastRendererComponent extends Component
     );
 
     // Obtener entidades del mundo
+    // Entidades del mundo (ahora usadas solo para sprite casting)
     final nucleos = game.world.children.query<NucleoResonanteComponent>();
     final cazadores = game.world.children.query<CazadorComponent>();
     final vigias = game.world.children.query<VigiaComponent>();
     final brutos = game.world.children.query<BrutoComponent>();
+
+    // Ensure Z-Buffer is large enough for current resolution
+    if (_wallDistances.length < _currentRayCount) {
+      _wallDistances.length = _currentRayCount; // Resize if needed
+    }
+    // Reset Z-Buffer with max distance
+    for (int i = 0; i < _currentRayCount; i++) _wallDistances[i] = maxDepth;
 
     final colWidth = renderSize.x / _currentRayCount;
 
@@ -303,7 +340,6 @@ class RaycastRendererComponent extends Component
       var hitY = posY;
       var hit = false;
       var side = false; // Para sombreado
-      dynamic entidadDetectada;
       var wallX =
           0.0; // Coordenada X exacta del impacto en la pared (0.0 - 1.0)
 
@@ -318,54 +354,6 @@ class RaycastRendererComponent extends Component
         if (my < 0 || my >= grid.length || mx < 0 || mx >= grid[0].length) {
           break;
         }
-
-        // Detectar núcleo
-        for (final n in nucleos) {
-          final dx = n.position.x / tile - hitX;
-          final dy = n.position.y / tile - hitY;
-          if (dx.abs() < 0.4 && dy.abs() < 0.4) {
-            entidadDetectada = n;
-            hit = true;
-            break;
-          }
-        }
-        if (hit) break;
-
-        // Detectar cazador
-        for (final c in cazadores) {
-          final dx = c.position.x / tile - hitX;
-          final dy = c.position.y / tile - hitY;
-          if (dx.abs() < 0.4 && dy.abs() < 0.4) {
-            entidadDetectada = c;
-            hit = true;
-            break;
-          }
-        }
-        if (hit) break;
-
-        // Detectar vigía
-        for (final v in vigias) {
-          final dx = v.position.x / tile - hitX;
-          final dy = v.position.y / tile - hitY;
-          if (dx.abs() < 0.4 && dy.abs() < 0.4) {
-            entidadDetectada = v;
-            hit = true;
-            break;
-          }
-        }
-        if (hit) break;
-
-        // Detectar bruto
-        for (final b in brutos) {
-          final dx = b.position.x / tile - hitX;
-          final dy = b.position.y / tile - hitY;
-          if (dx.abs() < 0.4 && dy.abs() < 0.4) {
-            entidadDetectada = b;
-            hit = true;
-            break;
-          }
-        }
-        if (hit) break;
 
         // Detectar pared
         if (grid[my][mx].tipo == TipoCelda.pared) {
@@ -384,6 +372,13 @@ class RaycastRendererComponent extends Component
         }
 
         dist += rayStep;
+      }
+
+      // Save distance to Z-Buffer for Sprite Casting
+      // Correct fisheye for Z-Buffer too to match wall rendering
+      final perpDist = dist * math.cos(rayAng - heading);
+      if (i < _wallDistances.length) {
+        _wallDistances[i] = perpDist;
       }
 
       if (!hit) continue;
@@ -415,94 +410,44 @@ class RaycastRendererComponent extends Component
       var maxSweepHeight = 0.0;
       var sweepIntensity = 0.0;
 
-      if (entidadDetectada is NucleoResonanteComponent) {
-        // Pulse effect
-        final pulse = (math.sin(_time * 5) + 1) / 2;
-        final baseColor = Color.lerp(
-          const Color(0xFFFFD700),
-          const Color(0xFFFFAA00),
-          pulse,
-        )!;
-        color = Color.lerp(fogColor, baseColor, fogFactor)!;
-      } else if (entidadDetectada is CazadorComponent) {
-        color = Color.lerp(
-          fogColor,
-          const Color(0xFFFF2222),
-          fogFactor,
-        )!;
-      } else if (entidadDetectada is VigiaComponent) {
-        color = Color.lerp(
-          fogColor,
-          const Color(0xFF8A2BE2),
-          fogFactor,
-        )!;
-      } else if (entidadDetectada is BrutoComponent) {
-        color = Color.lerp(
-          fogColor,
-          const Color(0xFF4444FF),
-          fogFactor,
-        )!;
-      } else {
-        // Pared
-        isWall = true;
-        color = const Color(0xFF00FFFF); // Base wall color
+      // Pared
+      isWall = true;
+      color = const Color(0xFF00FFFF); // Base wall color
 
-        // ECHO EFFECT: Vertical Sweep (Wall Climb)
-        // Simulates the sound wave hitting the wall and climbing up
+      // ECHO EFFECT: Vertical Sweep (Wall Climb)
+      for (final echo in echoes) {
+        final distToEcho = echo.position.distanceTo(
+          Vector2(hitX * tile, hitY * tile),
+        );
+        final radius = echo.radius;
+        final delta = radius - distToEcho;
 
-        for (final echo in echoes) {
-          final distToEcho = echo.position.distanceTo(
-            Vector2(hitX * tile, hitY * tile),
-          );
-          final radius = echo.radius;
-
-          // Check if the wave has reached the wall
-          // We allow a "thickness" for the impact zone
-          final delta = radius - distToEcho;
-
-          if (delta > 0 && delta < 150.0) {
-            // Wave climbs up to 150 units
-            // Calculate intensity based on how "fresh" the hit is
-            final intensity = (1.0 - (delta / 150.0)).clamp(0.0, 1.0);
-
-            if (intensity > sweepIntensity) {
-              sweepIntensity = intensity;
-              maxSweepHeight = delta;
-            }
-
-            // Base wall highlight (impact point)
-            color = Color.lerp(
-              color,
-              const Color(0xFFFFFFFF),
-              intensity * 0.8,
-            )!;
-            fogFactor = math.max(fogFactor, intensity);
+        if (delta > 0 && delta < 150.0) {
+          final intensity = (1.0 - (delta / 150.0)).clamp(0.0, 1.0);
+          if (intensity > sweepIntensity) {
+            sweepIntensity = intensity;
+            maxSweepHeight = delta;
           }
+          color = Color.lerp(color, const Color(0xFFFFFFFF), intensity * 0.8)!;
+          fogFactor = math.max(fogFactor, intensity);
         }
+      }
 
-        // RUPTURE EFFECT: Reddish glow near rupture points
-        for (final rupture in ruptures) {
-          final distToRupture = rupture.position.distanceTo(
-            Vector2(hitX * tile, hitY * tile),
-          );
-          // Rupture affects a radius of about 5 tiles (160 pixels)
-          if (distToRupture < 160.0) {
-            final intensity = (1.0 - (distToRupture / 160.0)).clamp(0.0, 1.0);
-            // Pulse based on rupture life or time
-            final pulse = (math.sin(_time * 10) + 1) / 2;
-            final glowColor = Color.lerp(
-              const Color(0xFFFF4400), // Red-Orange
-              const Color(0xFFFF0000), // Red
-              pulse,
-            )!;
-
-            // Blend the glow onto the wall
-            color = Color.lerp(color, glowColor, intensity * 0.8)!;
-            fogFactor = math.max(
-              fogFactor,
-              intensity,
-            ); // Rupture lights up the fog
-          }
+      // RUPTURE EFFECT
+      for (final rupture in ruptures) {
+        final distToRupture = rupture.position.distanceTo(
+          Vector2(hitX * tile, hitY * tile),
+        );
+        if (distToRupture < 160.0) {
+          final intensity = (1.0 - (distToRupture / 160.0)).clamp(0.0, 1.0);
+          final pulse = (math.sin(_time * 10) + 1) / 2;
+          final glowColor = Color.lerp(
+            const Color(0xFFFF4400),
+            const Color(0xFFFF0000),
+            pulse,
+          )!;
+          color = Color.lerp(color, glowColor, intensity * 0.8)!;
+          fogFactor = math.max(fogFactor, intensity);
         }
       }
 
@@ -571,7 +516,9 @@ class RaycastRendererComponent extends Component
           final fresnel = (perp / maxDepth).clamp(0.2, 0.8);
 
           final reflectionPaint = Paint()
-            ..color = color.withAlpha(((0.3 * fresnel * fogFactor) * 255).round())
+            ..color = color.withAlpha(
+              ((0.3 * fresnel * fogFactor) * 255).round(),
+            )
             ..maskFilter = const MaskFilter.blur(
               BlurStyle.normal,
               3,
@@ -762,7 +709,9 @@ class RaycastRendererComponent extends Component
               Offset(x, drawYBottom),
               Offset(x, drawYBottom - sweepHeightPixels),
               [
-                const Color(0xFF00FFFF).withAlpha(((sweepIntensity * 0.6) * 255).round()),
+                const Color(
+                  0xFF00FFFF,
+                ).withAlpha(((sweepIntensity * 0.6) * 255).round()),
                 const Color(0xFF00FFFF).withAlpha(0),
               ],
             )
@@ -801,11 +750,11 @@ class RaycastRendererComponent extends Component
         final screenRadius = normalizedRadius * screenRadiusMax;
 
         final echoPaint = Paint()
-          ..color = const Color(0xFF00FFFF).withAlpha(
-            ((1.0 - normalizedRadius).clamp(0.0, 1.0) * 255).round(),
+          ..color = echo.color.withAlpha(
+            ((1.0 - normalizedRadius) * 255).round(),
           )
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.0;
+          ..strokeWidth = 4.0 * (1.0 - normalizedRadius);
 
         canvas.drawCircle(Offset(centerX, centerY), screenRadius, echoPaint);
 
@@ -820,7 +769,234 @@ class RaycastRendererComponent extends Component
         canvas.drawCircle(Offset(centerX, centerY), screenRadius, pulsePaint);
       }
     }
+
+    // --- SPRITE CASTING PASS (Billboarding) ---
+    // Render entities after walls using Painter's Algorithm + Z-Buffer
+    _renderSprites(
+      canvas,
+      renderSize,
+      player,
+      bobOffset,
+      crouchOffset,
+      tile,
+      fogColor,
+      glitchChance,
+      [...cazadores, ...vigias, ...brutos, ...nucleos],
+    );
+
     canvas.restore(); // Restore canvas state
+  }
+
+  /// Sprite Casting Algorithm (Wolfenstein 3D style)
+  /// Advanced implementation with Baked Reflection and Directional Sprites
+  void _renderSprites(
+    Canvas canvas,
+    Vector2 renderSize,
+    PlayerComponent player,
+    double bobOffset,
+    double crouchOffset,
+    double tileSize,
+    Color fogColor,
+    double glitchChance,
+    List<PositionComponent> entities,
+  ) {
+    if (_spriteAssets.isEmpty) return;
+
+    // 1. Calculate Player Camera Vectors
+    final dirX = math.cos(player.heading);
+    final dirY = math.sin(player.heading);
+    final planeX = -dirY * 0.66;
+    final planeY = dirX * 0.66;
+
+    // 2. Sort Sprites by Distance (Painter's Algorithm)
+    entities.sort((a, b) {
+      final distA = player.position.distanceToSquared(a.position);
+      final distB = player.position.distanceToSquared(b.position);
+      return distB.compareTo(distA); // Descending order
+    });
+
+    // Animation State
+    // 3 frames of animation, cycling every ~0.6 seconds (5 FPS)
+    final int animFrame = (_time * 5).toInt() % 3;
+
+    for (final entity in entities) {
+      // 3. Translate sprite position to relative to camera
+      final spriteX = (entity.position.x - player.position.x) / tileSize;
+      final spriteY = (entity.position.y - player.position.y) / tileSize;
+
+      // 4. Transform sprite with the inverse camera matrix
+      final invDet = 1.0 / (planeX * dirY - dirX * planeY);
+      final transformX = invDet * (dirY * spriteX - dirX * spriteY);
+      final transformY =
+          invDet * (-planeY * spriteX + planeX * spriteY); // Depth
+
+      // If sprite is behind the camera, skip it
+      if (transformY <= 0) continue;
+
+      // 5. Calculate sprite height and width on screen
+      // Sprite is 32x100. Feet are at Y=50 (Center).
+      // We must center the sprite vertically on the projected floor Y.
+
+      final spriteScreenX = (renderSize.x / 2) * (1 + transformX / transformY);
+
+      // Calculate projected height of a standard 1-unit tall object
+      // But our sprite is effectively 2 units tall (50px up, 50px down reflection)
+      // Standard wall height logic: wallH = renderSize.y / transformY
+      final projectedUnitHeight = (renderSize.y / transformY).abs();
+
+      // Sprite is 32x100. In world units, let's say it's approx 1 tile wide.
+      // 32px width -> 1 tile width.
+      // 100px height -> ~3 tiles height (visual).
+      // But logically, feet are at center.
+
+      final spriteScale = projectedUnitHeight;
+      final spritePixelWidth = 32.0;
+      final spritePixelHeight = 100.0;
+      final spriteAspectRatio = spritePixelWidth / spritePixelHeight;
+
+      // Width on screen
+      final spriteWidth =
+          spriteScale * (spritePixelWidth / 32.0); // Normalize to tile width
+      final spriteHeight = spriteWidth / spriteAspectRatio;
+
+      // Vertical Positioning (Baked Reflection Logic)
+      // The "Horizon" is at renderSize.y / 2 + bobOffset + crouchOffset
+      // The "Floor" at this distance is at: Horizon + (WallHeight / 2)
+      final horizonY = renderSize.y / 2 + bobOffset + crouchOffset;
+      final floorY = horizonY + (projectedUnitHeight / 2);
+
+      // Center the sprite on the floorY
+      final spriteTop = floorY - (spriteHeight / 2);
+
+      final spriteLeft = spriteScreenX - spriteWidth / 2;
+      final spriteRight = spriteScreenX + spriteWidth / 2;
+
+      final drawStartX = math.max(0, spriteLeft.toInt());
+      final drawEndX = math.min(renderSize.x.toInt(), spriteRight.toInt());
+
+      // Determine Asset and Settings
+      ui.Image? spriteImage;
+      double sheetOffsetY = 0.0;
+      Color tintColor = const Color(0xFFFFFFFF);
+
+      if (entity is BrutoComponent) {
+        spriteImage = _spriteAssets['enemigo_cyan.png'];
+        sheetOffsetY = 400.0; // Skeleton Block
+        tintColor = const Color(0xFF0000FF); // Blue tint
+      } else if (entity is CazadorComponent) {
+        spriteImage = _spriteAssets['enemigo_rojo.png'];
+        sheetOffsetY = 0.0; // Zombie Block
+        tintColor = const Color(0xFFFF0000); // Red tint
+      } else if (entity is VigiaComponent) {
+        spriteImage = _spriteAssets['enemigo_purpura.png'];
+        sheetOffsetY = 0.0; // Zombie Block
+        tintColor = const Color(0xFF8A2BE2); // Violet tint
+      } else if (entity is NucleoResonanteComponent) {
+        spriteImage = _spriteAssets['enemigo_verde.png'];
+        sheetOffsetY = 0.0; // Zombie Block
+        tintColor = const Color(0xFFFFD700); // Gold tint
+      }
+
+      if (spriteImage == null) continue;
+
+      // Directional Logic
+      // Calculate angle from player to enemy
+      final dx = entity.position.x - player.position.x;
+      final dy = entity.position.y - player.position.y;
+      final angleToEnemy = math.atan2(dy, dx);
+
+      // Directional Logic (4 Rows)
+      // Row 0: Front (Facing Player)
+      // Row 1: Right
+      // Row 2: Back
+      // Row 3: Left
+
+      // Calculate difference between Entity Facing and Viewing Angle
+      // We add PI to normalize to 0..2PI range where 0/2PI is Front.
+      var diff = entity.angle - angleToEnemy;
+      // Normalize to -PI to PI
+      while (diff <= -math.pi) diff += 2 * math.pi;
+      while (diff > math.pi) diff -= 2 * math.pi;
+
+      // Shift so 0 is Front (which corresponds to diff = PI in our previous logic? No wait)
+      // Let's re-verify:
+      // Entity Facing Player -> diff = PI.
+      // We want PI to map to Row 0.
+
+      // Let's use the formula: d = diff + PI.
+      // d range 0..2PI.
+      // PI (Front) -> d = 2PI (or 0).
+      // 0 (Back) -> d = PI.
+
+      final d = diff + math.pi;
+
+      // Map to 4 sectors
+      // 0 (Front): d approx 0 or 2PI
+      // 1 (Right): d approx PI/2
+      // 2 (Back): d approx PI
+      // 3 (Left): d approx 3PI/2
+
+      int directionRow = ((d + math.pi / 4) / (math.pi / 2)).floor() % 4;
+
+      // Calculate Fog
+      const fogDensity = 0.15;
+      var fogFactor = math.exp(-fogDensity * transformY);
+      fogFactor = fogFactor.clamp(0.0, 1.0);
+
+      final finalColor = Color.lerp(fogColor, tintColor, fogFactor)!;
+
+      final paint = Paint()
+        ..colorFilter = ColorFilter.mode(finalColor, BlendMode.modulate)
+        ..filterQuality = FilterQuality.low;
+
+      // Stripe Width depends on resolution
+      final stripeWidth = renderSize.x / _currentRayCount;
+
+      for (double x = drawStartX.toDouble(); x < drawEndX; x += stripeWidth) {
+        final int zBufferIndex = (x / renderSize.x * _currentRayCount)
+            .floor()
+            .clamp(0, _currentRayCount - 1);
+
+        // 7. Z-Buffer Check
+        if (transformY < _wallDistances[zBufferIndex]) {
+          // Calculate texture coordinate
+          final texCoordX = (x - spriteLeft) / spriteWidth; // 0.0 to 1.0
+
+          // Map to Sprite Sheet
+          // Frame Width: 32px, Frame Height: 100px
+          final frameBaseX = animFrame * 32.0;
+          final frameBaseY = sheetOffsetY + (directionRow * 100.0);
+
+          final frameX = texCoordX * 32.0;
+
+          // Calculate width of the slice in texture space
+          final sliceWidth = (stripeWidth / spriteWidth) * 32.0;
+
+          final srcRect = Rect.fromLTWH(
+            frameBaseX + frameX,
+            frameBaseY,
+            sliceWidth,
+            100.0,
+          );
+
+          // Glitch Sync
+          var drawYTop = spriteTop;
+          if (glitchChance > 0) {
+            final wave =
+                math.sin(_time * 20 + zBufferIndex * 0.1) * (glitchChance * 10);
+            drawYTop += wave;
+          }
+
+          final dstRect = Rect.fromLTWH(
+            x,
+            drawYTop,
+            stripeWidth + 1,
+            spriteHeight,
+          );
+          canvas.drawImageRect(spriteImage, srcRect, dstRect, paint);
+        }
+      }
+    }
   }
 
   /// Checks if there is a direct line of sight between two points in the grid.

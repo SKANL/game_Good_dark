@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:flame/components.dart';
+import 'package:flame/game.dart';
 
 /// Sistema de batch rendering para optimizar el dibujado de geometría estática.
 ///
@@ -11,7 +12,7 @@ import 'package:flame/components.dart';
 /// y lo renderiza de una vez (1 draw call).
 ///
 /// Esto mejora dramáticamente el rendimiento en dispositivos móviles.
-class BatchGeometryRenderer extends Component with HasGameRef<BlackEchoGame> {
+class BatchGeometryRenderer extends Component with HasGameRef<FlameGame> {
   BatchGeometryRenderer();
 
   /// Canvas pre-renderizado con toda la geometría estática
@@ -141,7 +142,13 @@ class BatchGeometryRenderer extends Component with HasGameRef<BlackEchoGame> {
     super.render(canvas);
 
     // NO renderizar geometría 2D en first-person: el raycaster proyecta las paredes en 3D
-    if (game.gameBloc.state.enfoqueActual == Enfoque.firstPerson) return;
+    // Check if we are in BlackEchoGame to access gameBloc
+    if (game is BlackEchoGame) {
+      if ((game as BlackEchoGame).gameBloc.state.enfoqueActual ==
+          Enfoque.firstPerson) {
+        return;
+      }
+    }
 
     // Renderizar el batch completo en un solo draw call (solo en top-down/side-scroll)
     if (_geometryPicture != null) {

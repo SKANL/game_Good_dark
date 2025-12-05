@@ -122,7 +122,12 @@ class BlackEchoGame extends FlameGame with HasCollisionDetection, HasLighting {
 
     // Add Lighting Layer (2D Darkness/Lights)
     // Render priority is handled inside the component (100)
-    await world.add(LightingLayerComponent(lightingSystem: lightingSystem));
+    await world.add(
+      LightingLayerComponent(
+        lightingSystem: lightingSystem,
+        getEnfoque: () => gameBloc.state.enfoqueActual,
+      ),
+    );
 
     // Añadir retícula (crosshair) para first-person
     final crosshair = CrosshairComponent();

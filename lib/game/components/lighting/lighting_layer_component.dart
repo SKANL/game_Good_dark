@@ -1,15 +1,19 @@
 import 'dart:ui';
-import 'package:echo_world/game/black_echo_game.dart';
 import 'package:echo_world/game/components/lighting/lighting_system.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 import 'package:flame/components.dart';
+import 'package:flame/game.dart';
 
 /// Renders a darkness overlay and "carves" out holes for lights.
 /// Used for TopDown and SideScroll perspectives.
-class LightingLayerComponent extends Component with HasGameRef<BlackEchoGame> {
-  LightingLayerComponent({required this.lightingSystem});
+class LightingLayerComponent extends Component with HasGameRef<FlameGame> {
+  LightingLayerComponent({
+    required this.lightingSystem,
+    required this.getEnfoque,
+  });
 
   final LightingSystem lightingSystem;
+  final Enfoque Function() getEnfoque;
 
   // Darkness color (Ambient light)
   Color ambientColor = const Color(0xFF000000); // Pitch black by default
@@ -20,7 +24,7 @@ class LightingLayerComponent extends Component with HasGameRef<BlackEchoGame> {
   @override
   void render(Canvas canvas) {
     // Only render in 2D modes
-    final enfoque = gameRef.gameBloc.state.enfoqueActual;
+    final enfoque = getEnfoque();
     if (enfoque == Enfoque.firstPerson) return;
 
     final camera = gameRef.camera;
