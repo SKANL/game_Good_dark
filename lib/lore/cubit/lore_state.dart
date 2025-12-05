@@ -6,34 +6,23 @@ class LoreState extends Equatable {
   const LoreState({
     required this.ecosDesbloqueados,
     required this.primeraSesion,
+    required this.fragmentosMemoria,
   });
 
   factory LoreState.initial() {
     return const LoreState(
-      ecosDesbloqueados: {
-        'video_intro',
-        'video_flashback',
-        'video_final_good',
-        'video_final_bad',
-      },
+      ecosDesbloqueados: {},
       primeraSesion: true,
+      fragmentosMemoria: 0,
     );
   }
 
   /// Reconstruye el estado desde JSON
   factory LoreState.fromJson(Map<String, dynamic> json) {
-    final loaded = Set<String>.from(json['ecosDesbloqueados'] as List);
-    // Force add videos for update
-    loaded.addAll({
-      'video_intro',
-      'video_flashback',
-      'video_final_good',
-      'video_final_bad',
-    });
-
     return LoreState(
-      ecosDesbloqueados: loaded,
+      ecosDesbloqueados: Set<String>.from(json['ecosDesbloqueados'] as List),
       primeraSesion: json['primeraSesion'] as bool,
+      fragmentosMemoria: json['fragmentosMemoria'] as int? ?? 0,
     );
   }
 
@@ -43,13 +32,18 @@ class LoreState extends Equatable {
   /// Flag para saber si debe mostrarse la intro
   final bool primeraSesion;
 
+  /// Cantidad de fragmentos de memoria recolectados
+  final int fragmentosMemoria;
+
   LoreState copyWith({
     Set<String>? ecosDesbloqueados,
     bool? primeraSesion,
+    int? fragmentosMemoria,
   }) {
     return LoreState(
       ecosDesbloqueados: ecosDesbloqueados ?? this.ecosDesbloqueados,
       primeraSesion: primeraSesion ?? this.primeraSesion,
+      fragmentosMemoria: fragmentosMemoria ?? this.fragmentosMemoria,
     );
   }
 
@@ -58,9 +52,14 @@ class LoreState extends Equatable {
     return {
       'ecosDesbloqueados': ecosDesbloqueados.toList(),
       'primeraSesion': primeraSesion,
+      'fragmentosMemoria': fragmentosMemoria,
     };
   }
 
   @override
-  List<Object?> get props => [ecosDesbloqueados, primeraSesion];
+  List<Object?> get props => [
+    ecosDesbloqueados,
+    primeraSesion,
+    fragmentosMemoria,
+  ];
 }

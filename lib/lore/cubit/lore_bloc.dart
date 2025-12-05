@@ -13,11 +13,36 @@ class DesbloquearEco extends LoreEvent {
 /// Marcar que ya no es primera sesión (intro vista)
 class MarcarIntroVista extends LoreEvent {}
 
+/// Evento cuando se obtiene un fragmento de memoria
+class FragmentoObtenido extends LoreEvent {}
+
 /// BLoC persistente que gestiona el progreso del lore
 class LoreBloc extends HydratedBloc<LoreEvent, LoreState> {
   LoreBloc() : super(LoreState.initial()) {
     on<DesbloquearEco>(_onDesbloquearEco);
     on<MarcarIntroVista>(_onMarcarIntroVista);
+    on<FragmentoObtenido>(_onFragmentoObtenido);
+  }
+
+  void _onFragmentoObtenido(
+    FragmentoObtenido event,
+    Emitter<LoreState> emit,
+  ) {
+    final nuevosFragmentos = state.fragmentosMemoria + 1;
+    final Set<String> nuevosEcos = Set.from(state.ecosDesbloqueados);
+
+    // Lógica de desbloqueo progresivo
+    if (nuevosFragmentos >= 5) nuevosEcos.add('video_intro');
+    if (nuevosFragmentos >= 10) nuevosEcos.add('video_flashback');
+    if (nuevosFragmentos >= 15) nuevosEcos.add('video_final_good');
+    if (nuevosFragmentos >= 20) nuevosEcos.add('video_final_bad');
+
+    emit(
+      state.copyWith(
+        fragmentosMemoria: nuevosFragmentos,
+        ecosDesbloqueados: nuevosEcos,
+      ),
+    );
   }
 
   void _onDesbloquearEco(DesbloquearEco event, Emitter<LoreState> emit) {

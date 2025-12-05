@@ -131,8 +131,21 @@ class EnemyDeathVfxComponent extends Component with HasGameRef<BlackEchoGame> {
   }
 
   void _spawnNucleus() {
+    // Verificar si el jugador ya alcanzó el límite de fragmentos (20)
+    final loreBloc = gameRef.loreBloc;
+    final fragmentosActuales = loreBloc.state.fragmentosMemoria;
+    final yaAlcanzoLimite = fragmentosActuales >= 20;
+
+    // RNG: 50% de probabilidad de que sea un fragmento de memoria
+    // SOLO si no se ha alcanzado el límite
+    final random = math.Random();
+    final isMemoryFragment = !yaAlcanzoLimite && random.nextDouble() < 0.5;
+
     // Crear el núcleo con efecto de fade-in
-    final nucleus = NucleoResonanteComponent(position: enemyPosition.clone());
+    final nucleus = NucleoResonanteComponent(
+      position: enemyPosition.clone(),
+      isMemoryFragment: isMemoryFragment,
+    );
 
     // Añadir al mundo
     gameRef.world.add(nucleus);
