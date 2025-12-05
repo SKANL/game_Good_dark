@@ -1,7 +1,12 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
-class Bullet extends PositionComponent {
+import 'package:flame/collisions.dart';
+import 'package:echo_world/multiplayer/games/echo_duel/components/multiplayer_player.dart';
+import 'package:echo_world/multiplayer/games/echo_duel/echo_duel_game.dart';
+
+class Bullet extends PositionComponent
+    with CollisionCallbacks, HasGameReference<EchoDuelGame> {
   final String ownerId;
   final Vector2 velocity;
   final double speed = 400.0;
@@ -22,6 +27,30 @@ class Bullet extends PositionComponent {
         paint: Paint()..color = Colors.yellow,
       ),
     );
+
+    // Active hitbox to detect passive players
+    add(
+      CircleHitbox(
+        radius: 4,
+        anchor: Anchor.center,
+        position: size / 2,
+        collisionType: CollisionType.active,
+      ),
+    );
+  }
+
+  @override
+  void onCollisionStart(
+    Set<Vector2> intersectionPoints,
+    PositionComponent other,
+  ) {
+    super.onCollisionStart(intersectionPoints, other);
+
+    if (other is MultiplayerPlayer && other.id != ownerId) {
+      // Hit an enemy
+      game.repository.broadcastPlayerHit(other.id, 10);
+      removeFromParent();
+    }
   }
 
   @override

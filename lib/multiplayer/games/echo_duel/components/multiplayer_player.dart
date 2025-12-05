@@ -21,7 +21,7 @@ class PlayerSnapshot {
 }
 
 class MultiplayerPlayer extends PositionComponent
-    with HasGameReference<EchoDuelGame> {
+    with HasGameReference<EchoDuelGame>, CollisionCallbacks {
   final String id;
   final bool isMe;
 
@@ -35,8 +35,9 @@ class MultiplayerPlayer extends PositionComponent
   static const int _renderDelay = 100; // ms delay for interpolation window
 
   // Current movement state
+  // Current movement state
   Vector2 velocity = Vector2.zero();
-  final double speed = 200.0;
+  double speed = 200.0;
 
   MultiplayerPlayer({
     required this.id,
@@ -55,8 +56,15 @@ class MultiplayerPlayer extends PositionComponent
       ),
     );
 
-    // Add Hitbox for combat
-    add(CircleHitbox(radius: 16, anchor: Anchor.center, position: size / 2));
+    // Add Hitbox for combat (CollisionType.passive so we detect bullets hitting us)
+    add(
+      CircleHitbox(
+        radius: 16,
+        anchor: Anchor.center,
+        position: size / 2,
+        collisionType: CollisionType.passive,
+      ),
+    );
 
     // Add Player Light Source (Aura)
     add(
@@ -121,8 +129,6 @@ class MultiplayerPlayer extends PositionComponent
     if (_snapshots.isEmpty) return;
 
     // Calculate the render time (server time - delay)
-    // Note: For now assuming local clock is roughly synced or using raw timestamps.
-    // Phase 1.1 will add proper ClockSync.
     final int renderTime = DateTime.now().millisecondsSinceEpoch - _renderDelay;
 
     // Find the two snapshots surrounding the renderTime
@@ -149,17 +155,13 @@ class MultiplayerPlayer extends PositionComponent
     }
     // Case 2: We only have old snapshots -> Extrapolate (Dead Reckoning)
     else if (before != null && after == null) {
-      // Simple extrapolation: continue moving with last known velocity
-      // Limit extrapolation to avoid flying off to infinity if packet loss is high
-      if (renderTime - before.timestamp < 500) {
-        // Calculate dt since the snapshot
-        // This is tricky in update loop, simpler to just lerp to the last known position
-        // or actually apply velocity.
-        // For stability, let's just snap to the latest if we are lagging behind too much,
-        // or stay at the last known position if we ran out of future data.
-        // Better approach for simple extrapolation:
-        // position = before.position;
-        // But let's try to be smooth:
+      // Extrapolation (Dead Reckoning)
+      // Limit to 1 second to avoid drifting too far
+      if (renderTime - before.timestamp < 1000) {
+        final double dt = (renderTime - before.timestamp) / 1000.0;
+        position = before.position + (before.velocity * dt);
+      } else {
+        // Too stale, snap
         position = before.position;
       }
     }
@@ -241,11 +243,13 @@ class MultiplayerPlayer extends PositionComponent
       circle.paint.color = Colors.white;
 
       // Reset color after 100ms
-      unawaited(Future.delayed(const Duration(milliseconds: 100), () {
-        if (!isDead && circle.isMounted) {
-          circle.paint.color = originalColor;
-        }
-      }));
+      unawaited(
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (!isDead && circle.isMounted) {
+            circle.paint.color = originalColor;
+          }
+        }),
+      );
     }
 
     if (health <= 0) {

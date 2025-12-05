@@ -23,7 +23,7 @@ import 'package:echo_world/multiplayer/games/echo_duel/components/ui/game_timer_
 import 'package:echo_world/multiplayer/games/echo_duel/components/ui/scoreboard_component.dart';
 import 'package:echo_world/game/cubit/game/game_state.dart';
 
-class EchoDuelGame extends FlameGame with HasLighting {
+class EchoDuelGame extends FlameGame with HasLighting, HasCollisionDetection {
   final String matchId;
   late final MultiplayerPlayer _localPlayer;
   late final JoystickComponent _joystick;
@@ -297,12 +297,14 @@ class EchoDuelGame extends FlameGame with HasLighting {
   void _applyItemEffect(MultiplayerPlayer player, String objectId) {
     print("Player ${player.id} used $objectId");
 
-    // Visual effect based on item type
-    // For now, just a simple visual indicator
+    // Visual effect
     world.add(
       CircleComponent(
-        radius: 30,
-        paint: BasicPalette.green.withAlpha(100).paint(),
+        radius: 35,
+        paint: Paint()
+          ..color = Colors.white.withOpacity(0.5)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
         position: player.position,
         anchor: Anchor.center,
         priority: 100,
@@ -310,14 +312,31 @@ class EchoDuelGame extends FlameGame with HasLighting {
         TimerComponent(
           period: 0.5,
           removeOnFinish: true,
-          onTick: () {},
         ),
       ),
     );
 
-    // Logic effects (e.g. heal) would go here
+    // LOGIC EFFECTS
     if (objectId == 'health_potion') {
-      // player.heal(20);
+      player.health = (player.health + 20).clamp(0, player.maxHealth);
+      print("Healed player ${player.id} to ${player.health}");
+    } else if (objectId == 'speed_boost') {
+      // Temporary speed boost
+      final originalSpeed = player.speed;
+      player.speed *= 1.5;
+      print("Boosted speed for player ${player.id}");
+
+      unawaited(
+        Future.delayed(const Duration(seconds: 5), () {
+          if (player.isMounted && !player.isDead) {
+            player.speed = originalSpeed;
+            print("Speed boost expired for player ${player.id}");
+          }
+        }),
+      );
+    } else if (objectId == 'shield') {
+      // TODO: Implement shield logic
+      print("Shield activated for player ${player.id}");
     }
   }
 
