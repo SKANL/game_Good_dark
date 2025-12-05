@@ -30,6 +30,9 @@ class LevelManagerComponent extends Component with HasGameRef {
   LevelData? _current; // Chunk actual cargado (expuesto para vistas)
   List<List<CeldaData>>? get currentGrid => _current?.grid;
 
+  /// Índice del nivel actual (0-based)
+  int get currentLevelIndex => _idx;
+
   // Referencias a componentes del nivel para poder limpiarlos
   final List<Component> _levelComponents = [];
 

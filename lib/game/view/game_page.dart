@@ -30,6 +30,7 @@ import 'package:flame_audio/bgm.dart';
 import 'package:echo_world/utils/unawaited.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class GamePage extends StatelessWidget {
   const GamePage({super.key});
@@ -273,6 +274,44 @@ class _GameViewState extends State<GameView> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // INDICADOR DE NIVEL
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.7),
+                          border: Border.all(
+                            color: Colors.cyanAccent,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: StreamBuilder<int>(
+                          stream: Stream.periodic(
+                            const Duration(milliseconds: 500),
+                            (_) {
+                              final game = _game as BlackEchoGame?;
+                              return game?.levelManager.currentLevelIndex ?? 0;
+                            },
+                          ),
+                          initialData: 0,
+                          builder: (context, snapshot) {
+                            final level = snapshot.data ?? 0;
+                            return Text(
+                              'NIVEL ${level + 1}',
+                              style: GoogleFonts.courierPrime(
+                                color: Colors.cyanAccent,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       // Botón de DEBUG para avanzar chunks
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(

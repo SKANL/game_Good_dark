@@ -45,7 +45,7 @@ void main() {
     testWidgets('basic layout', (tester) async {
       await tester.pumpApp(LoadingPage(), preloadCubit: preloadCubit);
 
-      expect(find.byType(AnimatedProgressBar), findsOneWidget);
+      expect(find.byType(NeonProgressBar), findsOneWidget);
       expect(find.textContaining('Loading'), findsOneWidget);
 
       await tester.pumpAndSettle(Duration(seconds: 1));

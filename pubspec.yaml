@@ -38,6 +38,7 @@ dev_dependencies:
   plugin_platform_interface: ^2.1.8
   very_good_analysis: ^10.0.0
   video_player_platform_interface: ^6.6.0
+  flutter_launcher_icons: ^0.14.2
 
 flutter:
   generate: true
@@ -48,6 +49,7 @@ flutter:
     - assets/licenses/poppins/
     - assets/img/
     - assets/video/
+    - assets/icon/Icon_echo.png
     - assets/levels/walls/wall_1.png
     - assets/levels/skybox/skybox1.jpg
     - assets/minigames/surgery/imagenes/
@@ -59,3 +61,19 @@ flutter:
     - assets/enemigos/enemigo_verde.png
     - lib/shaders/glitch.frag
     - lib/shaders/pulse.frag
+
+# Configuración de flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/Icon_echo.png"
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/icon/Icon_echo.png"
+  windows:
+    generate: true
+    image_path: "assets/icon/Icon_echo.png"
+  macos:
+    generate: true
+    image_path: "assets/icon/Icon_echo.png"
