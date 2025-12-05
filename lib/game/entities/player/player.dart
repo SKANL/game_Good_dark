@@ -42,6 +42,14 @@ class PlayerComponent extends PositionedEntity
   double _invulnerableTimer = 0;
   String? _footstepLoopId; // Track footstep loop for instant stop
 
+  // Sistema de silencio post-muerte (15 segundos)
+  double _deathSilenceTimer = 0;
+  Vector2? _lastPositionBeforeDeath;
+  bool _isSilenced = false;
+
+  /// Getter para que los behaviors puedan verificar si deben silenciarse
+  bool get isSilencedByDeath => _isSilenced;
+
   @override
   Future<void> onLoad() async {
     add(
@@ -126,6 +134,39 @@ class PlayerComponent extends PositionedEntity
     super.update(dt);
     if (_invulnerableTimer > 0) {
       _invulnerableTimer -= dt;
+    }
+
+    // --- Sistema de Silencio Post-Muerte ---
+    if (gameBloc.state.estadoJugador == EstadoJugador.atrapado) {
+      // Inicializar posición de referencia al morir
+      if (_lastPositionBeforeDeath == null) {
+        _lastPositionBeforeDeath = position.clone();
+        _deathSilenceTimer = 0;
+        _isSilenced = false;
+      }
+
+      // Detectar movimiento (threshold: 5px para evitar drift de joystick)
+      final hasMoved = position.distanceTo(_lastPositionBeforeDeath!) > 5.0;
+
+      if (hasMoved) {
+        // Si se mueve, resetear timer y NO silenciar
+        _deathSilenceTimer = 0;
+        _isSilenced = false;
+        _lastPositionBeforeDeath = position.clone();
+      } else {
+        // Si NO se mueve, incrementar timer
+        _deathSilenceTimer += dt;
+
+        // Activar silencio después de 15 segundos
+        if (_deathSilenceTimer >= 15.0) {
+          _isSilenced = true;
+        }
+      }
+    } else {
+      // Resetear estado si el jugador revive
+      _lastPositionBeforeDeath = null;
+      _deathSilenceTimer = 0;
+      _isSilenced = false;
     }
 
     // --- Footstep Logic ---

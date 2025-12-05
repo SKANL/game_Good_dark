@@ -48,11 +48,15 @@ class SideScrollMovementBehavior extends Behavior<PlayerComponent> {
     final threshold = gameBloc.state.estaAgachado ? 22.0 : 34.0;
     if (_stepAccum >= threshold) {
       _stepAccum = 0;
-      final nivel = gameBloc.state.estaAgachado
-          ? NivelSonido.bajo
-          : NivelSonido.medio;
-      final ttl = gameBloc.state.estaAgachado ? 0.35 : 0.6;
-      game.emitSound(parent.position.clone(), nivel, ttl: ttl);
+
+      // NO emitir sonido si el jugador está silenciado por muerte
+      if (!parent.isSilencedByDeath) {
+        final nivel = gameBloc.state.estaAgachado
+            ? NivelSonido.bajo
+            : NivelSonido.medio;
+        final ttl = gameBloc.state.estaAgachado ? 0.35 : 0.6;
+        game.emitSound(parent.position.clone(), nivel, ttl: ttl);
+      }
     }
   }
 }

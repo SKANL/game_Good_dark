@@ -95,9 +95,13 @@ class FirstPersonMovementBehavior extends Behavior<PlayerComponent>
       final threshold = isStealth ? 22.0 : 34.0;
       if (_stepAccum >= threshold) {
         _stepAccum = 0;
-        final nivel = isStealth ? NivelSonido.bajo : NivelSonido.medio;
-        final ttl = isStealth ? 0.35 : 0.6;
-        game.emitSound(player.position.clone(), nivel, ttl: ttl);
+
+        // NO emitir sonido si el jugador está silenciado por muerte
+        if (!player.isSilencedByDeath) {
+          final nivel = isStealth ? NivelSonido.bajo : NivelSonido.medio;
+          final ttl = isStealth ? 0.35 : 0.6;
+          game.emitSound(player.position.clone(), nivel, ttl: ttl);
+        }
       }
     }
   }
