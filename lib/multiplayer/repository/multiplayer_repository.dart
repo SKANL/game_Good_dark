@@ -94,6 +94,37 @@ class MultiplayerRepository {
     return List<Map<String, dynamic>>.from(response);
   }
 
+  Future<bool> consumeItem(String objectId) async {
+    final user = currentUser;
+    if (user == null) return false;
+
+    try {
+      // 1. Get current quantity
+      final response = await _client
+          .from('player_inventory')
+          .select('quantity')
+          .eq('user_id', user.id)
+          .eq('object_id', objectId)
+          .single();
+
+      final currentQty = response['quantity'] as int;
+
+      if (currentQty <= 0) return false;
+
+      // 2. Decrement
+      await _client
+          .from('player_inventory')
+          .update({'quantity': currentQty - 1})
+          .eq('user_id', user.id)
+          .eq('object_id', objectId);
+
+      return true;
+    } catch (e) {
+      print('Error consuming item: $e');
+      return false;
+    }
+  }
+
   // --- Matchmaking (Realtime Presence) ---
   RealtimeChannel? _matchmakingChannel;
 

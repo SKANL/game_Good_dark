@@ -4,6 +4,9 @@ import 'package:echo_world/multiplayer/games/echo_duel/components/echo_wave.dart
 import 'package:echo_world/multiplayer/games/echo_duel/components/multiplayer_player.dart';
 import 'package:echo_world/multiplayer/games/echo_duel/components/multiplayer_level_manager.dart';
 import 'package:echo_world/multiplayer/games/echo_duel/repository/echo_duel_repository.dart';
+import 'package:echo_world/multiplayer/repository/multiplayer_repository.dart';
+import 'package:echo_world/multiplayer/games/echo_duel/models/inventory_item.dart';
+import 'package:echo_world/multiplayer/games/echo_duel/components/ui/inventory_hud.dart';
 import 'package:flame/components.dart';
 import 'package:echo_world/utils/unawaited.dart';
 
@@ -30,6 +33,11 @@ class EchoDuelGame extends FlameGame with HasLighting {
   final Map<String, MultiplayerPlayer> _remotePlayers = {};
   double _broadcastTimer = 0;
 
+  // Inventory
+  late final MultiplayerRepository _multiplayerRepository;
+  late final InventoryHud _inventoryHud;
+  List<InventoryItem> _inventory = [];
+
   @override
   late final LightingSystem lightingSystem;
 
@@ -44,19 +52,20 @@ class EchoDuelGame extends FlameGame with HasLighting {
     await world.add(lightingSystem);
 
     // Add Lighting Layer (Darkness)
-    // Add Lighting Layer (Darkness)
-    await world.add(
-      LightingLayerComponent(
-        lightingSystem: lightingSystem,
-        getEnfoque: () => Enfoque.topDown,
-      ),
-    );
+    // DIAGNOSTIC: Commented out to verify visibility
+    // await world.add(
+    //   LightingLayerComponent(
+    //     lightingSystem: lightingSystem,
+    //     getEnfoque: () => Enfoque.topDown,
+    //   ),
+    // );
 
     // Initialize Level Manager (Arena)
     // Initialize Level Manager (Arena)
     await world.add(MultiplayerLevelManager());
 
     _repository = EchoDuelRepository(matchId: matchId);
+    _multiplayerRepository = MultiplayerRepository();
     final userId = Supabase.instance.client.auth.currentUser?.id ?? 'anon';
 
     await _repository.joinGame(
@@ -64,7 +73,19 @@ class EchoDuelGame extends FlameGame with HasLighting {
       _handleGameStateUpdate,
       _handlePlayerShoot,
       _handlePlayerHit,
+      _handlePlayerUseItem,
     );
+
+    // Load Inventory
+    await _loadInventory();
+
+    // Inventory HUD
+    _inventoryHud = InventoryHud(
+      items: _inventory,
+      onItemPressed: _useItem,
+    );
+    _inventoryHud.position = Vector2(size.x / 2, size.y - 80);
+    camera.viewport.add(_inventoryHud);
 
     // Joystick
     final knobPaint = BasicPalette.blue.withAlpha(200).paint();
@@ -223,6 +244,80 @@ class EchoDuelGame extends FlameGame with HasLighting {
     } else if (_remotePlayers.containsKey(victimId)) {
       // Someone else was hit
       _remotePlayers[victimId]!.takeDamage(damage);
+    }
+  }
+
+  Future<void> _loadInventory() async {
+    final rawInventory = await _multiplayerRepository.getInventory();
+    _inventory = rawInventory.map((e) => InventoryItem.fromJson(e)).toList();
+    if (isMounted) {
+      // Check if game is still mounted
+      _inventoryHud.updateItems(_inventory);
+    }
+  }
+
+  Future<void> _useItem(InventoryItem item) async {
+    if (item.quantity <= 0) return;
+
+    // Optimistic update
+    item.quantity--;
+    _inventoryHud.updateItems(_inventory);
+
+    // Apply local effect
+    _applyItemEffect(_localPlayer, item.objectId);
+
+    // Broadcast
+    _repository.broadcastItemUsed(
+      userId: _localPlayer.id,
+      objectId: item.objectId,
+      position: _localPlayer.position,
+    );
+
+    // Persist
+    final success = await _multiplayerRepository.consumeItem(item.objectId);
+    if (!success) {
+      // Revert if failed
+      item.quantity++;
+      _inventoryHud.updateItems(_inventory);
+      print("Failed to consume item");
+    }
+  }
+
+  void _handlePlayerUseItem(Map<String, dynamic> payload) {
+    final userId = payload['user_id'] as String;
+    final objectId = payload['object_id'] as String;
+
+    if (userId == _localPlayer.id) return; // Already handled locally
+
+    if (_remotePlayers.containsKey(userId)) {
+      _applyItemEffect(_remotePlayers[userId]!, objectId);
+    }
+  }
+
+  void _applyItemEffect(MultiplayerPlayer player, String objectId) {
+    print("Player ${player.id} used $objectId");
+
+    // Visual effect based on item type
+    // For now, just a simple visual indicator
+    world.add(
+      CircleComponent(
+        radius: 30,
+        paint: BasicPalette.green.withAlpha(100).paint(),
+        position: player.position,
+        anchor: Anchor.center,
+        priority: 100,
+      )..add(
+        TimerComponent(
+          period: 0.5,
+          removeOnFinish: true,
+          onTick: () {},
+        ),
+      ),
+    );
+
+    // Logic effects (e.g. heal) would go here
+    if (objectId == 'health_potion') {
+      // player.heal(20);
     }
   }
 

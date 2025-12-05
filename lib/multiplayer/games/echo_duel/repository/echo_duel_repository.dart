@@ -39,6 +39,7 @@ class EchoDuelRepository {
     void Function(Map<String, dynamic>) onGameStateUpdate,
     void Function(Map<String, dynamic>) onPlayerShoot,
     void Function(Map<String, dynamic>) onPlayerHit,
+    void Function(Map<String, dynamic>) onPlayerUseItem,
   ) async {
     _gameChannel = _client.channel('game_$matchId');
 
@@ -59,6 +60,12 @@ class EchoDuelRepository {
           event: 'player_hit',
           callback: (payload) {
             onPlayerHit(payload);
+          },
+        )
+        .onBroadcast(
+          event: 'player_use_item',
+          callback: (payload) {
+            onPlayerUseItem(payload);
           },
         )
         .subscribe();
@@ -107,6 +114,23 @@ class EchoDuelRepository {
         'victim_id': victimId,
         'damage': damage,
         'shooter_id': _client.auth.currentUser?.id,
+        'timestamp': serverTime,
+      },
+    );
+  }
+
+  Future<void> broadcastItemUsed({
+    required String userId,
+    required String objectId,
+    required Vector2 position,
+  }) async {
+    await _gameChannel?.sendBroadcastMessage(
+      event: 'player_use_item',
+      payload: {
+        'user_id': userId,
+        'object_id': objectId,
+        'x': position.x,
+        'y': position.y,
         'timestamp': serverTime,
       },
     );
